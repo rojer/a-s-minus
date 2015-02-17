@@ -1,14 +1,12 @@
 {
-   "api_console_project_id": "250015934524",
    "background": {
       "page": "background.html"
    },
    "browser_action": {
       "default_icon": "images/icon19.png",
       "default_popup": "popup.html",
-      "default_title": "__MSG_extName__"
+      "default_title": "AS-"
    },
-   "container": "GOOGLE_DRIVE",
    "content_scripts": [ {
       "css": [ "stylesheets/selected.css" ],
       "exclude_globs": [ "http://awesomescreenshot.com/save-local-flash/SaveToDisk.html" ],
@@ -24,11 +22,6 @@
       "js": [ "oauth2/oauth2_inject.js" ],
       "matches": [ "http://www.google.com/robots.txt*" ],
       "run_at": "document_start"
-   }, {
-      "all_frames": false,
-      "js": [ "javascripts/tp/DCM/page-state-tracker.js" ],
-      "matches": [ "*://*/*" ],
-      "run_at": "document_start"
    } ],
    "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
    "default_locale": "en",
@@ -42,10 +35,10 @@
    "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC6o75JBFQSfnB7VYBgtp04P+emAK6cQjz/TLC5hhkju0PNfvO3YMVIW3sLveHBJf5/ijkinospD0HyLPUunaOkg/QLKiYO3mXHu+O0sufLa5Ja12goPERVHh0veITsBsZUpk0FySsxiwCFbDTslSFDR+MvGxFoJJkWZWyfCoelGwIDAQAB",
    "manifest_version": 2,
    "minimum_chrome_version": "6.0",
-   "name": "__MSG_extName__",
+   "name": "AS-",
    "options_page": "options.html",
-   "permissions": [ "tabs", "\u003Call_urls>", "https://accounts.google.com/o/oauth2/token", "webRequest", "webRequestBlocking", "idle", "storage", "webNavigation", "unlimitedStorage", "desktopCapture" ],
+   "permissions": [ "tabs", "<all_urls>", "https://accounts.google.com/o/oauth2/token", "webRequest", "webRequestBlocking", "idle", "storage", "webNavigation", "unlimitedStorage", "desktopCapture" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "3.7.22",
+   "version": "3.7.22.0",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://alelhddbbhepgpmgidjdcjakblofbmce/#" ]
 }
