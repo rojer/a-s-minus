@@ -1,0 +1,131 @@
+html{
+    height: 100%;
+}
+
+body{
+    margin: 0px;
+    padding: 0px;
+    font: 12px/1 Helvetica,arial,sans-serif;
+    background: #CCC url(../images/bg-pattern.png);
+    height: 100%;
+}
+
+header{
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    width: 100%;
+    height: 49px;
+    background: #464646 url(../images/tool-panel-bg.png) repeat-x fixed 0 0;
+}
+
+#logo{
+    position: absolute;
+    z-index: 2;
+    height: 24px;
+    bottom: 0;
+    left: 48px;
+    padding-left: 54px;
+    background: url("../images/logo-half.png") no-repeat top left;
+    color: #666;
+    font-size: 14px;
+    line-height: 24px;
+    -webkit-transition: color ease-in .2s;
+    text-decoration: none;
+}
+
+#logo:hover {
+    background: url(../images/logo-half.png) no-repeat bottom left;
+    color: #FFF;
+}
+
+#exit{
+    position: fixed;
+    top: 12px;
+    right: 10px;
+    padding: 2px 5px;
+    cursor: pointer;
+}
+
+#exit span {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url(../images/icons.png);
+    background-repeat: no-repeat;
+    background-position: -320px -20px;
+}
+
+#exit:hover span {
+    background-position: -320px 0;
+}
+
+#dropZone{
+    text-align: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 900px;
+    height: 350px;
+    -webkit-transform:translate(-50%, -50%);
+    color: #ffffff;
+    text-shadow: 0px 1px 0px rgba(0,0,0,.2);
+    border: 3px dashed #ffffff;
+    background-color: rgba(0,0,0,.1);
+    cursor: pointer;
+}
+
+#dropZone p{
+    font-size: 18px;
+    margin: 10px 0px;
+}
+
+
+#upload-icon{
+    display: inline-block;
+    height: 103px;
+    width: 152px;
+    background-image: url("../images/image.png");
+    margin-top: 80px;
+    margin-bottom: 10px;
+}
+
+#upload-button{
+    text-align: center;
+    display: inline-block;
+    padding: 15px 104px;
+    position: relative;
+    border: 1px solid #444;
+    box-shadow: 0px 1px 3px rgba(0,0,0,.25);
+    background-image: -webkit-linear-gradient(top,#fff,#fafafa);
+    color: #333;
+    font-size: 18px;
+    border-radius: 3px;
+    margin-top: 44px;
+    text-shadow:none;
+}
+
+#upload-button:hover{
+    background-image: -webkit-linear-gradient(top,#4a84f6,#386fdc);
+    border: 1px solid #1e4ba5;
+    color: #fff;
+}
+
+#dropZone:hover{
+    background-color: rgba(0,0,0,.15);
+}
+#dropZone.hover{
+    background-color: rgba(0,0,0,.25);
+}
+
+#image_file{
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+    cursor: pointer;
+}

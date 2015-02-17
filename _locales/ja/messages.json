@@ -1,0 +1,267 @@
+{
+   "arrow": {
+      "description": "Arrow title",
+      "message": "矢印"
+   },
+   "blur": {
+      "description": "Blur title",
+      "message": "ぼかし"
+   },
+   "cancelBtn": {
+      "description": "Cancel button",
+      "message": "キャンセル"
+   },
+   "capture_hint": {
+      "description": "Capturing hint",
+      "message": "$CODE1$キャプチャー中",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "cemail": {
+      "message": "提案はこちらまで screenshot@diigo.com"
+   },
+   "color": {
+      "description": "Color Picker title",
+      "message": "色選択"
+   },
+   "crop": {
+      "description": "Crop title",
+      "message": "スクリーンショットの一部を切り取る"
+   },
+   "cropTip": {
+      "description": "Crop Tooltip",
+      "message": "クリックしてドラッグで選んでください。"
+   },
+   "desktop": {
+      "description": "Popup menu",
+      "message": "$CODE1$Capture desktop",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "diigo_web_highlighter": {
+      "message": "Web Highlighter - Another Extension by Diigo"
+   },
+   "disableEntireTitle": {
+      "description": "Disable Entire Title",
+      "message": "ローカルページや拡張ギャラリーでは動作しません。"
+   },
+   "doneBtn": {
+      "description": "Done button",
+      "message": "Crop"
+   },
+   "editTitle": {
+      "description": "Annotate page title",
+      "message": "スクリーンショットに注釈をつける。"
+   },
+   "ellipse": {
+      "description": "Ellipse title",
+      "message": "楕円"
+   },
+   "entire": {
+      "description": "Popup menu",
+      "message": "$CODE1$Capture entire page",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "entire_title": {
+      "message": ""
+   },
+   "extDesc": {
+      "description": "Extension description.",
+      "message": "ページ全体や一部をキャプチャーし、各種の図形や文字で注釈をつけ、ワンクリックでアップロードして共有できます。"
+   },
+   "extName": {
+      "description": "Extension name.",
+      "message": "Awesome Screenshot: キャプチャーと注釈"
+   },
+   "freeline": {
+      "description": "Free Line title",
+      "message": "自由曲線"
+   },
+   "image_loader": {
+      "description": "Preparing loader",
+      "message": "画像の準備中"
+   },
+   "line": {
+      "description": "Line title",
+      "message": "線"
+   },
+   "logo": {
+      "description": "Awesome Screenshot logo title",
+      "message": "Awesome Screenshot"
+   },
+   "rating": {
+      "message": "どうか良い５つ星評価で、我々をサポートしてください。"
+   },
+   "reEdit": {
+      "description": "Re-edit link takes user back to re-edit the screenshot",
+      "message": "このスクリーンショットを再編集"
+   },
+   "rectangle": {
+      "description": "Rectangle title",
+      "message": "長方形"
+   },
+   "saveBtn": {
+      "description": "Save button",
+      "message": "完了"
+   },
+   "save_button": {
+      "message": "Save"
+   },
+   "save_congrats": {
+      "description": "Congratulations",
+      "message": "おめでとう！スクリーンショットが出来上がりました。"
+   },
+   "save_howto": {
+      "description": "How to header",
+      "message": "使い方"
+   },
+   "save_local": {
+      "description": "Option 1",
+      "message": "オプション1：イメージを保存"
+   },
+   "savedShareDesc": {
+      "description": "Option 3 details description",
+      "message": "$CODE1$Upload$CODE2$Uploading$CODE3$Cancel$CODE4$Fail to upload to awesomescreenshot.com. You can crop the image to a smaller size and $CODE5$try it again$CODE6$. Shoot an email to $CODE7$screenshot@diigo.com$CODE8$if you still experience problems. $CODE8_5$Twitter$CODE9$Facebook$CODE10$Buzz$CODE11$Gmail$CODE12$Yahoo mail$CODE13$Hotmail$CODE14$Image Link (share via MSN, GTalk, etc.)$CODE15$Link Copied!$CODE16$",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cp>\u003Ca id='upload' href='javascript:void(0)'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code10": {
+            "content": "\u003C/a>\u003Ca id='buzz' href='http://www.google.com/buzz/post?' target='_blank'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code11": {
+            "content": "\u003C/a>\u003C/div>\u003Cdiv id='email-link'>\u003Ca id='gmail' href='https://mail.google.com/mail/?view=cm&tf=0&fs=1&body=' target='_blank'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code12": {
+            "content": "\u003C/a>\u003Ca id='yahoo' href='http://compose.mail.yahoo.com/' target='_blank'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code13": {
+            "content": "\u003C/a>\u003Ca id='hotmail' href='http://www.hotmail.msn.com/secure/start?action=compose&body=' target='_blank'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code14": {
+            "content": "\u003C/a>\u003C/div>\u003Cdiv id='share-link'>\u003Cp>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code15": {
+            "content": "\u003C/p>\u003Cinput type='text' />\u003Cspan>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code16": {
+            "content": "\u003C/span>\u003C/div>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code2": {
+            "content": "\u003C/a> to \u003Ca href='http://awesomescreenshot.com' target='_blank' class='lightLink'>awesomescreenshot.com\u003C/a>\u003C/p>\u003Cdiv id='loader'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code3": {
+            "content": "\u003Ca id='cancel_upload' href='javascript:void(0)'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code4": {
+            "content": "\u003C/a>\u003C/div>\u003Cdiv id='error'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code5": {
+            "content": "\u003Ca href='javascript:void(0)' id='retry'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code6": {
+            "content": "\u003C/a>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code7": {
+            "content": "\u003Ca id='upload_error_contact' href='mailto:screenshot@diigo.com?subject=Awesome Screenshot (Chrome) Upload Error'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code8": {
+            "content": "\u003C/a>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code8_5": {
+            "content": "\u003C/div>\u003Cdiv id='share-button'>\u003Ca id='twitter' href='http://twitter.com/home?status=' target='_blank'>\u003Cspan>\u003C/span>"
+         },
+         "code9": {
+            "content": "\u003C/a>\u003Ca id='facebook' href='http://www.facebook.com/sharer.php?u=' target='_blank'>\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "scriptOff": {
+      "description": "Capturing hint",
+      "message": "Script not loaded, $CODE1$reload$CODE2$",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Ca href='javascript:void(0)'>",
+            "example": "\u003Ca>\u003C/a>"
+         },
+         "code2": {
+            "content": "\u003C/a>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "share": {
+      "message": "Option 2: Upload it to get a shareable link"
+   },
+   "text": {
+      "description": "Text title",
+      "message": "テキスト"
+   },
+   "tip1": {
+      "description": "Screen captured, ready to",
+      "message": "画面で、準備ができキャプチャ"
+   },
+   "tip2": {
+      "description": "and Annotate ",
+      "message": "そして、注釈"
+   },
+   "tweet": {
+      "message": "Please Tweet about Awesome Screenshot"
+   },
+   "undo": {
+      "description": "Undo title",
+      "message": "元に戻す"
+   },
+   "upload": {
+      "description": "Popup menu",
+      "message": "$CODE1$Select a local image",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "visible": {
+      "description": "Popup menu",
+      "message": "$CODE1$Capture visible part of page",
+      "placeholders": {
+         "code1": {
+            "content": "\u003Cspan>\u003C/span>",
+            "example": "\u003Ca>\u003C/a>"
+         }
+      }
+   },
+   "visible_title": {
+      "message": ""
+   }
+}

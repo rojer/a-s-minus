@@ -1,0 +1,75 @@
+body { 
+    width:277px;
+    color:#000; font:12px/20px Helvetica,arial,sans-serif;
+    padding: 3px;
+    margin: 0;
+} 
+
+ul { padding:0;margin:0; }
+ul li{ list-style:none; height:20px;margin-bottom: 7px;}
+ul li:last-child{margin-bottom: 4px;}
+
+ul li a {
+    color:#303030; text-decoration:none;
+    display: block;
+    border-radius: 4px;
+    padding: 2px;
+	-webkit-transition:all ease-in .25s;
+    
+}
+ul li a:hover {
+    background-color: #eceff5;
+    color: #000;
+    cursor:pointer;
+}
+hr{
+    border: 1px dashed #c1c1c1;
+}
+a span, #capturing span { float:left; width:20px; height:20px; margin-right:5px; }
+a span {background:url(../images/icons.png) no-repeat -260px 0; }
+a#selected span { background-position: -260px -40px; }
+a#entire span { background-position: -260px -20px; }
+#entire b { font-size:10px;  }
+#capturing {display:none; font-weight:bold; margin: 15px 0px; text-align:center;}
+#capturing .inner{width:100px; margin:auto; text-align:left;}
+#capturing span { background:url(../images/loader.gif) no-repeat center center; }
+#script_off {display:none; text-align: center; }
+a#option span{background-position: -280px -40px;}
+a#help span {background-position: -299px -40px;}
+a#donate span {background-position: -220px -40px;}
+a#upload span {background-position: -320px -40px;}
+a#desktop span {background-position: -240px -40px;}
+a#delay-capture span {background-position: -200px -40px;}
+
+.shortcut{
+    float: right;
+    width: auto;
+    height: auto;
+    background: none;
+    color: #c9c9c9;
+    font-size: 11px;
+}
+
+#moreLinks{
+    margin-top: 8px;
+    border-top:1px solid #aaa;
+    padding-top: 2px;
+}
+
+.tip {
+    font-size: 12px;
+    color: #09f;
+    float: right;
+    width: auto;
+    height: auto;
+    background: none;
+}
+
+#delay-capture{
+    padding-left: 26px;
+}
+
+li.sep {
+    height: 1px;
+    background-color: #eee;
+}

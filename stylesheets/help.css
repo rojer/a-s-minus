@@ -1,0 +1,75 @@
+body{
+    padding:0px;
+    margin:0px;
+    /*background-image:url(image/bg.png);*/
+    background-color:#73757c;
+    font: normal 14px/20px arial, Helvetica;
+}
+
+#main{
+    background-color:#F0F0F0;
+    width:717px;
+    margin:0 auto;
+    margin-top:50px;
+    margin-bottom:10px;
+    -webkit-border-radius:3px;
+    /*-webkit-box-shadow:5px 5px 10px #404040;*/
+    -webkit-box-shadow:0px 0px 20px rgba(0,0,0,0.6);
+    padding: 23px 23px 46px 23px;
+}
+
+#title{
+    height:48px;
+    width:700px;
+    position: relative;
+    margin-bottom: 5px;
+}
+#title img{
+    float:left;
+}
+#word{
+    margin-left:21px;
+    float:left;
+    font-size:24px;
+    line-height: 48px;
+    color:#39c;
+
+}
+
+#content{
+    margin-left: 23px;
+    margin-top: 20px;
+    padding: 0px 0px 0px 49px;
+    color: #000;
+}
+
+#steps{
+    font: normal 14px/24px arial, Helvetica;
+    color: #333;
+}
+p{
+    max-width: 600px;
+}
+#more{
+    margin-top: 20px;
+}
+#steps p{
+    margin: 5px 0px;
+}
+.sep{
+    background-image:url(../images/fenge.png);
+    height:9px;
+    width:752px;
+    position: relative;
+    left: -94px;
+    margin-top: 20px;
+}
+
+a{
+    color: #0072d6;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
