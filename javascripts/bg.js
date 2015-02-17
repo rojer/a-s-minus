@@ -224,4 +224,3 @@ chrome.runtime.onInstalled.addListener(function(a){
 
 localStorage.removeItem("isClickedOnNew");
 localStorage.version = currentversion;
-google.payments.inapp.getPurchases({parameters:{env:"prod"},success:onLicenseUpdate,failure:onLicenseUpdateFail});
