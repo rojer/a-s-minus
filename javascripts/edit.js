@@ -183,13 +183,126 @@ SavePage.uploadImageToAS=function(){$(".as .saveForm").hide("fast").after($('<di
 
 SavePage.uploadImageToDiigo=function(){$(".diigo .saveForm").hide("fast").after($('<div class="loader">Uploading</div>'));var a={items:[{local_id:"image",server_id:-1,cmd:1,type:2,local_file_md5:hex_md5(SavePage.getImageSrc()),tags:$(".diigo input[name=tags]").val(),mode:$("#privacy").is(":checked")?2:0,title:$(".diigo input[name=title]").val()||tabtitle,src_url:/http:|https:|ftp:/.test(taburl)?taburl:"",src_title:tabtitle}]};SavePage.loadUserInfo(JSON.parse(localStorage.user_info).info.user_id,function(b){var c=JSON.parse(b.response).result,d=c.permission;localStorage.user_info=JSON.stringify(c),(d.is_premium||d.image)&&SavePage.request("uploadItems",a,function(a){SavePage.showUploadResponse("diigo",JSON.parse(a.response).result.items[0])})})};
 
-SavePage.setPublicGdrive=function(a){googleAuth.authorize(function(){var b=new XMLHttpRequest;b.open("POST","https://www.googleapis.com/drive/v2/files/"+a+"/permissions"),b.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken()),b.setRequestHeader("Content-Type","application/json");var c={role:"reader",type:"anyone"},d=JSON.stringify(c);b.onreadystatechange=function(){4==this.readyState},b.send(d)})};
+SavePage.setPublicGdrive = function(a){
+  googleAuth.authorize(function(){
+    var b=new XMLHttpRequest;
+    b.open("POST","https://www.googleapis.com/drive/v2/files/"+a+"/permissions");
+    b.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken());
+    b.setRequestHeader("Content-Type","application/json");
+    var c={role:"reader",type:"anyone"};
+    var d=JSON.stringify(c);
+    b.onreadystatechange=function(){4==this.readyState};
+    b.send(d);
+  });
+};
 
-SavePage.saveToGdrive=function(){var a=SavePage.getImageSrc(),b=$("#gdriveImageName").val();googleAuth.authorize(function(){var c=new XMLHttpRequest;c.open("POST","https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart"),c.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken()),c.setRequestHeader("Content-Type",'multipart/mixed; boundary="--287032381131322"'),c.onreadystatechange=function(){if(4==this.readyState){switch(uploadFlag=!1,c.status){case 200:var a=JSON.parse(c.response);a.alternateLink&&a.ownerNames&&(0==$("#gdrive-private").prop("checked")?SavePage.setPublicGdrive(a.id):$("#gdrive-share-link p").text("Image Link (Private, only you can view it.)"),$("#gdrive-user").show(),$(".loader").remove(),$("#gdrive-share-link input").val(a.alternateLink),$("#sccess-tip").show().delay(1e3).fadeOut(),$("#gdrive-share-link").show());break;case 401:$("#GauthError").jqm().jqmShow(),$(".loader").remove(),$(".sgdrive .saveForm").show();break;default:$("#networkError").jqm().jqmShow(),$(".loader").remove(),$(".sgdrive .saveForm").show()}c=null}};const d="--287032381131322",e="\r\n--"+d+"\r\n",f="\r\n--"+d+"--";var g={title:b+".png",mimeType:"image/png",description:"Uploaded by Awesome Screenshot Extension"},h=e+"Content-Type: application/json\r\n\r\n"+JSON.stringify(g)+e+"Content-Type: image/png\r\nContent-Transfer-Encoding: base64\r\n\r\n"+a+f;c.send(h),uploadFlag=!0;var i=new XMLHttpRequest;i.open("GET","https://www.googleapis.com/oauth2/v2/userinfo"),i.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken()),i.onreadystatechange=function(){if(4==this.readyState){var a=JSON.parse(i.response);localStorage.gdrive_current_user=a.email,$("#saveOptionList li.sgdrive span").text("("+a.email+")"),$("#gdrive-user p span").text(a.email)}},i.send(),$(".sgdrive .saveForm").hide("fast").after($('<div class="loader">Uploading</div>'))})};
+SavePage.saveToGdrive = function(){
+  var a=SavePage.getImageSrc();
+  var b=$("#gdriveImageName").val();
+  googleAuth.authorize(function(){
+    var c=new XMLHttpRequest;
+    c.open("POST","https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart");
+    c.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken());
+    c.setRequestHeader("Content-Type",'multipart/mixed; boundary="--287032381131322"');
+    c.onreadystatechange=function(){
+      uploadFlag=!1;
+      if(4==this.readyState){
+        switch(c.status){
+          case 200: {
+            var a=JSON.parse(c.response);
+            if (a.alternateLink && a.ownerNames) {
+              if (0==$("#gdrive-private").prop("checked")) {
+                SavePage.setPublicGdrive(a.id);
+              } else {
+                $("#gdrive-share-link p").text("Image Link (Private, only you can view it.)");
+                $("#gdrive-user").show();
+                $(".loader").remove();
+                $("#gdrive-share-link input").val(a.alternateLink);
+                $("#sccess-tip").show().delay(1e3).fadeOut();
+                $("#gdrive-share-link").show();
+              }
+            }
+            break;
+          }
+          case 401: $("#GauthError").jqm().jqmShow(),$(".loader").remove(),$(".sgdrive .saveForm").show(); break;
+          default: $("#networkError").jqm().jqmShow(),$(".loader").remove(),$(".sgdrive .saveForm").show();
+        };
+        c=null;
+      }
+    };
+    const d="--287032381131322",e="\r\n--"+d+"\r\n",f="\r\n--"+d+"--";
+    var g={title:b+".png",mimeType:"image/png",description:"Uploaded by Awesome Screenshot Extension"};
+    var h=e+"Content-Type: application/json\r\n\r\n"+JSON.stringify(g)+e+"Content-Type: image/png\r\nContent-Transfer-Encoding: base64\r\n\r\n"+a+f;
+    c.send(h);
+    uploadFlag=!0;
+    var i=new XMLHttpRequest;
+    i.open("GET","https://www.googleapis.com/oauth2/v2/userinfo");
+    i.setRequestHeader("Authorization","OAuth "+googleAuth.getAccessToken());
+    i.onreadystatechange=function(){
+      if(4==this.readyState){
+        var a=JSON.parse(i.response);
+        localStorage.gdrive_current_user=a.email;
+        $("#saveOptionList li.sgdrive span").text("("+a.email+")");
+        $("#gdrive-user p span").text(a.email);
+      }
+    };
+    i.send();
+    $(".sgdrive .saveForm").hide("fast").after($('<div class="loader">Uploading</div>'));
+  });
+};
 
-SavePage.saveLocal=function(){function a(a,b,c){function d(a){return a.charCodeAt(0)}b=b||"",c=c||1024;for(var e=atob(a),f=[],g=0;g<e.length;g+=c){var h=e.slice(g,g+c),i=Array.prototype.map.call(h,d),j=new Uint8Array(i);f.push(j)}var k=new Blob(f,{type:b});return k}try{}catch(b){console.log(b);var c=document.getElementById("save-image").src,d=c.split(",")[1],e=c.split(",")[0].split(":")[1].split(";")[0],f=a(d,e),g=(window.webkitURL||window.URL).createObjectURL(f),h=document.createElement("a"),i=document.createEvent("MouseEvents");i.initMouseEvent("click",!0,!0,window,1,0,0,0,0,!1,!1,!1,!1,0,null),h.setAttribute("href",g),h.setAttribute("download",tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")+"."+e.split("/")[1]),h.dispatchEvent(i)}};
+SavePage.saveLocal=function(){
+  function a(a,b,c){
+    function d(a){return a.charCodeAt(0)};
+    b=b||"";
+    c=c||1024;
+    for(var e=atob(a),f=[],g=0;g<e.length;g+=c){
+      var h=e.slice(g,g+c);
+      var i=Array.prototype.map.call(h,d);
+      var j=new Uint8Array(i);
+      f.push(j);
+    }
+    var k=new Blob(f,{type:b});
+    return k;
+  }
+  try{}catch(b){  // ???
+    console.log(b);
+    var c=document.getElementById("save-image").src;
+    var d=c.split(",")[1];
+    var e=c.split(",")[0].split(":")[1].split(";")[0];
+    var f=a(d,e);
+    var g=(window.webkitURL||window.URL).createObjectURL(f);
+    var h=document.createElement("a");
+    var i=document.createEvent("MouseEvents");
+    i.initMouseEvent("click",!0,!0,window,1,0,0,0,0,!1,!1,!1,!1,0,null);
+    h.setAttribute("href",g);
+    h.setAttribute("download",tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")+"."+e.split("/")[1]);
+    h.dispatchEvent(i);
+  }
+};
 
-SavePage.copy=function(){try{var a=$('<div contenteditable="true"></div>').css({height:"500px",width:"500px",position:"absolute"}).appendTo(document.body).append($("#save-image").clone()).append("test").focus(),b=document.createRange();console.log(a.find("#save-image")[0]),b.selectNode(a[0]);var c=window.getSelection();c.removeAllRanges(),c.addRange(b),document.execCommand("Copy",!1,null),a.remove(),$(".copy_success").show(0).delay(3e3).fadeOut("slow")}catch(d){console.log(d),$(".copy_unsupport").show(0).delay(3e3).fadeOut("slow")}};
+SavePage.copy=function(){
+  try {
+    var a=$('<div contenteditable="true"></div>')
+      .css({height:"500px",width:"500px",position:"absolute"})
+      .appendTo(document.body)
+      .append($("#save-image").clone())
+      .append("test")
+      .focus();
+    var b=document.createRange();
+    console.log(a.find("#save-image")[0]);
+    b.selectNode(a[0]);
+    var c=window.getSelection();
+    c.removeAllRanges();
+    c.addRange(b);
+    document.execCommand("Copy",!1,null);
+    a.remove();
+    $(".copy_success").show(0).delay(3e3).fadeOut("slow");
+  } catch(d) {
+    console.log(d);
+    $(".copy_unsupport").show(0).delay(3e3).fadeOut("slow");
+  }
+};
 
 SavePage.print=function(){var a=$("#print_area").html(),b=document.createElement("IFRAME");$(b).attr({style:"position:absolute;width:0px;height:0px;left:-500px;top:-500px;",id:"print"}),document.body.appendChild(b);var c='<div style="margin:0 auto;text-align:center">'+a+"</div>",d=b.contentWindow.document;d.write(c);var e=b.contentWindow;e.close(),e.focus(),e.print(),$("iframe#print").remove()};
 
