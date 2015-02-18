@@ -105,7 +105,29 @@ function prepareEditArea(a){
 }
 
 function prepareTools(){
-  $("#exit").click(function(){chrome.extension.sendRequest({action:"exit"})}),$("#launch-app").unbind().click(function(){if(isAppInstalled){var a=showCanvas.toDataURL();chrome.runtime.sendMessage("afkccfnochoebimhhniekgcegeeiepmi",{name:"launch",dataUrl:a,title:tabtitle})}else chrome.tabs.create({url:"https://chrome.google.com/webstore/detail/awesome-screenshot-app/afkccfnochoebimhhniekgcegeeiepmi"})}),$("#tool-panel>div").click(function(a){function b(a){var c=a.nodeName;return"A"!=c&&"DIV"!=c&&(a=a.parentNode,b(a)),a}var c=b(a.target);console.log(c),"DIV"!=c.nodeName&&tool(c.id)});
+  $("#exit").click(function(){
+    chrome.extension.sendRequest({action:"exit"});
+  });
+
+  $("#launch-app").unbind().click(function(){
+    if (isAppInstalled) {
+      var a=showCanvas.toDataURL();
+      chrome.runtime.sendMessage("afkccfnochoebimhhniekgcegeeiepmi", {name:"launch",dataUrl:a,title:tabtitle});
+    } else {
+      chrome.tabs.create({url:"https://chrome.google.com/webstore/detail/awesome-screenshot-app/afkccfnochoebimhhniekgcegeeiepmi"});
+    }
+  });
+
+  $("#tool-panel>div").click(function(a){
+    function b(a){
+      var c=a.nodeName;
+      "A"!=c&&"DIV"!=c&&(a=a.parentNode,b(a));
+      return a;
+    }
+    var c=b(a.target);
+    console.log(c);
+    "DIV"!=c.nodeName&&tool(c.id);
+  });
 }
 
 function preparePromote(){
@@ -126,8 +148,145 @@ function changeDimension(a,b){
 
 function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
 
-function save(){
-  function a(){function a(){$("#image_loader").hide(),$("#save-image, #re-edit").css({visibility:"visible"}),$("#save-image").outerWidth()>parseInt($("#save_image_wrapper").css("width"))&&$("#save-image").css({width:"100%"}),$("#save-tip").show()}function b(b){$("#save-image")[0].src!=b?$("#save-image").attr({src:b}).load(function(){$(this).css({width:"auto"}),this.width>=parseInt($("#save_image_wrapper").css("width"))&&$(this).css({width:"100%"}),a(),$(this).unbind()}):a()}c="jpg"==localStorage.format?showCanvas.toDataURL("image/jpeg"):showCanvas.toDataURL(),b(c);var d=$("#save-image").attr("src").split(",")[1].replace(/\+/g,"%2b"),e=tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," "),f=$("#save-image").attr("src").split(",")[0].split("/")[1].split(";")[0];$("#save-flash-btn").empty().append('<div id="flash-save"></div>');var g="10",h=null,i={data:d,dataType:"base64",filename:e+"."+f,width:100,height:30},j={allowScriptAccess:"always"},k={};k.id="CreateSaveWindow",k.name="CreateSaveWindow",k.align="middle",swfobject.embedSWF("media/CreateSaveWindow.swf","flash-save","100","30",g,h,i,j,k),chrome.extension.sendRequest({action:"return_image_data",data:c.replace(/^data:image\/(png|jpeg);base64,/,""),title:tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")})}function b(){function a(){localStorage.format&&!isPngCompressed&&(l.image_type=localStorage.format),e=$.ajax({url:m+"cmd="+h+"&pv="+i+"&ct="+j+"&cv="+k,type:"POST",data:JSON.stringify(l),timeout:3e5,dataType:"json",contentType:"text/plain; charset=UTF-8",beforeSend:function(){$("#saveOnline .content").hide("fast"),$("#legacySave").show(),$("#loader").fadeIn("slow")},error:function(){c()},success:function(a,d,e){$("#loader").hide(),200==e.status&&1==a.code?(b(a.result.url),isGASafe&&_gaq.push(["_trackEvent","SavePageActions","upload_success","time"])):c()},complete:function(){}})}function b(a){$("#share-button, #email-link").show("slow").click(function(a){var b=a.target;$(b).addClass("visited")}).find("a").each(function(){var b=this;"buzz"==b.id&&(b.href+="message="+encodeURI(tabtitle)+"&url="+encodeURI(taburl)+"&imageurl="+a),"twitter"==b.id?b.href="http://twitter.com/share?url="+encodeURIComponent(a)+"&via=awe_screenshot&text="+tabtitle:$(b).attr({href:b.href+a})}),$("#share-link").show("slow").find('input[type="text"]').attr({value:a}).bind("mouseup",function(){$(this).select()})}function c(){$("#loader").hide("fast"),g||$("#error").show().find("#retry").unbind("click").click(function(){$("#error").hide(),$("#loader").show().find("a").unbind("click").click(d),a()})}function d(){g=1,e.abort(),$("#upload").parent().siblings().hide("fast").end().fadeIn("slow"),g=0}var e,f=$("#save-image").attr("src").replace(/^data:image\/(png|jpeg);base64,/,""),g=0,h="imageUpload",i="1.0",j="chrome",k=getLocVersion(),l={src_url:taburl,src_title:tabtitle,image_md5:$.md5(f),image_type:"jpg",image_content:f},m="http://awesomescreenshot.com/client?";a(),window.showShare=b,window.errorHandle=c,window.abortUpload=d}$(".content>.as, .content>.as").removeAttr("style"),$("#saveOnline .content .diigo input[name=title]").val(tabtitle),document.body.scrollTop=0,$("#save-tip").hide(),$("#image_loader").css({display:"inline-block"}),$("#save-image, #re-edit").css({visibility:"hidden"}),$("body").removeClass("crop draw-text").addClass("save"),$("#save").removeClass("active"),$("#show-canvas").toggle(),$("#draw-canvas").attr({width:0,height:0}),$("#share+dd").html(chrome.i18n.getMessage("savedShareDesc")),$("#upload").parent().html($("#upload")[0].outerHTML),$($editArea).enableSelection(),$("#upload").unbind().click(b),$("#re-edit").unbind().text(chrome.i18n.getMessage("reEdit")).click(function(){return 1==uploadFlag?void $("#uploadingWarning").jqm().jqmShow():($("#saveOnline .content .diigo input[name=title]").val(""),$("body").removeClass("save"),$("#show-canvas").toggle(),$($editArea).disableSelection(),$("#share+dd div").hide(),$("#save_local+dd>p").hide(),$("#gdrive-share-link").hide(),void $(".sgdrive .saveForm").show())});var c="";setTimeout(a,100),window.uploadImageToAS=b,isSavePageInit||(SavePage.init(),isSavePageInit=!0)
+function save() {
+  function embedLocalSave() {
+    function a() {
+      $("#image_loader").hide(),$("#save-image, #re-edit").css({visibility:"visible"});
+      if ($("#save-image").outerWidth() > parseInt($("#save_image_wrapper").css("width"))) {
+        $("#save-image").css({width:"100%"});
+      }
+      $("#save-tip").show();
+    }
+    function b(b) {
+      $("#save-image")[0].src!=b?$("#save-image").attr({src:b}).load(function(){$(this).css({width:"auto"}),this.width>=parseInt($("#save_image_wrapper").css("width"))&&$(this).css({width:"100%"}),a(),$(this).unbind()}):a();
+    }
+    c = ("jpg" == localStorage.format) ? showCanvas.toDataURL("image/jpeg") : showCanvas.toDataURL();
+    b(c);
+    var d = $("#save-image").attr("src").split(",")[1].replace(/\+/g,"%2b");
+    e = tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g, " ");
+    f = $("#save-image").attr("src").split(",")[0].split("/")[1].split(";")[0];
+    $("#save-flash-btn").empty().append('<div id="flash-save"></div>');
+    var g = "10", h = null;
+    var i = {data:d,dataType:"base64",filename:e+"."+f,width:100,height:30};
+    var j = {allowScriptAccess:"always"};
+    var k = {};
+    k.id = "CreateSaveWindow";
+    k.name = "CreateSaveWindow";
+    k.align = "middle";
+    swfobject.embedSWF("media/CreateSaveWindow.swf","flash-save","100","30",g,h,i,j,k);
+    chrome.extension.sendRequest({
+      action: "return_image_data",
+      data: c.replace(/^data:image\/(png|jpeg);base64,/,""),
+      title: tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")
+    });
+  }
+
+  function onUploadClicked() {
+    function uploadToAS() {
+      if (localStorage.format && !isPngCompressed) {
+        l.image_type = localStorage.format;
+      }
+      e = $.ajax({
+        url: m+"cmd="+h+"&pv="+i+"&ct="+j+"&cv="+k,
+        type: "POST",
+        data: JSON.stringify(l),
+        timeout: 3e5,
+        dataType: "json",
+        contentType: "text/plain; charset=UTF-8",
+        beforeSend: function() {
+          $("#saveOnline .content").hide("fast");
+          $("#legacySave").show();
+          $("#loader").fadeIn("slow");
+        },
+        error: function() { onUploadError(); },
+        success: function(a,d,e) {
+          $("#loader").hide();
+          if (200==e.status && 1==a.code) {
+            uploadDone(a.result.url);
+            isGASafe&&_gaq.push(["_trackEvent","SavePageActions","upload_success","time"]);
+          } else {
+            onUploadError();
+          }
+        },
+        complete:function(){}
+      });
+    }
+
+    function uploadDone(a){
+      $("#share-button, #email-link").show("slow").click(function(a){
+        var b=a.target;
+        $(b).addClass("visited");
+      }).find("a").each(function(){
+        var b=this;
+        if ("buzz"==b.id) {
+          b.href+="message="+encodeURI(tabtitle)+"&url="+encodeURI(taburl)+"&imageurl="+a;
+        }
+        if ("twitter"==b.id) {
+          b.href="http://twitter.com/share?url="+encodeURIComponent(a)+"&via=awe_screenshot&text="+tabtitle;
+        } else {
+          $(b).attr({href:b.href+a});
+        }
+      });
+      $("#share-link").show("slow").find('input[type="text"]').attr({value:a}).bind("mouseup",function(){$(this).select()});
+    }
+
+    function onUploadError() {
+      $("#loader").hide("fast"),g||$("#error").show().find("#retry").unbind("click").click(function(){$("#error").hide(),$("#loader").show().find("a").unbind("click").click(d),a()});
+    }
+
+    function d() {
+      g = 1;
+      e.abort();
+      $("#upload").parent().siblings().hide("fast").end().fadeIn("slow");
+      g = 0;
+    }
+
+    var e;
+    var f = $("#save-image").attr("src").replace(/^data:image\/(png|jpeg);base64,/,"");
+    var g = 0, h="imageUpload",i="1.0",j="chrome",k=getLocVersion();
+    var l = {src_url:taburl,src_title:tabtitle,image_md5:$.md5(f),image_type:"jpg",image_content:f};
+    var m = "http://awesomescreenshot.com/client?";
+    uploadToAS();
+    window.showShare = b;
+    window.errorHandle = c;
+    window.abortUpload = d;
+  }
+
+  $(".content>.as, .content>.as").removeAttr("style");
+  $("#saveOnline .content .diigo input[name=title]").val(tabtitle);
+  document.body.scrollTop = 0;
+  $("#save-tip").hide();
+  $("#image_loader").css({display:"inline-block"});
+  $("#save-image, #re-edit").css({visibility:"hidden"});
+  $("body").removeClass("crop draw-text").addClass("save");
+  $("#save").removeClass("active");
+  $("#show-canvas").toggle();
+  $("#draw-canvas").attr({width:0,height:0});
+  $("#share+dd").html(chrome.i18n.getMessage("savedShareDesc"));
+  $("#upload").parent().html($("#upload")[0].outerHTML);
+  $($editArea).enableSelection();
+  $("#upload").unbind().click(onUploadClicked);
+  $("#re-edit").unbind().text(chrome.i18n.getMessage("reEdit")).click(function(){
+    if (1 == uploadFlag) {
+      $("#uploadingWarning").jqm().jqmShow();
+    } else {
+      $("#saveOnline .content .diigo input[name=title]").val("");
+      $("body").removeClass("save");
+      $("#show-canvas").toggle();
+      $($editArea).disableSelection();
+      $("#share+dd div").hide();
+      $("#save_local+dd>p").hide();
+      $("#gdrive-share-link").hide();
+      $(".sgdrive .saveForm").show();
+    }
+  });
+  var c = "";
+  setTimeout(embedLocalSave, 100);
+  window.uploadImageToAS = onUploadClicked;
+  if (!isSavePageInit) {
+    SavePage.init();
+    isSavePageInit = !0;
+  }
 }
 
 function crop(){
