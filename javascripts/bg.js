@@ -211,7 +211,11 @@ chrome.extension.onRequest.addListener(function(a,b,c){
 });
 
 chrome.tabs.onUpdated.addListener(function(a,b,c) {
-  "chrome-extension://alelhddbbhepgpmgidjdcjakblofbmce/#" == b.url&&(chrome.tabs.remove(c.id),chrome.extension.sendRequest({name:"loginByGoogle"})),chrome.tabs.sendRequest(a,{action:"tabupdate"});
+  if ("chrome-extension://alelhddbbhepgpmgidjdcjakblofbmce/#" == b.url) {
+    chrome.tabs.remove(c.id);
+    chrome.extension.sendRequest({name:"loginByGoogle"});
+  }
+  chrome.tabs.sendRequest(a,{action:"tabupdate"});
 });
 
 chrome.tabs.onRemoved.addListener(function(a){
