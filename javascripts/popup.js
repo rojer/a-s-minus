@@ -10,7 +10,6 @@ $(document).ready(function(){
   var e,f=!0;
   b();
   a();
-  localStorage.capture_desktop&&"false"!=localStorage.capture_desktop||$("#desktop").append('<span class="tip">(Premium feature)</span>').css({color:"#909090"});
   chrome.windows.getCurrent(function(a){chrome.tabs.getSelected(a.id,function(a){console.log(new Date),e=a.url;var b=e.match(/https?:\/\/*\/*/gi);(null==b||e.match(/https:\/\/chrome.google.com\/extensions/i))&&$("#entire, #selected, #delay-capture").attr({title:chrome.i18n.getMessage("disableEntireTitle")}).css({color:"#909090"}).unbind("click"),"complete"!=a.status&&($("#selected").attr({title:"Page still loading! Please wait."}).css({color:"#909090"}),f=!1),/http|https|file|ftp/.test(e.slice(0,5))||$("#visible").css({color:"#909090"}).unbind("click")})});
   chrome.extension.onRequest.addListener(function(a){
     switch(a.action){
@@ -48,13 +47,6 @@ $(document).ready(function(){
     if("help"==a){
       var b=chrome.extension.getURL("")+"help.html";
       chrome.tabs.create({url:b});
-      window.close();
-    }
-    if ("desktop"==a) {
-      localStorage.capture_desktop&&"false"!=localStorage.capture_desktop?Bg.beginDesktop():chrome.tabs.create({url:chrome.extension.getURL("")+"purchase.html"}),window.close();
-    }
-    if ("donate"==a) {
-      chrome.tabs.create({url:chrome.extension.getURL("")+"purchase.html"});
       window.close();
     }
   });

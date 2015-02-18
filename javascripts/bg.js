@@ -115,34 +115,6 @@ function sendRequest(a,b,c){
   }
 }
 
-function onLicenseUpdate(a){
-  function b(){
-    if (d>0){
-      for (var a=0;d>a;a++) {
-        if ("capture_desktop_window"===c[a].sku) return !0;
-        return!1
-      }
-    }
-    return!1
-  }
-  var c=a.response.details;
-  console.log("onLicenseUpdate",c);
-  var d=c.length;
-  console.log(b());
-  localStorage.capture_desktop=b()?"true":"false";
-}
-  
-function onLicenseUpdateFail(a){
-  console.log("onSkuDetailsFailed",a)
-}
-
-function beginDesktop(){
-  chrome.desktopCapture.chooseDesktopMedia(
-      ["screen","window"],
-      function(a){function b(a){console.log(a);var b=document.createElement("video");b.addEventListener("canplay",function(){var c=document.createElement("canvas"),d=c.getContext("2d");c.width=b.videoWidth,c.height=b.videoHeight,d.drawImage(b,0,0,c.width,c.height),dataURL=[],dataURL.push(c.toDataURL()),console.log(dataURL),b.pause(),b.src="",a.stop(),$(b).remove(),$(c).remove(),tabtitle="Desctop screenshot",type="visible",menuType="desktop",newTab()},!1),b.src=window.URL.createObjectURL(a)}function c(a){console.log(a),alert(a)}if(a){console.log(a);var d={audio:!1,video:{mandatory:{chromeMediaSource:"desktop",chromeMediaSourceId:a,maxWidth:2560,maxHeight:1440}}};window.navigator.webkitGetUserMedia(d,b,c)}
-      });
-}
-
 var win, menuType, type, dataURL=[], tabid, taburl, tabtitle, counter, ratio, scrollBar, centerW=0, centerH=0, currentversion=chrome.app.getDetails().version, tabids={}, data, tempDataUrl, currentWindowId, currentTabId, D_T, centerOffX=0, centerOffY=0;
 localStorage.msObj||(localStorage.msObj='{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
 localStorage.format||(localStorage.format="png");
@@ -206,7 +178,6 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     case "getShowFeatureBar":c(localStorage.show_feature_bar);break;
     case "disableShowFeatureBar":localStorage.show_feature_bar="never";break;
     case "getAD":$.get("http://api.hostip.info/get_json.php",function(b){var d=b.ip,e=encodeURIComponent(a.url),f=a.query.replace(/\s/g,"+"),g=encodeURI(window.navigator.userAgent),h="http://65975.xml.premiumxml.com/xml/?fid=65975&keywords="+f+"&user_ip="+d+"&ua="+g+"&serve_url="+e;$.get(h,function(a){var b=a,d=b.getElementsByTagName("listing"),e=d.length;if(e){for(var f=[],g=0;e>g;g++){var h=JSON.parse(xml2json(d[g],""));f.push(h.listing)}c({data:f})}})});break;
-    case "desktop":
   };
 });
 

@@ -61,11 +61,4 @@ $(document).ready(function(){
   $("#goToFolder").on("click",function(){
     a.OpenSavePath(localStorage.savePath);
   });
-  $("#addition-learn-more").on("click",function(){
-    chrome.tabs.create({url:"additional-feature.html"});
-  });
-  $("#show-advanced").on("click",function(){
-    $(this).hide();
-    $("#advanced-option").show();
-  });
 });

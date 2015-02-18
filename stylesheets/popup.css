@@ -36,9 +36,7 @@ a#entire span { background-position: -260px -20px; }
 #script_off {display:none; text-align: center; }
 a#option span{background-position: -280px -40px;}
 a#help span {background-position: -299px -40px;}
-a#donate span {background-position: -220px -40px;}
 a#upload span {background-position: -320px -40px;}
-a#desktop span {background-position: -240px -40px;}
 a#delay-capture span {background-position: -200px -40px;}
 
 .shortcut{

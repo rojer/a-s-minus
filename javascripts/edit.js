@@ -1,5 +1,107 @@
 function prepareEditArea(a){
-  function b(a,c,e,f,h,i,j,k,m){console.log(a),j=q*l,q==t-1&&(e=l-lastH,h=m=lastH),console.log(q,t-1,e,h,j),$("#save-image").attr({src:a}).load(function(){$(this).unbind("load"),console.log(this,c,e,f,h,i,j,k,m),showCtx.drawImage(this,c,e,f,h,i,j,k,m),++q>t-1?d():b(g[++n],c,e,f,h,i,j,k,m)})}function c(a,b,d,e,f,h,i,l,m){h=j*k,j==s-1&&(b=k-lastW,e=l=lastW),$("#save-image").attr({src:a}).load(function(){$(this).unbind("load"),showCtx.drawImage(this,b,d,e,f,h,i,l,m),s-1>j&&c(g[++j],b,d,e,f,h,i,l,m)})}function d(){++j>s-1||(j==s-1?(h=k-lastW,u=dw=editW-j*k,v=j*k):(h=0,u=dw=k,v=j*k),i=0,w=dh=l,x=0,q=0,n=q+j*t,b(g[n],h,i,u,w,v,x,dw,dh))}console.log(a);var e=a.menuType,f=a.type,g=a.data;taburl=a.taburl,tabtitle=a.tabtitle;var h=a.centerOffX,i=a.centerOffY;getEditOffset(),window.con=1,window.con2=1,scrollbarWidth=getScrollbarWidth();var k=a.w,l=a.h;switch(f){case"visible":$("#save-image").attr({src:g[0]}).load(function(){"selected"==e?(editW=a.centerW*window.devicePixelRatio,editH=a.centerH*window.devicePixelRatio,updateEditArea(),updateShowCanvas(),getEditOffset(),addMargin(),getEditOffset()):"upload"==e?(editW=k,editH=l,h=0,i=0,updateEditArea(),updateShowCanvas(),getEditOffset()):"desktop"==e?(editW=k,editH=l,h=0,i=0,updateEditArea(),updateShowCanvas(),getEditOffset()):(console.log(k,l),editW=k-scrollbarWidth,editH=l-scrollbarWidth,h=0,i=0,updateEditArea(),updateShowCanvas(),getEditOffset()),k=editW,l=editH,showCtx.drawImage(this,h*window.devicePixelRatio,i*window.devicePixelRatio,k,l,0,0,k,l),$(this).unbind("load")});break;case"entire":var m=a.counter,o=a.ratio,p=a.scrollBar,q=j=n=0,r=g.length,s=m,t=Math.round(r/s);if(!p.x&&p.y){k-=scrollbarWidth,t=r,lastH=l*o.y,"selected"==e?(p.realX&&(l-=scrollbarWidth),editW=a.centerW*window.devicePixelRatio):editW=k,editH=lastH?l*(t-1)+lastH:l*t,updateEditArea(),updateShowCanvas(),getEditOffset(),addMargin(),getEditOffset();var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;b(g[n],h,i,u,w,v,x,dw,dh)}if(p.x&&!p.y){l-=scrollbarWidth,s=r,lastW=k*o.x,"selected"==e?(p.realY&&(k-=scrollbarWidth),editH=a.centerH*window.devicePixelRatio):editH=l,editW=lastW?k*(s-1)+lastW:k*s,updateEditArea(),updateShowCanvas(),$editArea.addClass("add-margin"),getEditOffset();var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;c(g[n],h,i,u,w,v,x,dw,dh)}if(p.x&&p.y){lastW=k*o.x,lastH=l*o.y,k-=scrollbarWidth,l-=scrollbarWidth,"selected"==e?(editW=a.centerW*window.devicePixelRatio,editH=a.centerH*window.devicePixelRatio):(editW=lastW?k*(s-1)+lastW:k*s,editH=lastH?l*(t-1)+lastH:l*t),updateEditArea(),updateShowCanvas();var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;b(g[n],h,i,u,w,v,x,dw,dh)}}
+  function b(a,c,e,f,h,i,j,k,m){
+    console.log(a);
+    j=q*l;
+    q==t-1&&(e=l-lastH,h=m=lastH);
+    console.log(q,t-1,e,h,j);
+    $("#save-image").attr({src:a}).load(function(){
+      $(this).unbind("load");
+      console.log(this,c,e,f,h,i,j,k,m);
+      showCtx.drawImage(this,c,e,f,h,i,j,k,m);
+      ++q>t-1?d():b(g[++n],c,e,f,h,i,j,k,m);
+    });
+  }
+  function c(a,b,d,e,f,h,i,l,m){
+    h=j*k,j==s-1&&(b=k-lastW,e=l=lastW),$("#save-image").attr({src:a}).load(function(){$(this).unbind("load"),showCtx.drawImage(this,b,d,e,f,h,i,l,m),s-1>j&&c(g[++j],b,d,e,f,h,i,l,m)});
+  }
+  function d(){
+    ++j>s-1||(j==s-1?(h=k-lastW,u=dw=editW-j*k,v=j*k):(h=0,u=dw=k,v=j*k),i=0,w=dh=l,x=0,q=0,n=q+j*t,b(g[n],h,i,u,w,v,x,dw,dh));
+  }
+  console.log(a);
+  var e = a.menuType,f=a.type,g=a.data;
+  taburl = a.taburl;
+  tabtitle = a.tabtitle;
+  var h = a.centerOffX,i=a.centerOffY;
+  getEditOffset();
+  window.con = 1;
+  window.con2 = 1;
+  scrollbarWidth = getScrollbarWidth();
+  var k=a.w,l=a.h;
+  switch(f){
+    case "visible": {
+      $("#save-image").attr({src:g[0]}).load(function(){
+        if ("selected"==e) {
+          editW = a.centerW * window.devicePixelRatio;
+          editH = a.centerH * window.devicePixelRatio;
+          updateEditArea();
+          updateShowCanvas();
+          getEditOffset();
+          addMargin();
+          getEditOffset();
+        } else if ("upload"==e) {
+          editW = k;
+          editH = l;
+          h = 0;
+          i = 0;
+          updateEditArea();
+          updateShowCanvas();
+          getEditOffset();
+        } else {
+          console.log(k,l);
+          editW = k-scrollbarWidth;
+          editH = l-scrollbarWidth;
+          h = 0;
+          i = 0;
+          updateEditArea();
+          updateShowCanvas();
+          getEditOffset();
+        }
+        k = editW;
+        l = editH;
+        showCtx.drawImage(this,h*window.devicePixelRatio,i*window.devicePixelRatio,k,l,0,0,k,l);
+        $(this).unbind("load");
+      });
+      break;
+    }
+    case "entire": {
+      var m=a.counter,o=a.ratio,p=a.scrollBar,q=j=n=0,r=g.length,s=m,t=Math.round(r/s);
+      if (!p.x&&p.y) {
+        k -= scrollbarWidth;
+        t = r;
+        lastH = l * o.y;
+        "selected"==e?
+          (p.realX&&(l-=scrollbarWidth),editW=a.centerW*window.devicePixelRatio):editW=k;
+        editH=lastH?l*(t-1)+lastH:l*t;
+        updateEditArea();
+        updateShowCanvas();
+        getEditOffset();
+        addMargin();
+        getEditOffset();
+        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
+        b(g[n],h,i,u,w,v,x,dw,dh);
+      }
+      if (p.x&&!p.y) {
+        l-=scrollbarWidth,s=r,lastW=k*o.x;
+        "selected"==e?
+          (p.realY&&(k-=scrollbarWidth),editH=a.centerH*window.devicePixelRatio):editH=l;
+        editW=lastW?k*(s-1)+lastW:k*s;
+        updateEditArea();
+        updateShowCanvas();
+        $editArea.addClass("add-margin");
+        getEditOffset();
+        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
+        c(g[n],h,i,u,w,v,x,dw,dh);
+      }
+      if (p.x&&p.y) {
+        lastW=k*o.x,lastH=l*o.y,k-=scrollbarWidth,l-=scrollbarWidth;
+        "selected"==e?
+          (editW=a.centerW*window.devicePixelRatio,editH=a.centerH*window.devicePixelRatio)
+          :(editW=lastW?k*(s-1)+lastW:k*s,editH=lastH?l*(t-1)+lastH:l*t),updateEditArea(),updateShowCanvas();
+        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
+        b(g[n],h,i,u,w,v,x,dw,dh);
+      }
+    }
+  }
 }
 
 function prepareTools(){
