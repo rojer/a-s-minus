@@ -1,1 +1,72 @@
-<!DOCTYPE html><html class="options_page"><head><title>Options</title><link href="stylesheets/options.css" type="text/css" rel="stylesheet"><script type="text/javascript" src="javascripts/libs/jquery-1.7.2.min.js"></script><script type="text/javascript" src="javascripts/detect.js"></script><script type="text/javascript" src="javascripts/options.js"></script></head><body class="options_page"><script type="text/javascript" src="javascripts/cga.js"></script><div id="wrapper"><div id="header"><h1>Awesome Screenshot Options</h1></div><div id="options"><fieldset id="format"><legend>Image Format</legend><input type="radio" name="format" value="PNG" id="png" checked="checked"><label for="png">PNG</label><input type="radio" name="format" value="JPG" id="jpg"><label for="jpg">JPG</label></fieldset><fieldset><legend>Shortcuts Setting</legend><table id="shortcuts_table"><tbody id="menu_shortcuts"><tr><td><input type="checkbox" name="visible" id="visible"><label for="visible">Capture Visible</label></td><td class="select"></td></tr><tr><td><input type="checkbox" name="selected" id="selected"><label for="selected">Capture Selected Area</label></td><td class="select"></td></tr><tr><td><input type="checkbox" name="entire" id="entire"><label for="entire">Capture Entire</label></td><td class="select"></td></tr></tbody></table></fieldset><fieldset id="delay_sec"><legend>Delay Seconds</legend><input type="radio" name="delay_sec" value="3" id="delay_sec_3" data-sec="3" checked="checked"><label for="delay_sec_3">3s</label><input type="radio" name="delay_sec" value="5" id="delay_sec_5" data-sec="5"><label for="delay_sec_5">5s</label></fieldset><a id="show-advanced">+ show Advanced Option</a><fieldset id="advanced-option"><legend>Advanced Option</legend><input type="checkbox" name="track" id="data-tracking"><label for="data-tracking">Enable non-personal,anonymous usage statistics</label><p style="margin-top:10px">Help us collect non-personal, statistical URL information. These URLs are used to get popular URLs for marketing research purpose. It helps us generate a small mount of money to support the development. (Restart the browser to take effect)</p></fieldset><p class="notify">The following features has been deprecated. <a href="http://awesomescreenshot.com/aws/Obstacles-to-Awesome-ness.html" target="_blank">Find out why</a>.</p><fieldset id="localPath"><legend>Default Local Path</legend><div style="margin-left:2px"><input type="text" readonly="readonly" id="filePath" size="40" disabled="disabled"> <button id="browsePath" disabled="disabled">Browse</button> <button id="goToFolder" disabled="disabled">Go to Folder</button></div><label><div style="float:left;margin-top: 11px;margin-left: 3px"><input type="checkbox" id="autosave" disabled="disabled"></div><div style="margin-left:5px; width:480px; float:left; margin-top: 12px" id="autosaveText">Autosave - If you prefer to save your screenshots unaltered, simply choose this option. Each screenshot will be saved directly to the default folder, with the title of the captured web page as its file name.</div></label></fieldset><div id="tip"><span></span></div></div><div id="action_panel"><input type="button" value="Reset"> <input type="button" value="Save"> <input type="button" value="Close"></div></div></body></html>
+<!DOCTYPE html>
+<html class="options_page">
+<head>
+  <title>Options</title>
+  <link href="stylesheets/options.css" type="text/css" rel="stylesheet">
+  <script type="text/javascript" src="javascripts/libs/jquery-1.7.2.min.js"></script>
+  <script type="text/javascript" src="javascripts/detect.js"></script>
+  <script type="text/javascript" src="javascripts/options.js"></script>
+</head>
+<body class="options_page">
+  <script type="text/javascript" src="javascripts/cga.js"></script>
+  <div id="wrapper">
+    <div id="header"><h1>Awesome Screenshot Options</h1></div>
+    <div id="options">
+      <fieldset id="format">
+        <legend>Image Format</legend>
+        <input type="radio" name="format" value="PNG" id="png" checked="checked"><label for="png">PNG</label>
+        <input type="radio" name="format" value="JPG" id="jpg"><label for="jpg">JPG</label>
+      </fieldset>
+      <fieldset>
+        <legend>Shortcuts Setting</legend>
+        <table id="shortcuts_table">
+          <tbody id="menu_shortcuts">
+            <tr>
+              <td><input type="checkbox" name="visible" id="visible"><label for="visible">Capture Visible</label></td>
+              <td class="select"></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="selected" id="selected"><label for="selected">Capture Selected Area</label></td>
+              <td class="select"></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="entire" id="entire"><label for="entire">Capture Entire</label></td>
+              <td class="select"></td>
+            </tr>
+          </tbody>
+        </table>
+      </fieldset>
+      <fieldset id="delay_sec">
+        <legend>Delay Seconds</legend>
+        <input type="radio" name="delay_sec" value="3" id="delay_sec_3" data-sec="3" checked="checked"><label for="delay_sec_3">3s</label>
+        <input type="radio" name="delay_sec" value="5" id="delay_sec_5" data-sec="5"><label for="delay_sec_5">5s</label>
+      </fieldset>
+      <a id="show-advanced">+ show Advanced Option</a>
+      <fieldset id="advanced-option">
+        <legend>Advanced Option</legend>
+        <input type="checkbox" name="track" id="data-tracking"><label for="data-tracking">Enable non-personal,anonymous usage statistics</label>
+        <p style="margin-top:10px">Help us collect non-personal, statistical URL information. These URLs are used to get popular URLs for marketing research purpose. It helps us generate a small mount of money to support the development. (Restart the browser to take effect)</p>
+      </fieldset>
+      <p class="notify">The following features has been deprecated. <a href="http://awesomescreenshot.com/aws/Obstacles-to-Awesome-ness.html" target="_blank">Find out why</a>.</p>
+      <fieldset id="localPath">
+        <legend>Default Local Path</legend>
+        <div style="margin-left:2px">
+          <input type="text" readonly="readonly" id="filePath" size="40" disabled="disabled">
+          <button id="browsePath" disabled="disabled">Browse</button>
+          <button id="goToFolder" disabled="disabled">Go to Folder</button>
+        </div>
+        <label>
+          <div style="float:left;margin-top: 11px;margin-left: 3px"><input type="checkbox" id="autosave" disabled="disabled"></div>
+          <div style="margin-left:5px; width:480px; float:left; margin-top: 12px" id="autosaveText">Autosave - If you prefer to save your screenshots unaltered, simply choose this option. Each screenshot will be saved directly to the default folder, with the title of the captured web page as its file name.</div>
+        </label>
+      </fieldset>
+      <div id="tip"><span></span></div>
+    </div>
+    <div id="action_panel">
+      <input type="button" value="Reset">
+      <input type="button" value="Save">
+      <input type="button" value="Close">
+    </div>
+  </div>
+</body>
+</html>
