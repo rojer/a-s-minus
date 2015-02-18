@@ -203,7 +203,6 @@ function save() {
           $("#loader").hide();
           if (200==e.status && 1==a.code) {
             uploadDone(a.result.url);
-            isGASafe&&_gaq.push(["_trackEvent","SavePageActions","upload_success","time"]);
           } else {
             onUploadError();
           }
@@ -394,7 +393,8 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1,isGASafe="Windows"==BrowserDetect.OS||"Linux"==BrowserDetect.OS,gDriveConfig={client_id:"250015934524.apps.googleusercontent.com",client_secret:"0tL3OG9PhS_I7Zqp_8uH5qPl",api_scope:"https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"},isAppInstalled=!1;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
+var gDriveConfig={client_id:"250015934524.apps.googleusercontent.com",client_secret:"0tL3OG9PhS_I7Zqp_8uH5qPl",api_scope:"https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"},isAppInstalled=!1;
 
 chrome.runtime.sendMessage("afkccfnochoebimhhniekgcegeeiepmi",{name:"handshake"},function(a){a&&(isAppInstalled=!0)});
 
