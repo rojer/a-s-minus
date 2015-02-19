@@ -177,7 +177,6 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     case "enablePriceCompare":console.log("enable"),enablePriceCompare(),localStorage.show_feature_bar="false";break;
     case "getShowFeatureBar":c(localStorage.show_feature_bar);break;
     case "disableShowFeatureBar":localStorage.show_feature_bar="never";break;
-    case "getAD":$.get("http://api.hostip.info/get_json.php",function(b){var d=b.ip,e=encodeURIComponent(a.url),f=a.query.replace(/\s/g,"+"),g=encodeURI(window.navigator.userAgent),h="http://65975.xml.premiumxml.com/xml/?fid=65975&keywords="+f+"&user_ip="+d+"&ua="+g+"&serve_url="+e;$.get(h,function(a){var b=a,d=b.getElementsByTagName("listing"),e=d.length;if(e){for(var f=[],g=0;e>g;g++){var h=JSON.parse(xml2json(d[g],""));f.push(h.listing)}c({data:f})}})});break;
   };
 });
 
