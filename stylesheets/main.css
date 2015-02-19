@@ -455,7 +455,6 @@ input.cd-input{
 .selected #tool-panel>div a#done, 
 .selected #tool-panel>div a#cancel,
 .selected #tool-panel>div #crop-dimension{ display:inline-block; }
-.selected #launch-app {display: none !important;}
 
 .changed #top, 
 .changed #right,
@@ -594,26 +593,6 @@ body.save #edit-area {
     position: relative;
 }
 
-#tool-panel #launch-app {
-    position: absolute;
-    right: 20px;
-    top: 12px;
-    background-color: rgba(255,255,255,0.15);
-    color:#fff;
-    border-radius:3px;
-    line-height:18px;
-    font-weight:bold;
-    -webkit-transition:all ease-in 0.2s;
-    background-image: none;
-    display: inline;
-    padding: 3px 5px;
-
-}
-
-#tool-panel #launch-app:hover {
-    background-color: rgba(255,255,255,0.35);
-    text-decoration:none;
-}
 .save #re-edit-icon{
     height:22px;
     width:22px;

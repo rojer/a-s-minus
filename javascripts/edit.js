@@ -109,15 +109,6 @@ function prepareTools(){
     chrome.extension.sendRequest({action:"exit"});
   });
 
-  $("#launch-app").unbind().click(function(){
-    if (isAppInstalled) {
-      var a=showCanvas.toDataURL();
-      chrome.runtime.sendMessage("afkccfnochoebimhhniekgcegeeiepmi", {name:"launch",dataUrl:a,title:tabtitle});
-    } else {
-      chrome.tabs.create({url:"https://chrome.google.com/webstore/detail/awesome-screenshot-app/afkccfnochoebimhhniekgcegeeiepmi"});
-    }
-  });
-
   $("#tool-panel>div").click(function(a){
     function b(a){
       var c=a.nodeName;
@@ -394,9 +385,11 @@ function showInfo(a){
   
 
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
-var gDriveConfig={client_id:"250015934524.apps.googleusercontent.com",client_secret:"0tL3OG9PhS_I7Zqp_8uH5qPl",api_scope:"https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"},isAppInstalled=!1;
-
-chrome.runtime.sendMessage("afkccfnochoebimhhniekgcegeeiepmi",{name:"handshake"},function(a){a&&(isAppInstalled=!0)});
+var gDriveConfig = {
+  client_id: "250015934524.apps.googleusercontent.com",
+  client_secret: "0tL3OG9PhS_I7Zqp_8uH5qPl",
+  api_scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"
+};
 
 var dragresize,googleAuth=new OAuth2("google",gDriveConfig);
 
