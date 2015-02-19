@@ -461,20 +461,20 @@ SavePage.saveToGdrive = function(){
     c.onreadystatechange=function(){
       uploadFlag=!1;
       if(4==this.readyState){
-        switch(c.status){
+        switch (c.status){
           case 200: {
-            var a=JSON.parse(c.response);
-            if (a.alternateLink && a.ownerNames) {
-              if (0==$("#gdrive-private").prop("checked")) {
-                SavePage.setPublicGdrive(a.id);
+            var gDriveResponse = JSON.parse(c.response);
+            if (gDriveResponse.alternateLink && gDriveResponse.ownerNames) {
+              if (0 == $("#gdrive-private").prop("checked")) {
+                SavePage.setPublicGdrive(gDriveResponse.id);
               } else {
                 $("#gdrive-share-link p").text("Image Link (Private, only you can view it.)");
-                $("#gdrive-user").show();
-                $(".loader").remove();
-                $("#gdrive-share-link input").val(a.alternateLink);
-                $("#sccess-tip").show().delay(1e3).fadeOut();
-                $("#gdrive-share-link").show();
               }
+              $("#gdrive-user").show();
+              $(".loader").remove();
+              $("#gdrive-share-link input").val(gDriveResponse.alternateLink);
+              $("#sccess-tip").show().delay(1000).fadeOut();
+              $("#gdrive-share-link").show();
             }
             break;
           }
