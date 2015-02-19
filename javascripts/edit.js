@@ -559,7 +559,7 @@ SavePage.saveLocal=function(){
   }
 };
 
-SavePage.copy=function(){
+SavePage.copy = function(){
   try {
     var a=$('<div contenteditable="true"></div>')
       .css({height:"500px",width:"500px",position:"absolute"})
@@ -568,7 +568,6 @@ SavePage.copy=function(){
       .append("test")
       .focus();
     var b=document.createRange();
-    console.log(a.find("#save-image")[0]);
     b.selectNode(a[0]);
     var c=window.getSelection();
     c.removeAllRanges();
@@ -584,7 +583,110 @@ SavePage.copy=function(){
 
 SavePage.print=function(){var a=$("#print_area").html(),b=document.createElement("IFRAME");$(b).attr({style:"position:absolute;width:0px;height:0px;left:-500px;top:-500px;",id:"print"}),document.body.appendChild(b);var c='<div style="margin:0 auto;text-align:center">'+a+"</div>",d=b.contentWindow.document;d.write(c);var e=b.contentWindow;e.close(),e.focus(),e.print(),$("iframe#print").remove()};
 
-SavePage.initSaveOption=function(){var a='<div class="share"></div>',b='<div class="socialButton"><a class="twitter" href="http://twitter.com/home?status=" target="_blank"><span></span>Twitter</a><a class="facebook" href="http://www.facebook.com/sharer.php?u=" target="_blank"><span></span>Facebook</a><a class="weibo" href="http://service.weibo.com/share/share.php?" target="_blank"><span></span>Weibo</a></div>',c='<div class="emailButton"><a class="gmail" href="https://mail.google.com/mail/?view=cm&amp;tf=0&amp;fs=1&amp;body=" target="_blank"><span></span>Gmail</a><a class="yahoo" href="http://compose.mail.yahoo.com/" target="_blank"><span></span>Yahoo mail</a><a class="hotmail" href="http://www.hotmail.msn.com/secure/start?action=compose&amp;body=" target="_blank"><span></span>Hotmail</a></div>',d='<div class="shareLink"><p>Image Link (share via MSN, GTalk, etc.)</p><input type="text" /></div>',e='<a href="" class="privateLink" target="_blank">See screenshot on diigo.com</a>';$(a).html(b+c+d+e).prependTo($("#saveOptionContent .diigo")).hide(),$(a).html(b+c+d).prependTo($("#saveOptionContent .as")).hide(),$(".diigo .saveForm input[name=title]").val(tabtitle),$(".sgdrive #gdriveImageName").val(tabtitle),$("#gdrive-user p span").bind("click",function(){$("#notice").show()}),localStorage.gdrive_current_user&&($("#gdrive-save").text("Save"),$("#gdrive-user").show(),$("#gdrive-user p span").text(localStorage.gdrive_current_user),$("#saveOptionList li.sgdrive span").text("("+localStorage.gdrive_current_user+")")),$(".diigo .saveForm input[name=tags]").val(chrome.extension.getBackgroundPage().recommendedTags),$("#saveOptionHead .back").click(function(){setTimeout(function(){$("#saveOptionContent>li.selected").removeClass("selected")},200),$("#saveOptionHead, #saveOptionBody").removeClass("showContent"),$("#saveLocal").show()}),$("#saveLocal").click(function(a){var b=a.target;$(b).hasClass("button")&&($(b).hasParent(".save_button")?SavePage.saveLocal():$(b).hasParent(".copy_button")?SavePage.copy():$(b).hasParent(".print_button")&&SavePage.print())}),$(".signout").click(function(){SavePage.signout()}),$(".btnDark").click(function(a){$(a.target).hasParent("#authError")?$("#saveOptionContent>.diigo").removeClass("signin"):"clear-authentication"==a.target.id&&($(".loader").remove(),$(".sgdrive .saveForm").show(),$("#gdrive-save").text("Connect and Save"),$("#notice").hide(),$("#gdrive-user").hide(),$("#saveOptionList li.sgdrive span").text(""),googleAuth.clear(),delete localStorage.gdrive_current_user,googleAuth=new OAuth2("google",gDriveConfig))}),$("#saveOptionList").click(function(a){var b=a.target;$(b).hasParent("#saveOptionList")&&($("#saveOptionContent").find("."+b.className).addClass("selected"),$("#saveOptionHead, #saveOptionBody").addClass("showContent"),$("#saveLocal").hide())}),$(".sgdrive span").click(function(){$("#saveOptionContent").find(".sgdrive").addClass("selected"),$("#saveOptionHead, #saveOptionBody").addClass("showContent"),$("#saveLocal").hide()}),$("#gdrive-signout").click(function(a){var b=a.target;$(b).hasClass("jqmClose")&&($(".loader").remove(),$(".sgdrive .saveForm").show()),$("#gdrive-save").text("Connect and Save"),$("#notice").hide(),$("#gdrive-user").hide(),$("#saveOptionList li.sgdrive span").text(""),googleAuth.clear(),delete localStorage.gdrive_current_user,googleAuth=new OAuth2("google",gDriveConfig)}),$("#saveOptionContent").click(function(a){$(a.target).hasClass("save")&&($(a.target).hasParent(".diigo")?SavePage.uploadImageToDiigo():$(a.target).hasParent(".as")?SavePage.uploadImageToAS():"gdrive-save"==a.target.id?SavePage.saveToGdrive():"gdrive-connect"==a.target.id?SavePage.authorizeGdrive():$(a.target).hasParent(".local")&&SavePage.saveLocal())})};
+SavePage.initSaveOption = function(){
+  var a='<div class="share"></div>';
+  var b='<div class="socialButton"><a class="twitter" href="http://twitter.com/home?status=" target="_blank"><span></span>Twitter</a><a class="facebook" href="http://www.facebook.com/sharer.php?u=" target="_blank"><span></span>Facebook</a><a class="weibo" href="http://service.weibo.com/share/share.php?" target="_blank"><span></span>Weibo</a></div>';
+  var c='<div class="emailButton"><a class="gmail" href="https://mail.google.com/mail/?view=cm&amp;tf=0&amp;fs=1&amp;body=" target="_blank"><span></span>Gmail</a><a class="yahoo" href="http://compose.mail.yahoo.com/" target="_blank"><span></span>Yahoo mail</a><a class="hotmail" href="http://www.hotmail.msn.com/secure/start?action=compose&amp;body=" target="_blank"><span></span>Hotmail</a></div>';
+  var d='<div class="shareLink"><p>Image Link (share via MSN, GTalk, etc.)</p><input type="text" /></div>';
+  var e='<a href="" class="privateLink" target="_blank">See screenshot on diigo.com</a>';
+  
+  $(a).html(b+c+d+e).prependTo($("#saveOptionContent .diigo")).hide();
+  $(a).html(b+c+d).prependTo($("#saveOptionContent .as")).hide();
+  $(".diigo .saveForm input[name=title]").val(tabtitle);
+  $(".sgdrive #gdriveImageName").val(tabtitle);
+  $("#gdrive-user p span").bind("click",function(){$("#notice").show()});
+
+  if (localStorage.gdrive_current_user) {
+    $("#gdrive-save").text("Save");
+    $("#gdrive-user").show();
+    $("#gdrive-user p span").text(localStorage.gdrive_current_user);
+    $("#saveOptionList li.sgdrive span").text("(" + localStorage.gdrive_current_user + ")");
+  }
+
+  $(".diigo .saveForm input[name=tags]").val(chrome.extension.getBackgroundPage().recommendedTags);
+
+  $("#saveOptionHead .back").click(function(){
+    setTimeout(function(){
+      $("#saveOptionContent>li.selected").removeClass("selected");
+    }, 200);
+    $("#saveOptionHead, #saveOptionBody").removeClass("showContent");
+    $("#saveLocal").show();
+  });
+
+  $("#saveLocal").click(function(a){
+    var b = a.target;
+    if ($(b).hasClass("button")) {
+      if ($(b).hasParent(".save_button")) {
+        SavePage.saveLocal();
+      } else if ($(b).hasParent(".copy_button")) {
+        SavePage.copy();
+      } else if ($(b).hasParent(".print_button")) {
+        SavePage.print();
+      }
+    }
+  });
+
+  $(".signout").click(function(){SavePage.signout()});
+
+  $(".btnDark").click(function(a){
+    if ($(a.target).hasParent("#authError")) {
+      $("#saveOptionContent>.diigo").removeClass("signin");
+    } else if ("clear-authentication" == a.target.id) {
+      $(".loader").remove();
+      $(".sgdrive .saveForm").show();
+      $("#gdrive-save").text("Connect and Save");
+      $("#notice").hide();
+      $("#gdrive-user").hide();
+      $("#saveOptionList li.sgdrive span").text("");
+      googleAuth.clear();
+      delete localStorage.gdrive_current_user;
+      googleAuth = new OAuth2("google",gDriveConfig);
+    }
+  });
+
+  $("#saveOptionList").click(function(a){
+    var b = a.target;
+    if ($(b).hasParent("#saveOptionList")) {
+      $("#saveOptionContent").find("." + b.className).addClass("selected");
+      $("#saveOptionHead, #saveOptionBody").addClass("showContent");
+      $("#saveLocal").hide();
+    }
+  });
+
+  $(".sgdrive span").click(function(){
+    $("#saveOptionContent").find(".sgdrive").addClass("selected");
+    $("#saveOptionHead, #saveOptionBody").addClass("showContent");
+    $("#saveLocal").hide();
+  });
+
+  $("#gdrive-signout").click(function(a){
+    var b = a.target;
+    $(b).hasClass("jqmClose")&&($(".loader").remove(),$(".sgdrive .saveForm").show());
+    $("#gdrive-save").text("Connect and Save");
+    $("#notice").hide();
+    $("#gdrive-user").hide();
+    $("#saveOptionList li.sgdrive span").text("");
+    googleAuth.clear();
+    delete localStorage.gdrive_current_user;
+    googleAuth = new OAuth2("google", gDriveConfig);
+  });
+
+  $("#saveOptionContent").click(function(a){
+    if ($(a.target).hasClass("save")) {
+      if ($(a.target).hasParent(".diigo")) {
+        SavePage.uploadImageToDiigo();
+      } else if ($(a.target).hasParent(".as")) {
+        SavePage.uploadImageToAS();
+      } else if ("gdrive-save" == a.target.id) {
+        SavePage.saveToGdrive();
+      } else if ("gdrive-connect" == a.target.id) {
+        SavePage.authorizeGdrive();
+      } else if ($(a.target).hasParent(".local")) {
+        SavePage.saveLocal();
+      }
+    }
+  });
+};
 
 SavePage.init=function(){
   SavePage.initSaveOption();
