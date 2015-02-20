@@ -1575,9 +1575,12 @@ body.save #edit-area {
 }
 
 /*===========save to google drive==============*/
-#gdriveImageName{
+#gdrive-image-name{
     width: 215px;
     margin-bottom: 10px;
+}
+#gdrive-image-link{
+    width: 215px;
 }
 #gdrive-username{
     /*height: 20px;*/
@@ -1593,7 +1596,7 @@ body.save #edit-area {
     background: url(../images/gdrive.png);
     background-size: 19px;
 }
-#gdrive-save{
+#gdrive-save-button{
 }
 #gdrive-signout{
     color: #888;
@@ -1632,11 +1635,17 @@ body.save #edit-area {
     margin-bottom: 4px;
 }
 
-#gdrive-private{
+#gdrive-private, #gdrive-short-link, #gdrive-short-link-loader {
     vertical-align: middle;
     margin-top: 2px;
 }
-.sgdrive .saveForm label{
+#gdrive-short-link-loader{
+    display: inline-block;
+    vertical-align: middle;
+    display: inline-block;
+    margin-left: 20px;
+}
+#gdrive-save-form label, #gdrive-share-link label {
     vertical-align: middle;
     margin-left: 4px;
     margin-top: 2px;
