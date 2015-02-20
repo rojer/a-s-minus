@@ -1,4 +1,4 @@
-# a-s-minus
+# Awesome Screenshot Minus
 
 Awesome Screenshot extension
 
