@@ -812,9 +812,6 @@ a.visited { color:#bbb !important; }
 #saveLocal {
 	margin-top: 20px;
 }
-#promotions {
-	margin-left:20px !important;
-}
 /*
 #saveOnline, #legacySave, #saveLocal {
 	margin-bottom:20px;
@@ -1447,115 +1444,14 @@ div#saveOptionBody:not(.showContent) .share {
 	-webkit-transition: margin-left 0.2s ease-out;
 } */
 
-/* overide */
 body.save #edit-area {
-	/*margin-top: 120px;*/
+	margin-top: 68px;
 }
 #feedback {
 	margin-right: 20px;
 }
 #exit {
 	left: 10px;
-}
-
-/* promotion container */
-#promotion-container {
-	margin: 60px auto 10px auto;
-    width: 360px;
-	display: none;
-}
-.save #promotion-container {
-	display: block;
-}
-#promotions {
-	width: 350px !important;
-	height: 50px !important;
-	margin: 0 !important;
-}
-
-#promotions .promoHeader {
-	float: left !important;
-	border-right: 1px solid #777;
-	padding: 14px 5px 14px 0;
-}
-#promotions .msgItem a {
-	margin-left: 102px;
-	padding-top: 6px;
-	background-position-y: 2px !important;
-}
-/*
-#promotions #closePromoMsg {
-	margin-top: 6px !important;
-	margin-right: 5px;
-}
-#promotions .msgItem {
-	display: inline !important;
-}
-#promotions .msgItem a {
-	min-height: 20px !important;
-	line-height: 24px !important;
-	background-size: 20px !important;
-	padding-left: 25px !important;
-	margin-left: 110px !important;
-	background-position: 0 2px !important;
-}
-#promotions .msgItem a strong {
-	display: inline !important;
-}
-#promotions .msgItem a strong::after {
-	content: ' ' !important;
-}*/
-#promotion-container-bottom{
-    margin-top: 30px;
-}
-#promotion-container-bottom iframe{
-    height: 100px;
-    width: 250px;
-    border: none;
-    display: none;
-}
-
-#promotion-container-bottom .beta-promotion {
-    display: block;
-    width: 248px;
-    height: 87px;
-    background: url("../images/beta-promotion.png") no-repeat, #3485b1;
-    border-radius: 3px;
-}
-
-#promotion-container-bottom .beta-promotion:hover {
-    background-color: #3c8fbc;
-}
-
-/* about diigo */
-#about-diigo {
-	color: #999;
-	line-height: 16px;
-	margin-top: 20px;
-	display: none;
-}
-.showContent+#about-diigo {
-	display: block;
-}
-#about-diigo .sectionTitle {
-/*	color: #EEE;*/
-	font-size: 15px;
-	font-weight: bold;
-	line-height: 24px;
-	margin-bottom: 4px;
-}
-#about-diigo ul {
-	margin-left: 20px;
-	list-style: disc;
-}
-#about-diigo ul li {
-	margin-top: 5px;
-}
-#about-diigo a {
-	color: #999;
-}
-#about-diigo a:hover {
-	color: #CBCBCB;
 }
 
 /*-=====*/

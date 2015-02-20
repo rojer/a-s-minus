@@ -388,8 +388,6 @@ function showInfo(a){
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var dragresize;
 
-window.addEventListener("message",function(a){"adjustPromotionSize"==a.data.action?($("#promotion-container").css({width:a.data.width,height:a.data.height}),$("#promotion-container iframe").css({width:a.data.width,height:a.data.height})):"removeBanner"==a.data.action&&$("#promotion-container-bottom").hide()});
-
 window.addEventListener("resize",function(){getEditOffset()});
 
 var cflag=0;
@@ -408,32 +406,8 @@ $(document).ready(function(){
     getEditOffset();
     addMargin();
   });
-  ADs.cpn();
 });
 
-var ADs = {
-  SearchO: function(){
-    var a="";
-    a+='<div id="promotions" style="display:none">';
-    a+='<span id="closeAdsMsg"></span>';
-    a+='<h4 class="promoHeader">More from Diigo</h4>';
-    a+='<div id="appSearchO" class="msgItem">';
-    a+='<a target="_blank" href="https://chrome.google.com/webstore/detail/eekjldapjblgadclklmgolijbagmdnfk">The easiest way to access different search engines.>></a>';
-    a+="</div></div>";
-    $("#promotion-container").append(a);
-    $("head").append('<link rel="stylesheet" href="stylesheets/ads.css" />');
-    $("#closeAdsMsg").click(function(){
-      console.log($('link[href="css/ads.css"]'));
-      $('link[href="stylesheets/ads.css"]').remove();
-    });
-  },
-
-  cpn: function(){
-    var a='<iframe src="http://www.awesomescreenshot.com/promotion.html"></iframe>';
-    $("#promotion-container").append(a);
-    $("head").append('<link rel="stylesheet" href="stylesheets/ads_cpn.css" />');
-  }
-};
 var Account={};
 
 Account.initForm = function(){
