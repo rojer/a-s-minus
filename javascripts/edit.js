@@ -626,7 +626,6 @@ SavePage.initSaveOption = function(){
   $("#gdrive-user p span").bind("click",function(){$("#notice").show()});
 
   chrome.identity.getProfileUserInfo(function(userInfo) {
-    $("#gdrive-save-button").text("Save");
     $("#gdrive-user").show();
     $("#gdrive-user p span").text(userInfo.email);
     $("#saveOptionList li.sgdrive span").text("(" + userInfo.email + ")");
