@@ -393,11 +393,55 @@ window.addEventListener("message",function(a){"adjustPromotionSize"==a.data.acti
 window.addEventListener("resize",function(){getEditOffset()});
 
 var cflag=0;
-$(document).ready(function(){$editArea=$("#edit-area").disableSelection(),showCanvas=document.getElementById("show-canvas"),showCtx=showCanvas.getContext("2d"),drawCanvas=document.getElementById("draw-canvas"),drawCtx=drawCanvas.getContext("2d"),chrome.extension.onRequest.addListener(function(a){console.log(requestFlag,a),requestFlag&&a.menuType&&(i18n(),prepareEditArea(a),prepareTools(),preparePromote(),requestFlag=0)}),chrome.extension.sendRequest({action:"ready"}),$(window).unbind("resize").resize(function(){getEditOffset(),addMargin()}),ADs.cpn()});
+$(document).ready(function(){
+  $editArea=$("#edit-area").disableSelection();
+  showCanvas = document.getElementById("show-canvas");
+  showCtx = showCanvas.getContext("2d");
+  drawCanvas = document.getElementById("draw-canvas");
+  drawCtx = drawCanvas.getContext("2d");
+  chrome.extension.onRequest.addListener(function(a){
+    console.log(requestFlag,a);
+    requestFlag&&a.menuType&&(i18n(),prepareEditArea(a),prepareTools(),preparePromote(),requestFlag=0);
+  });
+  chrome.extension.sendRequest({action:"ready"});
+  $(window).unbind("resize").resize(function(){
+    getEditOffset();
+    addMargin();
+  });
+  ADs.cpn();
+});
 
-var ADs={SearchO:function(){var a="";a+='<div id="promotions" style="display:none">',a+='<span id="closeAdsMsg"></span>',a+='<h4 class="promoHeader">More from Diigo</h4>',a+='<div id="appSearchO" class="msgItem">',a+='<a target="_blank" href="https://chrome.google.com/webstore/detail/eekjldapjblgadclklmgolijbagmdnfk">The easiest way to access different search engines.>></a>',a+="</div></div>",$("#promotion-container").append(a),$("head").append('<link rel="stylesheet" href="stylesheets/ads.css" />'),$("#closeAdsMsg").click(function(){console.log($('link[href="css/ads.css"]')),$('link[href="stylesheets/ads.css"]').remove()})},cpn:function(){var a='<iframe src="http://www.awesomescreenshot.com/promotion.html"></iframe>';$("#promotion-container").append(a),$("head").append('<link rel="stylesheet" href="stylesheets/ads_cpn.css" />')}},Account={};
+var ADs = {
+  SearchO: function(){
+    var a="";
+    a+='<div id="promotions" style="display:none">';
+    a+='<span id="closeAdsMsg"></span>';
+    a+='<h4 class="promoHeader">More from Diigo</h4>';
+    a+='<div id="appSearchO" class="msgItem">';
+    a+='<a target="_blank" href="https://chrome.google.com/webstore/detail/eekjldapjblgadclklmgolijbagmdnfk">The easiest way to access different search engines.>></a>';
+    a+="</div></div>";
+    $("#promotion-container").append(a);
+    $("head").append('<link rel="stylesheet" href="stylesheets/ads.css" />');
+    $("#closeAdsMsg").click(function(){
+      console.log($('link[href="css/ads.css"]'));
+      $('link[href="stylesheets/ads.css"]').remove();
+    });
+  },
 
-Account.initForm=function(){var a="https://www.diigo.com/account/thirdparty/openid?openid_url=https://www.google.com/accounts/o8/id&redirect_url="+encodeURIComponent(chrome.extension.getURL(""))+"&request_from=awesome_screenshot",b='<div id="account" class="jqmWindow"><table><tr><td><div class="loginByGoogle"><strong>New to Diigo? Connect to diigo.com via</strong><a href="'+a+'" class="button" target="_blank">Google account</a></div></td></tr></table></div>';$(b).appendTo($("#saveOnline .content")).hide()};
+  cpn: function(){
+    var a='<iframe src="http://www.awesomescreenshot.com/promotion.html"></iframe>';
+    $("#promotion-container").append(a);
+    $("head").append('<link rel="stylesheet" href="stylesheets/ads_cpn.css" />');
+  }
+};
+var Account={};
+
+Account.initForm = function(){
+  var a="https://www.diigo.com/account/thirdparty/openid?openid_url=https://www.google.com/accounts/o8/id&redirect_url="+encodeURIComponent(chrome.extension.getURL(""))+"&request_from=awesome_screenshot";
+  var b='<div id="account" class="jqmWindow"><table><tr><td><div class="loginByGoogle"><strong>New to Diigo? Connect to diigo.com via</strong><a href="'+
+        a+'" class="button" target="_blank">Google account</a></div></td></tr></table></div>';
+  $(b).appendTo($("#saveOnline .content")).hide();
+};
 
 var SavePage={};
 
