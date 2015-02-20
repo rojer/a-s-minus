@@ -385,13 +385,7 @@ function showInfo(a){
   
 
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
-var gDriveConfig = {
-  client_id: "250015934524.apps.googleusercontent.com",
-  client_secret: "0tL3OG9PhS_I7Zqp_8uH5qPl",
-  api_scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"
-};
-
-var dragresize,googleAuth=new OAuth2("google",gDriveConfig);
+var dragresize;
 
 window.addEventListener("message",function(a){"adjustPromotionSize"==a.data.action?($("#promotion-container").css({width:a.data.width,height:a.data.height}),$("#promotion-container iframe").css({width:a.data.width,height:a.data.height})):"removeBanner"==a.data.action&&$("#promotion-container-bottom").hide()});
 
@@ -444,24 +438,26 @@ SavePage.uploadImageToAS=function(){$(".as .saveForm").hide("fast").after($('<di
 
 SavePage.uploadImageToDiigo=function(){$(".diigo .saveForm").hide("fast").after($('<div class="loader">Uploading</div>'));var a={items:[{local_id:"image",server_id:-1,cmd:1,type:2,local_file_md5:hex_md5(SavePage.getImageSrc()),tags:$(".diigo input[name=tags]").val(),mode:$("#privacy").is(":checked")?2:0,title:$(".diigo input[name=title]").val()||tabtitle,src_url:/http:|https:|ftp:/.test(taburl)?taburl:"",src_title:tabtitle}]};SavePage.loadUserInfo(JSON.parse(localStorage.user_info).info.user_id,function(b){var c=JSON.parse(b.response).result,d=c.permission;localStorage.user_info=JSON.stringify(c),(d.is_premium||d.image)&&SavePage.request("uploadItems",a,function(a){SavePage.showUploadResponse("diigo",JSON.parse(a.response).result.items[0])})})};
 
-SavePage.setPublicGdrive = function(fileId) {
-  googleAuth.authorize(function() {
-    var setPermissionsRequest = new XMLHttpRequest;
-    setPermissionsRequest.open("POST", "https://www.googleapis.com/drive/v2/files/" + fileId + "/permissions");
-    setPermissionsRequest.setRequestHeader("Authorization", "OAuth " + googleAuth.getAccessToken());
-    setPermissionsRequest.setRequestHeader("Content-Type", "application/json");
-    setPermissionsRequest.send(JSON.stringify({ role: "reader", type: "anyone" }));
-  });
+SavePage.setPublicGdrive = function(fileId, authToken) {
+  if (!authToken) return;
+  var setPermissionsRequest = new XMLHttpRequest;
+  setPermissionsRequest.open("POST", "https://www.googleapis.com/drive/v2/files/" + fileId + "/permissions");
+  setPermissionsRequest.setRequestHeader("Authorization", "OAuth " + authToken);
+  setPermissionsRequest.setRequestHeader("Content-Type", "application/json");
+  setPermissionsRequest.send(JSON.stringify({ role: "reader", type: "anyone" }));
 };
 
 SavePage.saveToGdrive = function() {
   var imageName = $("#gdriveImageName").val();
   var isPublic = (0 == $("#gdrive-private").prop("checked"));
-  googleAuth.authorize(function(){
+  var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.file']};
+  chrome.identity.getAuthToken(authDetails, function(authToken) {
+    console.log('token:', authToken);
+    if (!authToken) return;
     const multipartBoundaryString = "287032381131322";
     var uploadRequest = new XMLHttpRequest;
     uploadRequest.open("POST", "https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart");
-    uploadRequest.setRequestHeader("Authorization", "OAuth " + googleAuth.getAccessToken());
+    uploadRequest.setRequestHeader("Authorization", "OAuth " + authToken);
     uploadRequest.setRequestHeader("Content-Type", 'multipart/mixed; boundary="' + multipartBoundaryString + '"');
     uploadRequest.onreadystatechange = function() {
       uploadFlag = false;
@@ -471,7 +467,7 @@ SavePage.saveToGdrive = function() {
             var uploadResponse = JSON.parse(uploadRequest.response);
             if (uploadResponse.alternateLink && uploadResponse.ownerNames) {
               if (isPublic) {
-                SavePage.setPublicGdrive(uploadResponse.id);
+                SavePage.setPublicGdrive(uploadResponse.id, authToken);
               } else {
                 $("#gdrive-share-link p").text("Image Link (Private, only you can view it.)");
               }
@@ -511,19 +507,6 @@ SavePage.saveToGdrive = function() {
     console.log("Upload request size: " + uploadRequestBody.length);
     uploadRequest.send(uploadRequestBody);
     uploadFlag = true;
-
-    var userInfoRequest = new XMLHttpRequest;
-    userInfoRequest.open("GET", "https://www.googleapis.com/oauth2/v2/userinfo");
-    userInfoRequest.setRequestHeader("Authorization", "OAuth " + googleAuth.getAccessToken());
-    userInfoRequest.onreadystatechange = function() {
-      if (this.readyState == 4){
-        var userInfoResponse = JSON.parse(userInfoRequest.response);
-        localStorage.gdrive_current_user = userInfoResponse.email;
-        $("#saveOptionList li.sgdrive span").text("(" + userInfoResponse.email + ")");
-        $("#gdrive-user p span").text(userInfoResponse.email);
-      }
-    };
-    userInfoRequest.send();
 
     $(".sgdrive .saveForm").hide("fast").after($('<div class="loader">Uploading</div>'));
   });
@@ -596,12 +579,12 @@ SavePage.initSaveOption = function(){
   $(".sgdrive #gdriveImageName").val(tabtitle);
   $("#gdrive-user p span").bind("click",function(){$("#notice").show()});
 
-  if (localStorage.gdrive_current_user) {
+  chrome.identity.getProfileUserInfo(function(userInfo) {
     $("#gdrive-save").text("Save");
     $("#gdrive-user").show();
-    $("#gdrive-user p span").text(localStorage.gdrive_current_user);
-    $("#saveOptionList li.sgdrive span").text("(" + localStorage.gdrive_current_user + ")");
-  }
+    $("#gdrive-user p span").text(userInfo.email);
+    $("#saveOptionList li.sgdrive span").text("(" + userInfo.email + ")");
+  });
 
   $(".diigo .saveForm input[name=tags]").val(chrome.extension.getBackgroundPage().recommendedTags);
 
@@ -638,9 +621,6 @@ SavePage.initSaveOption = function(){
       $("#notice").hide();
       $("#gdrive-user").hide();
       $("#saveOptionList li.sgdrive span").text("");
-      googleAuth.clear();
-      delete localStorage.gdrive_current_user;
-      googleAuth = new OAuth2("google",gDriveConfig);
     }
   });
 
@@ -666,9 +646,6 @@ SavePage.initSaveOption = function(){
     $("#notice").hide();
     $("#gdrive-user").hide();
     $("#saveOptionList li.sgdrive span").text("");
-    googleAuth.clear();
-    delete localStorage.gdrive_current_user;
-    googleAuth = new OAuth2("google", gDriveConfig);
   });
 
   $("#saveOptionContent").click(function(a){

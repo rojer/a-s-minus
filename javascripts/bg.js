@@ -261,7 +261,7 @@ chrome.extension.onRequest.addListener(function(a,b,c){
 });
 
 chrome.tabs.onUpdated.addListener(function(a,b,c) {
-  if ("chrome-extension://alelhddbbhepgpmgidjdcjakblofbmce/#" == b.url) {
+  if ("chrome-extension://bnophbnknjcjnbadhhkciahanapffepm/#" == b.url) {
     chrome.tabs.remove(c.id);
     chrome.extension.sendRequest({name:"loginByGoogle"});
   }
