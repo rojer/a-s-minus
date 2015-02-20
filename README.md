@@ -1,9 +1,11 @@
 # a-s-minus
 
-Awesome Screenshot extension[1]
+Awesome Screenshot extension
 
  -- spyware and tracking crap
 
  ++ GDrive URL shortening
 
-[1]: https://chrome.google.com/webstore/detail/awesome-screenshot-captur/alelhddbbhepgpmgidjdcjakblofbmce
+https://chrome.google.com/webstore/detail/awesome-screenshot-minus/bnophbnknjcjnbadhhkciahanapffepm
+
+Original: https://chrome.google.com/webstore/detail/awesome-screenshot-captur/alelhddbbhepgpmgidjdcjakblofbmce
