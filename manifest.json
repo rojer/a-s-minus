@@ -20,9 +20,8 @@
       "run_at": "document_end"
    } ],
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiT0O9fnWAlXj2J4LWtNrV/l3pR3F8v34NZe5J3WkViRqbeYT48VWvC9/w0l5ORd5XgmV1vtVmT8JviyrN+5LBSvEePj86lwe7KJVI++09NgVCHZBOE50BA+M3WFl2VJ5OTYX8cLGsc9Q0Xwz0SAIdR0B4LN4PymXNJTQU/ljf0q5sVj7bD4yoYTyF+AA4nWOaypmXVrWZfsDqjgaw73wG2ZArzshiDL5nEoVeTPln7KYBhR+BMcrmeQazBu81ohEqOvXFYaaspMhiWqnMVn0DRCkeLmtlW8M9Sh6jQWfvhr5wmw+J+390NDWtI+S+EUdG+J+CrK+OlTYeKDy8qXuzwIDAQAB",
-   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
    "default_locale": "en",
-   "description": "__MSG_extDesc__",
+   "description": "Awesome Screenshot Minus all the crap.",
    "icons": {
       "128": "images/icon128.png",
       "16": "images/icon16.png",
@@ -33,13 +32,13 @@
    "minimum_chrome_version": "37.0",
    "name": "Awesome Screenshot Minus",
    "options_page": "options.html",
-   "permissions": [ "tabs", "<all_urls>", "https://accounts.google.com/o/oauth2/token", "webRequest", "webRequestBlocking", "idle", "storage", "webNavigation", "unlimitedStorage", "desktopCapture",
+   "permissions": [ "tabs", "<all_urls>", "webRequest", "webRequestBlocking", "idle", "storage", "webNavigation", "unlimitedStorage", "desktopCapture",
                     "identity", "identity.email" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "3.7.22.0",
+   "version": "3.7.22.1",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://bnophbnknjcjnbadhhkciahanapffepm/#" ],
    "oauth2": {
      "client_id": "681609840281-r5gak4k2lbk69pcvgf59v0btkp1kp476.apps.googleusercontent.com",
-     "scopes": []  // Set explicitly on each request.
+     "scopes": []
    }
 }

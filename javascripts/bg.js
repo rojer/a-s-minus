@@ -195,7 +195,7 @@ function sendRequest(a,b,c){
   }
 }
 
-var win, menuType, type, dataURL=[], tabid, taburl, tabtitle, counter, ratio, scrollBar, centerW=0, centerH=0, currentversion=chrome.app.getDetails().version, tabids={}, data, tempDataUrl, currentWindowId, currentTabId, D_T, centerOffX=0, centerOffY=0;
+var win, menuType, type, dataURL=[], tabid, taburl, tabtitle, counter, ratio, scrollBar, centerW=0, centerH=0, tabids={}, data, tempDataUrl, currentWindowId, currentTabId, D_T, centerOffX=0, centerOffY=0;
 localStorage.msObj||(localStorage.msObj='{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
 localStorage.format||(localStorage.format="png");
 localStorage.delay_sec||(localStorage.delay_sec=3);
@@ -252,7 +252,6 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     case "copy":chrome.experimental.clipboard.executeCopy(tabid,function(){alert("copied")});break;
     case "exit":chrome.tabs.getSelected(null,function(a){chrome.tabs.remove(a.id)});break;
     case "get_option":c({options:localStorage.msObj});break;
-    case "newtip":if(!localStorage.version||localStorage.version!=currentversion){var f={text:""};chrome.browserAction.setBadgeText(f),count=1,window.open("https://www.diigo.com/awe/new-for-awesome-screenshot.html?v="+currentversion),localStorage.version=currentversion,chrome.extension.sendRequest({action:"shownew"})}break;
     case "openNewTab":var g=a.url;chrome.tabs.create({url:g});break;
     case "enablePriceCompare":console.log("enable"),enablePriceCompare(),localStorage.show_feature_bar="false";break;
     case "getShowFeatureBar":c(localStorage.show_feature_bar);break;
@@ -271,10 +270,3 @@ chrome.tabs.onUpdated.addListener(function(a,b,c) {
 chrome.tabs.onRemoved.addListener(function(a){
   tabids[a]&&chrome.tabs.update(tabids[a],{selected:!0});
 });
-
-chrome.runtime.onInstalled.addListener(function(a){
-  "install"==a.reason&&chrome.tabs.create({url:"http://www.awesomescreenshot.com/welcome/awesome_screenshot.htmlX"})
-});
-
-localStorage.removeItem("isClickedOnNew");
-localStorage.version = currentversion;
