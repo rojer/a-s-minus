@@ -10,7 +10,7 @@
    "content_scripts": [ {
       "css": [ "stylesheets/selected.css" ],
       "exclude_globs": [ "http://awesomescreenshot.com/save-local-flash/SaveToDisk.html" ],
-      "js": [ "javascripts/libs/jquery-1.7.2.min.js", "javascripts/content_script.js", "javascripts/libs/dragresize.js", "javascripts/jquery.draggable.js" ],
+      "js": [ "javascripts/libs/jquery-2.1.3.min.js", "javascripts/content_script.js", "javascripts/libs/dragresize.js", "javascripts/jquery.draggable.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_end"
    }, {
