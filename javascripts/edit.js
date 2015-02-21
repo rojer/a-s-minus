@@ -341,7 +341,20 @@ function saveText(){
 }
 
 function saveAction(a){
-  switch(a.type){case"draw":actions.push({type:"draw",data:showCtx.getImageData(0,0,editW,editH)});break;case"crop":actions.push({type:"crop",data:showCtx.getImageData(0,0,editW,editH),w:editW,h:editH,f:initFlag}),initFlag=0;break;case"resize":actions.push({type:"resize",data:a.data,w:editW,h:editH,absFactor:a.absFactor})}
+  switch (a.type) {
+    case "draw": {
+      actions.push({type:"draw",data:showCtx.getImageData(0,0,editW,editH)});
+      break;
+    }
+    case "crop": {
+      actions.push({type:"crop",data:showCtx.getImageData(0,0,editW,editH),w:editW,h:editH,f:initFlag});
+      initFlag=0;
+      break;
+    }
+    case "resize": {
+      actions.push({type:"resize",data:a.data,w:editW,h:editH,absFactor:a.absFactor});
+    }
+  }
 }
 
 function updateEditArea(){
