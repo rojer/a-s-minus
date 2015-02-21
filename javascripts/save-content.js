@@ -1,1 +1,0 @@
-function fireCustomEvent(a){hiddenDiv=document.getElementById("messageChannel"),hiddenDiv.innerText=a,hiddenDiv.dispatchEvent(customEvent)}var customEvent=document.createEvent("Event");customEvent.initEvent("myCustomEvent",!0,!0),chrome.extension.onRequest.addListener(function(a){"return_image_data"===a.action&&fireCustomEvent(JSON.stringify(a))});
