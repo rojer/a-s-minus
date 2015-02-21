@@ -21,11 +21,15 @@ $(document).ready(function(){
   $("a").click(function(){
     var a=this.id;
     if ("visible"==a) {
-      -1!=navigator.appVersion.indexOf("Chrome/11")&&/^file:\/\/*/.test(b)?alert("You can't capture local page's in Chrome beta!"):d({action:a});
+      d({action:a});
       window.close();
     }
     if ("delay-capture"==a) {
-      -1!=navigator.appVersion.indexOf("Chrome/11")&&/^file:\/\/*/.test(b)?alert("You can't capture local page's in Chrome beta!"):chrome.tabs.getSelected(null,function(b){chrome.tabs.sendRequest(b.id,{action:a,sec:localStorage.delay_sec}),window.close()});
+      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
+        var activeTab = tabs[0];
+        chrome.tabs.sendRequest(activeTab.id, {action:a, sec:localStorage.delay_sec});
+      });
+      window.close();
     }
     if ("entire"==a) {
       c(),d({action:a}),c();

@@ -327,18 +327,31 @@ chrome.extension.onRequest.addListener(function(a){
     case "finishAutoSave": var c="The screenshot has been saved in "+a.path+".";notification.show("success",c);break;
     case "tabupdate": break;
     case "delay-capture": {
-      null!==delayInterval&&(clearInterval(delayInterval),delayInterval=null,$("#awe_delay_div").remove());
-      var d=$('<div id="awe_delay_div"><span></span><div id="awe_delay_cancel">Cancel</div></div>').appendTo("body").find("span").text(a.sec).end();
-      d.find("#awe_delay_cancel").on("click",function(){
+      if (null !== delayInterval) {
         clearInterval(delayInterval);
-        delayInterval=null;
+        delayInterval = null;
+        $("#awe_delay_div").remove();
+      }
+      var d = $('<div id="awe_delay_div"><span></span><div id="awe_delay_cancel">Cancel</div></div>')
+          .appendTo("body").find("span").text(a.sec).end();
+      d.find("#awe_delay_cancel").on("click", function() {
+        clearInterval(delayInterval);
+        delayInterval = null;
         d.remove();
       });
-      $.Draggable(d[0],{});
-      var e=a.sec?a.sec-1:2;
-      delayInterval=setInterval(function(){
-        return 0>=e?(clearInterval(delayInterval),delayInterval=null,d.remove(),void setTimeout(function(){chrome.extension.sendRequest({action:"visible"})},100)):($("#awe_delay_div").find("span").text(e),void e--);
-      }, 1e3);
+      $.Draggable(d[0], {});
+      var e = a.sec ? a.sec - 1 : 2;
+      delayInterval = setInterval(function() {
+        if (e > 0) {
+          $("#awe_delay_div").find("span").text(e);
+          e--;
+        } else {
+          clearInterval(delayInterval);
+          delayInterval = null;
+          d.remove();
+          setTimeout(function(){chrome.extension.sendRequest({action:"visible"})}, 100);
+        }
+      }, 1000);
     }
   }
 });
