@@ -13,23 +13,7 @@ function removeClass(a,b){
   }
 }
 
-function fixPosition(a){
-  switch(a){
-    case "www.facebook.com": var b=document.getElementById("blueBarNAXAnchor");removeClass(b,"fixed_elem");break;
-    case "pinterest.com": var c=document.getElementById("CategoriesBar"),d=document.getElementsByClassName("Nag");0!=d.length&&d[0].style.setProperty("position","absolute","important"),c.style.setProperty("position","absolute","important");
-  }
-}
-
-function restorePosition(a){
-  switch(a){
-    case "www.facebook.com": var b=document.getElementById("blueBarNAXAnchor");addClass(b,"fixed_elem");break;
-    case "pinterest.com": var c=document.getElementById("CategoriesBar"),d=document.getElementsByClassName("Nag");0!=d.length&&(d[0].style.position=""),c.style.position="";
-  }
-}
-
 function initEntireCapture(){
-  fixPosition(hostname);
-  enableFixedPosition(!0);
   counter = 1;
   getDocumentNode();
   html = doc.documentElement;
@@ -42,6 +26,7 @@ function initEntireCapture(){
   checkScrollBar();
   window.onresize = checkScrollBar;
   if (scrollBar.x || scrollBar.y) {
+    enableFixedPosition(false);
     setTimeout(sendRequest,300,{action:"scroll_next_done"});
   } else {
     sendRequest({action:"visible"});
@@ -121,10 +106,8 @@ function bindCenter(){
   function b(){
     var a=document.getElementById("awesome_screenshot_size");
     setStyle(a,"display","none");
-    fixPosition(hostname);
     dragresize.deselect(c);
     setStyle(c,"outline","none");
-    enableFixedPosition(!1);
     counter=1;
     html=document.documentElement;
     initScrollTop=document.body.scrollTop;
@@ -212,7 +195,6 @@ function getStyle(a,b){
 }
 
 function scrollNext(){
-  enableFixedPosition(!1);
   var a = document.body.scrollTop,b=document.body.scrollLeft;
   if (isSelected) {
     var c = document.getElementById("awesome_screenshot_center");
@@ -235,7 +217,13 @@ function scrollNext(){
     var b=document.body.scrollLeft;
     if (document.body.scrollLeft=b+clientW,!scrollBar.x||document.body.scrollLeft==b) {
       var h={};
-      return h.y=a%clientH/clientH,h.x=b%clientW/clientW,document.body.scrollTop=initScrollTop,document.body.scrollLeft=initScrollLeft,restoreFixedElements(),void sendRequest({action:"entire_capture_done",counter:counter,ratio:h,scrollBar:scrollBar});
+      h.y = a % clientH / clientH;
+      h.x = b % clientW / clientW;
+      document.body.scrollTop = initScrollTop;
+      document.body.scrollLeft = initScrollLeft;
+      enableFixedPosition(true);
+      sendRequest({action:"entire_capture_done", counter:counter, ratio:h, scrollBar:scrollBar});
+      return;
     }
     counter++;
     document.body.scrollTop=0;
@@ -262,23 +250,20 @@ function keydownHandler(a){
   }
 }
 
-function enableFixedPosition(a){
-  if (a) {
-    for (var b=0,c=fixedElements.length;c>b;++b) fixedElements[b].style.position="fixed";
+function enableFixedPosition(enabled){
+  console.log('enableFixedPosition', enabled);
+  if (enabled) {
+    for (var b=0,c=fixedElements.length;c>b;++b) fixedElements[b].style.position = "fixed";
+    fixedElements=[];
   } else {
     for (var d,e=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_ELEMENT,null,!1);d=e.nextNode();){
       var f = document.defaultView.getComputedStyle(d,"");
       if (!f) return;
-      var g=f.getPropertyValue("position");
-      "fixed"==g&&(fixedElements.push(d),d.style.position="absolute");
+      if (f.getPropertyValue("position") == "fixed") {
+        fixedElements.push(d);
+        d.style.position = "absolute";
+      }
     }
-  }
-}
-
-function restoreFixedElements(){
-  if (fixedElements){
-    for (var a=0,b=fixedElements.length;b>a;a++) fixedElements[a].style.position = "fixed";
-    fixedElements=[];
   }
 }
 
@@ -322,8 +307,7 @@ chrome.extension.onRequest.addListener(function(a){
     case "init_entire_capture": initEntireCapture();break;
     case "init_selected_capture": initSelectedCapture();break;
     case "scroll_next": scrollNext();break;
-    case "destroy_selected": removeSelected();break;
-    case "restorebar": restorePosition(hostname),restoreFixedElements();var b=document.getElementById("searchbar");null!=b&&(b.style.display="block",document.body.id="searchbarshow");break;
+    case "destroy_selected": removeSelected(); break;
     case "finishAutoSave": var c="The screenshot has been saved in "+a.path+".";notification.show("success",c);break;
     case "tabupdate": break;
     case "delay-capture": {
