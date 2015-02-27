@@ -1,21 +1,3 @@
-function enablePriceCompare() {
-  localStorage.pcnotification = "true";
-  localStorage.popupnotification = "true";
-  localStorage.barnotification = "true";
-  localStorage.show_feature_bar = "false";
-  refreshOptions();
-}
-
-function disablePriceCompare(){
-  localStorage.pcnotification = "false";
-  localStorage.popupnotification = "false";
-  localStorage.barnotification = "false";
-  if ("never" !== localStorage.show_feature_bar) {
-    localStorage.show_feature_bar="true";
-  }
-  refreshOptions();
-}
-
 function captureVisible() {
   function a() {
     chrome.windows.update(
@@ -251,11 +233,6 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     case "ready":var e=document.getElementById("test_image");e.onload=d,console.log(dataURL[0]),e.src=dataURL[0];break;
     case "copy":chrome.experimental.clipboard.executeCopy(tabid,function(){alert("copied")});break;
     case "exit":chrome.tabs.getSelected(null,function(a){chrome.tabs.remove(a.id)});break;
-    case "get_option":c({options:localStorage.msObj});break;
-    case "openNewTab":var g=a.url;chrome.tabs.create({url:g});break;
-    case "enablePriceCompare":console.log("enable"),enablePriceCompare(),localStorage.show_feature_bar="false";break;
-    case "getShowFeatureBar":c(localStorage.show_feature_bar);break;
-    case "disableShowFeatureBar":localStorage.show_feature_bar="never";break;
   };
 });
 
