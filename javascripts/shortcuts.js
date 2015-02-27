@@ -5,7 +5,6 @@ function bindShortcuts(req){
   b.removeEventListener("keydown", keydownHandler, false);
   shortcutsConfig = JSON.parse(req.config);
   b.addEventListener("keydown", keydownHandler, false);
-  console.log('shortcuts installed');
 }
 
 function keydownHandler(e) {
