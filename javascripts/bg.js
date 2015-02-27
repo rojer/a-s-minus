@@ -219,7 +219,7 @@ chrome.extension.onRequest.addListener(function(a,b,c){
   b.tab&&-1!=b.tab.id&&"visible"!=a.action&&"selected"!=a.action&&"entire"!=a.action||(menuType=a.action,a.menuType&&(menuType=a.menuType));
 
   switch (a.action){
-    case "visible": "selected"==menuType&&(type="visible",centerW=a.centerW,centerH=a.centerH),captureVisible(),sendRequest("tab",tabid,{action:"restorebar"});break;
+    case "visible": "selected"==menuType&&(type="visible",centerW=a.centerW,centerH=a.centerH),captureVisible();break;
     case "selected": captureSelected();break;
     case "entire": captureEntire();break;
     case "https": alert("For security reason, Capture Selected Area doesn't work in https pages! Please try other options.");
@@ -228,7 +228,7 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     case "check_shortcuts": updateShortcutsRequest(b.tab.id);break;
     case "update_shortcuts": chrome.tabs.getAllInWindow(null,function(a){for(var b=0,c=a.length;c>b;b++){var d=a[b],e=d.url;e.match(/https?:\/\/*\/*/gi)&&!e.match(/https:\/\/chrome.google.com\/extensions/i)&&updateShortcutsRequest(d.id)}});break;
     case "scroll_next_done": sendRequest("tab",tabid,{action:"hidescroll"}),saveAndScroll(),sendRequest("tab",tabid,{action:"restorescroll"});break;
-    case "entire_capture_done": counter=a.counter,ratio=a.ratio,scrollBar=a.scrollBar,type="entire","selected"==menuType&&(centerW=a.centerW,centerH=a.centerH),console.log("newTab"),sendRequest("tab",tabid,{action:"restorebar"}),newTab();break;
+    case "entire_capture_done": counter=a.counter,ratio=a.ratio,scrollBar=a.scrollBar,type="entire","selected"==menuType&&(centerW=a.centerW,centerH=a.centerH),console.log("newTab"),newTab();break;
     case "capture_selected_done":type="visible",centerH=a.data.h,centerW=a.data.w,centerOffX=a.data.x,centerOffY=a.data.y,captureVisible();break;
     case "ready":var e=document.getElementById("test_image");e.onload=d,console.log(dataURL[0]),e.src=dataURL[0];break;
     case "copy":chrome.experimental.clipboard.executeCopy(tabid,function(){alert("copied")});break;
