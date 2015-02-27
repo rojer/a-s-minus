@@ -26,18 +26,10 @@
    "name": "Awesome Screenshot Minus",
    "options_page": "options.html",
    "permissions": [
-     // Required for shortcut-initiated captures to work, could be replaced with activeTab.
      "<all_urls>",
-     // Required to get tab title and URL, could conceivably be replaced with additional
-     // round-trip to and from injected content script, but script injection
-     // itself already requires extensive permissions, so that's going backwards.
      "tabs",
-
-     // For GDrive uploads.
      "identity",
-     // To display account name where the file is uploaded.
      "identity.email",
-
      "storage"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx",
