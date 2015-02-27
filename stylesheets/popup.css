@@ -37,7 +37,7 @@ a#entire span { background-position: -260px -20px; }
 a#option span{background-position: -280px -40px;}
 a#help span {background-position: -299px -40px;}
 a#upload span {background-position: -320px -40px;}
-a#delay-capture span {background-position: -200px -40px;}
+a#delayed span {background-position: -200px -40px;}
 
 .shortcut{
     float: right;
@@ -63,7 +63,7 @@ a#delay-capture span {background-position: -200px -40px;}
     background: none;
 }
 
-#delay-capture{
+#delayed{
     padding-left: 26px;
 }
 

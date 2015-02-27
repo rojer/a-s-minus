@@ -14,6 +14,7 @@ function removeClass(a,b){
 }
 
 function initEntireCapture(){
+  console.log('initEntireCapture');
   counter = 1;
   getDocumentNode();
   html = doc.documentElement;
@@ -34,6 +35,7 @@ function initEntireCapture(){
 }
 
 function initSelectedCapture(){
+  console.log('initSelectedCapture');
   var a=document.getElementById("searchbar");
   if(null!==a){
     a.style.display="none";
@@ -52,6 +54,37 @@ function initSelectedCapture(){
   window.addEventListener("resize",windowResize,!1);
   document.body.addEventListener("keydown",selectedKeyDown,!1);
   wrapper.addEventListener("mousedown",wrapperMouseDown,!1);
+}
+
+function initDelayedCapture(delaySeconds) {
+  console.log('initDelayedCapture');
+  if (null !== delayInterval) {
+    clearInterval(delayInterval);
+    delayInterval = null;
+    $("#awe_delay_div").remove();
+  }
+  var d = $('<div id="awe_delay_div"><span>' + delaySeconds + '</span>' +
+            '<div id="awe_delay_cancel">Cancel</div></div>').appendTo("body").end();
+  d.find("#awe_delay_cancel").on("click", function() {
+    clearInterval(delayInterval);
+    delayInterval = null;
+    d.remove();
+  });
+  $.Draggable(d[0], {});
+  var remaining = delaySeconds;
+  delayInterval = setInterval(function() {
+    console.log(remaining);
+    remaining--;
+    if (remaining > 0) {
+      $("#awe_delay_div").find("span").text(remaining);
+    } else {
+      clearInterval(delayInterval);
+      delayInterval = null;
+      d.remove();
+      console.log('boom!');
+      setTimeout(function(){chrome.extension.sendRequest({action:"visible"})}, 100);
+    }
+  }, 1000);
 }
 
 function wrapperMouseDown(a){
@@ -234,22 +267,6 @@ function scrollNext(){
 
 function sendRequest(a){chrome.extension.sendRequest(a)}
 
-function bindShortcuts(a){
-  var b=document.body;
-  if (b.removeEventListener("keydown",keydownHandler,!1),b.addEventListener("keydown",keydownHandler,!1),msObj=a.msObj) {
-    msObj=JSON.parse(msObj);
-    for (var c in msObj) menu[c].enable=msObj[c].enable,menu[c].key=msObj[c].key;
-  }
-}
-
-function keydownHandler(a){
-  switch (String.fromCharCode(a.which)) {
-    case menu.visible.key: 1==menu.visible.enable&&a.shiftKey&&a.ctrlKey&&sendRequest({action:"visible"});break;
-    case menu.selected.key: 1==menu.selected.enable&&a.shiftKey&&a.ctrlKey&&sendRequest({action:"selected"});break;
-    case menu.entire.key: 1==menu.entire.enable&&a.shiftKey&&a.ctrlKey&&sendRequest({action:"entire"});
-  }
-}
-
 function enableFixedPosition(enabled){
   console.log('enableFixedPosition', enabled);
   if (enabled) {
@@ -294,57 +311,28 @@ function getClientH() {
   return "CSS1Compat" === document.compatMode ? html.clientHeight : document.body.clientHeight;
 }
 
-var isContentScriptLoaded=!0,doc,html,docW,docH,initScrollTop,initScrollLeft,clientH,clientW,scrollBar={},counter=1;
-var menu={visible:{enable:"false",key:"V"},selected:{enable:"false",key:"S"},entire:{enable:"false",key:"E"}};
+var isContentScriptLoaded = true;
+var doc,html,docW,docH,initScrollTop,initScrollLeft,clientH,clientW,scrollBar={},counter=1;
 var fixedElements=[];
 var wrapperHTML='<div id="awesome_screenshot_wrapper"><div id="awesome_screenshot_top"></div><div id="awesome_screenshot_right"></div><div id="awesome_screenshot_bottom"></div><div id="awesome_screenshot_left"></div><div id="awesome_screenshot_center" class="drsElement drsMoveHandle"><div id="awesome_screenshot_size" style="min-width:70px;"><span>0 X 0</span></div><div id="awesome_screenshot_action"><a id="awesome_screenshot_cancel"><span id="awesome_screenshot_cancel_icon"></span>Cancel</a><a id="awesome_screenshot_capture"><span id="awesome_screenshot_capture_icon"></span>Capture</a></div></div></div>';
-var wrapper,dragresize,isSelected=!1,hostname=document.location.hostname;
-var delayInterval=null;
+var wrapper,dragresize,isSelected=!1;
+var delayInterval = null;
 
 chrome.extension.onRequest.addListener(function(a){
   switch(a.action){
-    case "update_shortcuts": bindShortcuts(a);break;
-    case "init_entire_capture": initEntireCapture();break;
-    case "init_selected_capture": initSelectedCapture();break;
+    case "init_entire_capture":   initEntireCapture(); break;
+    case "init_selected_capture": initSelectedCapture(); break;
+    case "init_delayed_capture":  initDelayedCapture(a.delay); break;
     case "scroll_next": scrollNext();break;
     case "destroy_selected": removeSelected(); break;
     case "finishAutoSave": var c="The screenshot has been saved in "+a.path+".";notification.show("success",c);break;
     case "tabupdate": break;
-    case "delay-capture": {
-      if (null !== delayInterval) {
-        clearInterval(delayInterval);
-        delayInterval = null;
-        $("#awe_delay_div").remove();
-      }
-      var d = $('<div id="awe_delay_div"><span></span><div id="awe_delay_cancel">Cancel</div></div>')
-          .appendTo("body").find("span").text(a.sec).end();
-      d.find("#awe_delay_cancel").on("click", function() {
-        clearInterval(delayInterval);
-        delayInterval = null;
-        d.remove();
-      });
-      $.Draggable(d[0], {});
-      var e = a.sec ? a.sec - 1 : 2;
-      delayInterval = setInterval(function() {
-        if (e > 0) {
-          $("#awe_delay_div").find("span").text(e);
-          e--;
-        } else {
-          clearInterval(delayInterval);
-          delayInterval = null;
-          d.remove();
-          setTimeout(function(){chrome.extension.sendRequest({action:"visible"})}, 100);
-        }
-      }, 1000);
-    }
   }
 });
 
-sendRequest({action:"check_shortcuts"});
+console.log('ASMinus script loaded.');
 
-window.addEventListener("load",function(){sendRequest({action:"enable_selected"})},!1);
-
-var notification={
+var notification = {
   notifyBox: null,
 
   init: function(){this.create()},

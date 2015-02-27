@@ -1,0 +1,2 @@
+var isContentScriptLoaded;
+isContentScriptLoaded;

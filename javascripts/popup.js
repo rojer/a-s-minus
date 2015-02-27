@@ -7,35 +7,54 @@ $(document).ready(function(){
   
   chrome.windows.getCurrent(function(a){chrome.tabs.getSelected(a.id,function(b){chrome.browserAction.getBadgeText({tabId:b.id},function(b){"New"==b&&(chrome.browserAction.setBadgeText({text:""}),chrome.tabs.create({url:"http://www.appchangelog.com/log/19/Awesome-Screenshot:-Capture-&-Annotate/Awesome-screenshot-for-iOS-8"}),localStorage.isClickedOnNew="true",a.close())})})});
   
-  var e,f=!0;
   b();
   a();
-  chrome.windows.getCurrent(function(a){chrome.tabs.getSelected(a.id,function(a){console.log(new Date),e=a.url;var b=e.match(/https?:\/\/*\/*/gi);(null==b||e.match(/https:\/\/chrome.google.com\/extensions/i))&&$("#entire, #selected, #delay-capture").attr({title:chrome.i18n.getMessage("disableEntireTitle")}).css({color:"#909090"}).unbind("click"),"complete"!=a.status&&($("#selected").attr({title:"Page still loading! Please wait."}).css({color:"#909090"}),f=!1),/http|https|file|ftp/.test(e.slice(0,5))||$("#visible").css({color:"#909090"}).unbind("click")})});
+  var canInject = true;
+  chrome.windows.getCurrent(function(a){
+    chrome.tabs.getSelected(a.id,function(a){
+      var tabURL = a.url;
+      // Can't inject scripts into chrome extension gallery or non-html pages.
+      if (tabURL.match(/https:\/\/chrome.google.com\/webstore\/category\/extensions/) ||
+          !tabURL.match(/https?:\/\/*\/*/gi)) {
+        canInject = false;
+        $("#entire, #selected, #delayed")
+          .attr({title:chrome.i18n.getMessage("disableEntireTitle")})
+          .css({color:"#909090"})
+          .unbind("click");
+      }
+      if ("complete" != a.status) {
+        $("#selected").attr({title:"Page still loading! Please wait."}).css({color:"#909090"});
+      }
+      if (!/http|https|file|ftp/.test(tabURL.slice(0,5))) {
+        $("#visible").css({color:"#909090"}).unbind("click");
+      }
+    });
+  });
+
   chrome.extension.onRequest.addListener(function(a){
-    switch(a.action){
-      case "enable_selected": if(e.match(/https:\/\/*\/*/gi)) return void $("#selected").attr({title:"For security reason, Capture Selected Area doesn't work in https pages!"});f=!0,$("#selected").attr({title:""}).css({color:"#000"});break;
-      case "shownew": window.close();break;
-      case "closeWin": window.close();
+    console.log(a);
+    switch (a.action){
+      case "shownew": window.close(); break;
+      case "close_popup": window.close();
     }
   });
   $("a").click(function(){
     var a=this.id;
-    if ("visible"==a) {
-      d({action:a});
+    if ("visible" == a) {
+      chrome.extension.sendRequest({action:a});
       window.close();
     }
-    if ("delay-capture"==a) {
-      chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-        var activeTab = tabs[0];
-        chrome.tabs.sendRequest(activeTab.id, {action:a, sec:localStorage.delay_sec});
-      });
+    if ("delayed" == a) {
+      chrome.extension.sendRequest({action:a});
       window.close();
     }
     if ("entire"==a) {
-      c(),d({action:a}),c();
+      c();
+      chrome.extension.sendRequest({action:a});
+      c();
     }
     if ("selected"==a) {
-      f?(window.close(),d({action:a})):d({action:"https"});
+      chrome.extension.sendRequest({action:a});
       window.close();
     }
     if ("upload"==a){
@@ -43,12 +62,12 @@ $(document).ready(function(){
       chrome.tabs.create({url:b});
       window.close();
     }
-    if("option"==a){
+    if ("option"==a){
       var b=chrome.extension.getURL("")+"options.html";
       chrome.tabs.create({url:b});
       window.close();
     }
-    if("help"==a){
+    if ("help"==a){
       var b=chrome.extension.getURL("")+"help.html";
       chrome.tabs.create({url:b});
       window.close();

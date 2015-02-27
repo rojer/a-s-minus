@@ -13,19 +13,13 @@ function handleFileSelect(a){
 }
 
 function readFile(a){
-  var b=a.name.match(/(.*)\.(png|jpg|jpeg)$/)[1],c=new FileReader;
-  c.onload = function(a){
-    var c=a.target.result;
-    BG.getSelectedTab(function(){
-      BG.type="visible";
-      BG.menuType="upload";
-      BG.tabtitle=b;
-      BG.dataURL.push(c);
-      var a=chrome.extension.getURL("")+"edit.html";
-      chrome.tabs.update({url:a});
-    });
+  var fileName = a.name.match(/(.*)\.(png|jpg|jpeg)$/i)[1];
+  var reader = new FileReader;
+  reader.onload = function(a){
+    var data = a.target.result;
+    chrome.extension.sendRequest({action:"upload", title:fileName, data:data});
   };
-  c.readAsDataURL(a);
+  reader.readAsDataURL(a);
 }
 
 function handleDragHover(a){
@@ -35,7 +29,6 @@ function handleDragHover(a){
   dropZone.className="dragover"==a.type?"hover":"";
 }
 
-var BG = chrome.extension.getBackgroundPage();
 document.getElementById("image_file").addEventListener("change",handleFileSelect,!1);
 
 var dropZone = document.getElementById("dropZone");

@@ -411,10 +411,16 @@ $(document).ready(function(){
   drawCanvas = document.getElementById("draw-canvas");
   drawCtx = drawCanvas.getContext("2d");
   chrome.extension.onRequest.addListener(function(a){
-    console.log(requestFlag,a);
-    requestFlag&&a.menuType&&(i18n(),prepareEditArea(a),prepareTools(),preparePromote(),requestFlag=0);
+    console.log('edit', requestFlag, a);
+    if (requestFlag && a.menuType) {
+      i18n();
+      prepareEditArea(a);
+      prepareTools();
+      preparePromote();
+      requestFlag = 0;
+    }
   });
-  chrome.extension.sendRequest({action:"ready"});
+  chrome.extension.sendRequest({action:"edit_ready"});
   $(window).unbind("resize").resize(function(){
     getEditOffset();
     addMargin();
@@ -752,4 +758,4 @@ SavePage.init=function(){
   $("#c-tip").on("click",function(a){a.preventDefault(),showInfo(!0)});
 };
 
-chrome.extension.sendRequest({action:"closeWin"});
+chrome.extension.sendRequest({action:"close_popup"});

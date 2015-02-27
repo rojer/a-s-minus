@@ -8,8 +8,7 @@
       "default_title": "Awesome Screenshot Minus"
    },
    "content_scripts": [ {
-      "css": [ "stylesheets/selected.css" ],
-      "js": [ "javascripts/libs/jquery-2.1.3.min.js", "javascripts/content_script.js", "javascripts/libs/dragresize.js", "javascripts/jquery.draggable.js" ],
+      "js": [ "javascripts/shortcuts.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_end"
    } ],
@@ -26,7 +25,21 @@
    "minimum_chrome_version": "37.0",
    "name": "Awesome Screenshot Minus",
    "options_page": "options.html",
-   "permissions": [ "tabs", "<all_urls>", "storage", "identity", "identity.email" ],
+   "permissions": [
+     // Required for shortcut-initiated captures to work, could be replaced with activeTab.
+     "<all_urls>",
+     // Required to get tab title and URL, could conceivably be replaced with additional
+     // round-trip to and from injected content script, but script injection
+     // itself already requires extensive permissions, so that's going backwards.
+     "tabs",
+
+     // For GDrive uploads.
+     "identity",
+     // To display account name where the file is uploaded.
+     "identity.email",
+
+     "storage"
+   ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "3.7.22.2",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://bnophbnknjcjnbadhhkciahanapffepm/#" ],
