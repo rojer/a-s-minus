@@ -50,7 +50,6 @@ a#delayed span {background-position: -200px -40px;}
 
 #moreLinks{
     margin-top: 8px;
-    border-top:1px solid #aaa;
     padding-top: 2px;
 }
 
@@ -61,10 +60,6 @@ a#delayed span {background-position: -200px -40px;}
     width: auto;
     height: auto;
     background: none;
-}
-
-#delayed{
-    padding-left: 26px;
 }
 
 li.sep {

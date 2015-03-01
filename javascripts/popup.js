@@ -9,6 +9,7 @@ $(document).ready(function(){
   
   b();
   a();
+  $('#version').text(chrome.app.getDetails().version);
   var canInject = true;
   chrome.windows.getCurrent(function(a){
     chrome.tabs.getSelected(a.id,function(a){
