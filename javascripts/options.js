@@ -29,7 +29,25 @@ function saveOptions() {
 }
 
 function restoreOptions(){
-  if (localStorage.format?$("#"+localStorage.format).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked"):(localStorage.format="png",$("#png").attr({checked:"checked"}).siblings("input:checked").removeAttr("checked")),localStorage.delay_sec&&$("#delay_sec_"+localStorage.delay_sec).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked"),"true"==localStorage["data-tracking"]&&$("#data-tracking").attr({checked:"checked"}),localStorage.savePath&&$("#filePath").val(localStorage.savePath),"true"==localStorage.autoSave&&$("#autosave").prop("checked",!0),msObj=localStorage.msObj){msObj=JSON.parse(msObj);for(var a in msObj){var b=msObj[a],c=$("#"+a),d=$("select",c.parent().siblings("td.select"));b.enable&&(c.attr({checked:"checked"}),d.removeAttr("disabled")),d.attr({value:b.key})}}
+  if (!localStorage.format) localStorage.format = "png";
+  $("#"+localStorage.format).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked");
+
+  if (!localStorage.delay_sec) localStorage.delay_sec = "3";
+  $("#delay_sec_"+localStorage.delay_sec).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked");
+  "true"==localStorage["data-tracking"]&&$("#data-tracking").attr({checked:"checked"});
+  localStorage.savePath&&$("#filePath").val(localStorage.savePath);
+  if ("true"==localStorage.autoSave) $("#autosave").prop("checked", true);
+  msObj = localStorage.msObj;
+  if (msObj) {
+    msObj = JSON.parse(msObj);
+    for(var a in msObj){
+      var b=msObj[a];
+      var c=$("#"+a);
+      var d=$("select",c.parent().siblings("td.select"));
+      b.enable&&(c.attr({checked:"checked"}),d.removeAttr("disabled"));
+      d.attr({value:b.key});
+    }
+  }
 }
   
 function checkDuplicateKeys(){
