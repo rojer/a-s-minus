@@ -367,49 +367,6 @@ input:not(.cd-input) {
     display:inline !important;
     float:none !important;
 }
-/* Promote 
-----------------------------------*/
-#promote {
-    display:none;
-    position:fixed; bottom:0; right:0;
-    width:84px; height:101px;
-    background:url(../images/corner-collapsed.png) right bottom no-repeat;
-    cursor:pointer;
-    color: #fff;
-}
-#promote.expanded {
-    width:700px; height:382px;
-    background-image:url(../images/corner-expanded.png);
-}
-#promote #content {
-    display: none;
-    margin-top: 340px;
-    margin-right:100px;
-    text-align: right;
-}
-#promote p{
-    line-height: 2;
-    margin-bottom: 10px;
-}
-#promote a { 
-    color:#fff;
-    text-decoration:none;
-    background-color:#333;
-    padding:0 5px;
-    border-radius:5px;
-}
-#promote a:hover {
-    text-decoration:none;
-    background-color:#000;
-    color:#fff;
-}
-#promote #diigo_highlighter{
-    font-size: 13px;
-}
-#promote #diigo_highlighter a{
-    font-weight: bold;
-    font-size: 12px;
-}
 
 /* Crop
 ----------------------------------*/

@@ -121,10 +121,6 @@ function prepareTools(){
   });
 }
 
-function preparePromote(){
-  $("#promote").click(function(a){$(this).disableSelection(),"A"!=a.target.tagName&&$(this).toggleClass("expanded").find("#content").toggle()});
-}
-
 function bindShortcuts(){
   var a=!1;$("body").keydown(function(b){var c="";switch(b.which){case 83:c="save";break;case 67:c="crop";break;case 82:c="rectangle";break;case 69:c="ellipse";break;case 65:c="arrow";break;case 76:c="line";break;case 70:c="free-line";break;case 66:c="blur";break;case 84:c="text";break;case 17:a=!0;break;case 90:a&&(c="undo");break;case 16:shift=!0;break;case 13:c="done";break;case 27:c="cancel"}c&&(tool($("body").hasClass("selected")?c:c),"undo"!=c&&(a=!1))}).keyup(function(a){switch(a.which){case 16:shift=!1}})
 }
@@ -416,7 +412,6 @@ $(document).ready(function(){
       i18n();
       prepareEditArea(a);
       prepareTools();
-      preparePromote();
       requestFlag = 0;
     }
   });
