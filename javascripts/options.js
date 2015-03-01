@@ -14,7 +14,6 @@ function saveOptions() {
   localStorage.format=$('input[name="format"]:checked').attr("id");
   localStorage.delay_sec=$('input[name="delay_sec"]:checked').attr("data-sec");
   localStorage.autoSave=$("#autosave").is(":checked");
-  localStorage["data-tracking"]=$("#data-tracking").is(":checked");
   var a={};
   $("input:checkbox", $("#menu_shortcuts")).each(function(){
     var b=this.id,c=this.checked,d=$("select",$(this).parent().siblings("td.select")).attr("value");
@@ -34,7 +33,6 @@ function restoreOptions(){
 
   if (!localStorage.delay_sec) localStorage.delay_sec = "3";
   $("#delay_sec_"+localStorage.delay_sec).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked");
-  "true"==localStorage["data-tracking"]&&$("#data-tracking").attr({checked:"checked"});
   localStorage.savePath&&$("#filePath").val(localStorage.savePath);
   if ("true"==localStorage.autoSave) $("#autosave").prop("checked", true);
   msObj = localStorage.msObj;
