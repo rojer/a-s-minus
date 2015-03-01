@@ -36,7 +36,7 @@
         </table>
       </fieldset>
       <fieldset id="delay_sec">
-        <legend>Delay Seconds</legend>
+        <legend>Delay (for delayed capture)</legend>
         <input type="radio" name="delay_sec" value="3" id="delay_sec_3" data-sec="3" checked="checked"><label for="delay_sec_3">3s</label>
         <input type="radio" name="delay_sec" value="5" id="delay_sec_5" data-sec="5"><label for="delay_sec_5">5s</label>
       </fieldset>
@@ -56,9 +56,9 @@
       <div id="tip"><span></span></div>
     </div>
     <div id="action_panel">
-      <input type="button" value="Reset">
-      <input type="button" value="Save">
-      <input type="button" value="Close">
+      <input type="button" id="reset" value="Reset">
+      <input type="button" id="save"  value="Save">
+      <input type="button" id="close" value="Close">
     </div>
   </div>
 </body>

@@ -1,13 +1,64 @@
 function buildSelect() {
-  for(var a=["V","S","E"],b=$('<select disabled="disabled"></select>'),c=48;91>c;c++)if(!(c>57&&65>c)){var d=String.fromCharCode(c);$("<option></option>").attr({value:d}).text(d).appendTo(b)}b.appendTo($(".select")).each(function(b){this.value=a[b]});
+  var select = $('<select disabled="yes"></select>');
+  for(var c = 48; c < 91; c++) {
+    if(!(c > 57 && c < 65)){
+      var d = String.fromCharCode(c);
+      $("<option></option>").attr({value:d}).text(d).appendTo(select);
+    }
+  }
+  select.appendTo($(".select")).each(function(i){this.value=["V","S","E"][i]});
 }
 
 function bindSelect() {
-  $("#shortcuts_table").click(function(a){var b=a.target,c=$(b).parent().siblings("td");if("SELECT"==b.tagName&&$("input",c).attr("checked")&&$("select",$("#menu_shortcuts")).not(b).each(function(){$("option[disabled]",$(this)).removeAttr("disabled"),$("option[value="+this.value+"]",$(b)).attr({disabled:"disabled"})}),"checkbox"==b.type){var d=$("select",c);$(b).attr("checked")?d.removeAttr("disabled"):d.attr({disabled:"disabled"})}});
+  $("#shortcuts_table").click(function(a){
+    var b = a.target;
+    var c = $(b).parent().siblings("td");
+    if ("SELECT" == b.tagName && $("input",c).attr("checked")) {
+      $("select", $("#menu_shortcuts")).not(b).each(function(){
+        $("option[disabled]",$(this)).removeAttr("disabled");
+        $("option[value="+this.value+"]",$(b)).attr({disabled:"disabled"});
+      });
+    }
+    if ("checkbox" == b.type) {
+      var d = $("select", c);
+      if (b.checked) {
+        d.removeAttr("disabled");
+      } else {
+        d.attr({disabled:"disabled"});
+      }
+    }
+  });
 }
 
 function bindActionPanel() {
-  $("#action_panel").click(function(a){if("INPUT"==a.target.tagName)switch(a.target.value){case"Reset":localStorage.clear(),localStorage.reset=!0,location.href=location.href,localStorage.msObj='{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}',localStorage.format="png",localStorage.savePath="C:/",localStorage.autoSave="false";break;case"Save":if(checkDuplicateKeys())return $("#tip").addClass("error"),void showTip("Shortcut Keys Conflict");saveOptions(),$("#tip").removeClass("error"),showTip("Options Saved");break;case"Close":chrome.extension.sendRequest({action:"exit"})}});
+  $("#action_panel").click(function(a){
+    if ("INPUT" != a.target.tagName) return;
+    switch (a.target.id) {
+      case "reset": {
+        localStorage.clear();
+        localStorage.reset = true;
+        location.href = location.href;
+        break;
+      }
+      case "save": {
+        if (checkDuplicateKeys()) {
+          $("#tip").addClass("error");
+          showTip("Shortcut Keys Conflict");
+          return;
+        }
+        saveOptions();
+        $("#tip").removeClass("error");
+        showTip("Options Saved", function() {
+          chrome.extension.sendRequest({action:"exit"});
+        });
+        break;
+      }
+      case "close": {
+        chrome.extension.sendRequest({action:"exit"});
+        break;
+      }
+    }
+  });
 }
 
 function saveOptions() {
@@ -23,7 +74,7 @@ function saveOptions() {
     var b=this.id,c=this.checked,d=$("select",$(this).parent().siblings("td.select")).attr("value");
     a[""+b] = {enable:c, key:d};
   });
-  localStorage.msObj=JSON.stringify(a);
+  localStorage.msObj = JSON.stringify(a);
   chrome.extension.sendRequest({action:"update_shortcuts"});
 }
 
@@ -35,16 +86,16 @@ function restoreOptions(){
   $("#delay_sec_"+localStorage.delay_sec).attr({checked:"checked"}).siblings("input:checked").removeAttr("checked");
   localStorage.savePath&&$("#filePath").val(localStorage.savePath);
   if ("true"==localStorage.autoSave) $("#autosave").prop("checked", true);
-  msObj = localStorage.msObj;
-  if (msObj) {
-    msObj = JSON.parse(msObj);
-    for(var a in msObj){
-      var b=msObj[a];
-      var c=$("#"+a);
-      var d=$("select",c.parent().siblings("td.select"));
-      b.enable&&(c.attr({checked:"checked"}),d.removeAttr("disabled"));
-      d.attr({value:b.key});
-    }
+  if (!localStorage.msObj) {
+    localStorage.msObj = '{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}';
+  }
+  var msObj = JSON.parse(localStorage.msObj);
+  for (var a in msObj){
+    var b = msObj[a];
+    var c = $("#"+a);
+    var d = $("select",c.parent().siblings("td.select"));
+    b.enable&&(c.attr({checked:"checked"}),d.removeAttr("disabled"));
+    d.attr({value:b.key});
   }
 }
   
@@ -58,14 +109,17 @@ function checkDuplicateKeys(){
   return b;
 }
 
-function showTip(a){
-  $("#tip").slideDown("fast").delay(2e3).fadeOut("slow").find("span").text(a);
+function showTip(a, cb){
+  $("#tip").slideDown("fast").delay(2e3).fadeOut("slow", cb).find("span").text(a);
 }
 
 var Bg=chrome.extension.getBackgroundPage();
 
 $(document).ready(function(){
-  localStorage.reset&&"true"==localStorage.reset&&(showTip("Options Reseted"),localStorage.removeItem("reset"));
+  if (localStorage.reset && "true" == localStorage.reset) {
+    showTip("Options reset");
+    localStorage.removeItem("reset");
+  }
   var a = document.getElementById("pluginobj");
   buildSelect();
   restoreOptions();

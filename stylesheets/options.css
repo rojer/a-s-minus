@@ -67,7 +67,7 @@ a	{ text-decoration:none; }
 }
 
 #menu_shortcuts tr td:last-child::before {
-    content:'Ctrl+Shift+';
+    content:'Ctrl + Shift + ';
 }
 #menu_shortcuts tr td.input_tip:last-child::after {
     content:'[A-Z, 0-9]'; color:red; border:1px solid blue; border-radius:5px;
