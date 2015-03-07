@@ -1,104 +1,158 @@
-function prepareEditArea(a){
-  function b(a,c,e,f,h,i,j,k,m){
-    console.log(a);
-    j=q*l;
-    q==t-1&&(e=l-lastH,h=m=lastH);
-    console.log(q,t-1,e,h,j);
-    $("#save-image").attr({src:a}).load(function(){
+function prepareEditArea(req){
+  function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
+    dy = counterY * imageHeight;
+    if (counterY == numTilesY - 1) {
+      sy = imageHeight - lastH;
+      sh = dh = lastH;
+    }
+    $("#save-image").attr({src: imgSrc}).load(function(){
       $(this).unbind("load");
-      console.log(this,c,e,f,h,i,j,k,m);
-      showCtx.drawImage(this,c,e,f,h,i,j,k,m);
-      ++q>t-1?d():b(g[++n],c,e,f,h,i,j,k,m);
+      showCtx.drawImage(this, sx, sy, sw, sh, dx, dy, dw, dh);
+      counterY++;
+      if (counterY >= numTilesY) {
+        nextColumn();
+      } else {
+        addTileY(images[++n], sx, sy, sw, sh, dx, dy, dw, dh);
+      }
     });
   }
-  function c(a,b,d,e,f,h,i,l,m){
-    h=j*k,j==s-1&&(b=k-lastW,e=l=lastW),$("#save-image").attr({src:a}).load(function(){$(this).unbind("load"),showCtx.drawImage(this,b,d,e,f,h,i,l,m),s-1>j&&c(g[++j],b,d,e,f,h,i,l,m)});
+  function addTileX(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
+    dx = counterX * imageWidth;
+    if (counterX == numTilesX - 1) {
+      sx = imageWidth - lastW;
+      sw = dw = lastW;
+    }
+    $("#save-image").attr({src: imgSrc}).load(function(){
+      $(this).unbind("load");
+      showCtx.drawImage(this, sx, sy, sw, sh, dx, dy, dw, dh);
+      if (counterX < numTilesX - 1) {
+        addTileX(images[++counterX], sx, sy, sw, sh, dx, dy, dw, dh);
+      }
+    });
   }
-  function d(){
-    ++j>s-1||(j==s-1?(h=k-lastW,u=dw=editW-j*k,v=j*k):(h=0,u=dw=k,v=j*k),i=0,w=dh=l,x=0,q=0,n=q+j*t,b(g[n],h,i,u,w,v,x,dw,dh));
+  function nextColumn() {
+    counterX++;
+    if (counterX <= numTilesX - 1) {
+      var columnOffsetX, columnWidth;
+      if (counterX == numTilesX - 1) {
+        centerOffX = imageWidth - lastW;
+        columnWidth = editW - counterX * imageWidth;
+        columnOffsetX = counterX * imageWidth;
+      } else {
+        centerOffX = 0;
+        columnWidth = imageWidth;
+        columnOffsetX = counterX * imageWidth;
+      }
+      centerOffY = 0;
+      counterY = 0;
+      n = counterY + counterX * numTilesY;
+      addTileY(images[n],
+               centerOffX, centerOffY, columnWidth, imageHeight,
+               columnOffsetX, 0, columnWidth, imageHeight);
+    }
   }
-  console.log(a);
-  var e = a.menuType,f=a.type,g=a.data;
-  taburl = a.taburl;
-  tabtitle = a.tabtitle;
-  var h = a.centerOffX,i=a.centerOffY;
+  var images = req.data;
+  var imageWidth = req.w;
+  var imageHeight = req.h;
+  taburl = req.taburl;
+  tabtitle = req.tabtitle;
+  var centerOffX = req.centerOffX;
+  var centerOffY = req.centerOffY;
   getEditOffset();
-  window.con = 1;
-  window.con2 = 1;
-  scrollbarWidth = getScrollbarWidth();
-  var k=a.w,l=a.h;
-  switch(f){
+  var scrollbarWidth = getScrollbarWidth();
+  var n = 0;
+  switch (req.type){
     case "visible": {
-      $("#save-image").attr({src:g[0]}).load(function(){
-        if ("selected"==e) {
-          editW = a.centerW * window.devicePixelRatio;
-          editH = a.centerH * window.devicePixelRatio;
+      $("#save-image").attr({src:images[0]}).load(function(){
+        if ("selected" == req.menuType) {
+          editW = req.centerW * window.devicePixelRatio;
+          editH = req.centerH * window.devicePixelRatio;
           updateEditArea();
           updateShowCanvas();
           getEditOffset();
           addMargin();
           getEditOffset();
-        } else if ("upload"==e) {
-          editW = k;
-          editH = l;
-          h = 0;
-          i = 0;
+        } else if ("upload" == req.menuType) {
+          editW = imageWidth;
+          editH = imageHeight;
+          centerOffX = 0;
+          centerOffY = 0;
           updateEditArea();
           updateShowCanvas();
           getEditOffset();
         } else {
-          console.log(k,l);
-          editW = k-scrollbarWidth;
-          editH = l-scrollbarWidth;
-          h = 0;
-          i = 0;
+          editW = imageWidth - scrollbarWidth;
+          editH = imageHeight - scrollbarWidth;
+          centerOffX = 0;
+          centerOffY = 0;
           updateEditArea();
           updateShowCanvas();
           getEditOffset();
         }
-        k = editW;
-        l = editH;
-        showCtx.drawImage(this,h*window.devicePixelRatio,i*window.devicePixelRatio,k,l,0,0,k,l);
+        imageWidth = editW;
+        imageHeight = editH;
+        showCtx.drawImage(this, centerOffX * window.devicePixelRatio, centerOffY * window.devicePixelRatio, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
         $(this).unbind("load");
       });
       break;
     }
     case "entire": {
-      var m=a.counter,o=a.ratio,p=a.scrollBar,q=j=n=0,r=g.length,s=m,t=Math.round(r/s);
-      if (!p.x&&p.y) {
-        k -= scrollbarWidth;
-        t = r;
-        lastH = l * o.y;
-        "selected"==e?
-          (p.realX&&(l-=scrollbarWidth),editW=a.centerW*window.devicePixelRatio):editW=k;
-        editH=lastH?l*(t-1)+lastH:l*t;
+      var lastRatio = req.ratio;
+      var scrollBar = req.scrollBar;
+      var counterY = 0;
+      var counterX = 0;
+      var numImages = images.length;
+      var numTilesX = req.counter;
+      var numTilesY = Math.round(numImages / numTilesX);
+      var centerOffX = 0, centerOffY = 0, x=0;
+      if (!scrollBar.x && scrollBar.y) {
+        imageWidth -= scrollbarWidth;
+        numTilesY = numImages;
+        lastH = imageHeight * lastRatio.y;
+        if ("selected" == req.menuType) {
+          if (scrollBar.realX) imageHeight -= scrollbarWidth;
+          editW = req.centerW * window.devicePixelRatio;
+        } else {
+          editW = imageWidth;
+        }
+        editH = lastH ? imageHeight * (numTilesY-1) + lastH : imageHeight * numTilesY;
         updateEditArea();
         updateShowCanvas();
         getEditOffset();
         addMargin();
         getEditOffset();
-        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
-        b(g[n],h,i,u,w,v,x,dw,dh);
-      }
-      if (p.x&&!p.y) {
-        l-=scrollbarWidth,s=r,lastW=k*o.x;
-        "selected"==e?
-          (p.realY&&(k-=scrollbarWidth),editH=a.centerH*window.devicePixelRatio):editH=l;
-        editW=lastW?k*(s-1)+lastW:k*s;
+        addTileY(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+      } else if (scrollBar.x && !scrollBar.y) {
+        imageHeight -= scrollbarWidth;
+        numTilesX = numImages;
+        lastW = imageWidth * lastRatio.x;
+        if ("selected" == req.menuType) {
+          if (scrollBar.realY) imageWidth -= scrollbarWidth;
+          editH = req.centerH * window.devicePixelRatio;
+        } else {
+          editH = imageHeight;
+        }
+        editW = lastW ? imageWidth * (numTilesX - 1) + lastW : imageWidth * numTilesX;
         updateEditArea();
         updateShowCanvas();
         $editArea.addClass("add-margin");
         getEditOffset();
-        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
-        c(g[n],h,i,u,w,v,x,dw,dh);
-      }
-      if (p.x&&p.y) {
-        lastW=k*o.x,lastH=l*o.y,k-=scrollbarWidth,l-=scrollbarWidth;
-        "selected"==e?
-          (editW=a.centerW*window.devicePixelRatio,editH=a.centerH*window.devicePixelRatio)
-          :(editW=lastW?k*(s-1)+lastW:k*s,editH=lastH?l*(t-1)+lastH:l*t),updateEditArea(),updateShowCanvas();
-        var h=0,u=dw=k,v=0,i=0,w=dh=l,x=0;
-        b(g[n],h,i,u,w,v,x,dw,dh);
+        addTileX(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+      } else if (scrollBar.x && scrollBar.y) {
+        imageWidth -= scrollbarWidth;
+        imageHeight -= scrollbarWidth;
+        lastW = imageWidth * lastRatio.x;
+        lastH = imageHeight * lastRatio.y;
+        if ("selected" == req.menuType) {
+          editW = req.centerW * window.devicePixelRatio;
+          editH = req.centerH * window.devicePixelRatio;
+        } else {
+          editW = lastW ? imageWidth * (numTilesX - 1) + lastW : imageWidth * numTilesX;
+          editH = lastH ? imageHeight * (numTilesY - 1) + lastH : imageHeight * numTilesY;
+        }
+        updateEditArea();
+        updateShowCanvas();
+        addTileY(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
       }
     }
   }
@@ -374,7 +428,26 @@ function getEditOffset(){
 }
 
 function getScrollbarWidth(){
-  var a=document.createElement("p");a.style.width="100%",a.style.height="200px";var b=document.createElement("div");b.style.position="absolute",b.style.top="0px",b.style.left="0px",b.style.visibility="hidden",b.style.width="200px",b.style.height="150px",b.style.overflow="hidden",b.appendChild(a),document.body.appendChild(b);var c=a.offsetWidth;b.style.overflow="scroll";var d=a.offsetWidth;return c==d&&(d=b.clientWidth),document.body.removeChild(b),c-d
+  var a = document.createElement("p");
+  a.style.width = "100%";
+  a.style.height = "200px";
+  var b = document.createElement("div");
+  b.style.position = "absolute";
+  b.style.top = "0px";
+  b.style.left = "0px";
+  b.style.visibility = "hidden";
+  b.style.width = "200px";
+  b.style.height = "150px";
+  b.style.overflow = "hidden";
+  b.appendChild(a);
+  document.body.appendChild(b);
+  var noScroll = a.offsetWidth;
+  b.style.overflow = "scroll";
+  var withScroll = a.offsetWidth;
+  if (noScroll == withScroll) withScroll = b.clientWidth;
+  var scrollWidth = (noScroll - withScroll);
+  document.body.removeChild(b);
+  return scrollWidth;
 }
 
 function getLocVersion(){
@@ -394,8 +467,9 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,scrollbarWidth=17,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var dragresize;
+var lastH, lastW;
 
 window.addEventListener("resize",function(){getEditOffset()});
 
@@ -487,7 +561,7 @@ SavePage.saveToGdrive = function() {
   chrome.identity.getAuthToken(authDetails, function(authToken) {
     console.log('token:', authToken);
     if (!authToken) return;
-    const multipartBoundaryString = "287032381131322";
+    var multipartBoundaryString = "287032381131322";
     var uploadRequest = new XMLHttpRequest;
     uploadRequest.open("POST", "https://www.googleapis.com/upload/drive/v2/files?uploadType=multipart");
     uploadRequest.setRequestHeader("Authorization", "OAuth " + authToken);
@@ -568,8 +642,8 @@ SavePage.saveToGdrive = function() {
       title: imageName + "." + imageInfo.fileExt,
       mimeType: imageInfo.mimeType,
     };
-    const partBoundary = "--" + multipartBoundaryString;
-    const lastBoundary = "--" + multipartBoundaryString + "--";
+    var partBoundary = "--" + multipartBoundaryString;
+    var lastBoundary = "--" + multipartBoundaryString + "--";
     var uploadRequestBodyLines = [
       partBoundary,
       "Content-Type: application/json; charset=UTF-8",
