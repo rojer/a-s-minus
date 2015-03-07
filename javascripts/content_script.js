@@ -16,6 +16,7 @@ function removeClass(a,b){
 function initEntireCapture(){
   console.log('initEntireCapture');
   counter = 1;
+  vLast = hLast = false;
   getDocumentNode();
   html = doc.documentElement;
   initScrollTop = document.body.scrollTop;
@@ -27,8 +28,7 @@ function initEntireCapture(){
   checkScrollBar();
   window.onresize = checkScrollBar;
   if (scrollBar.x || scrollBar.y) {
-    enableFixedPosition(false);
-    setTimeout(sendRequest,300,{action:"scroll_next_done"});
+    setTimeout(sendRequest,150,{action:"scroll_next_done"});
   } else {
     sendRequest({action:"visible"});
   }
@@ -142,6 +142,7 @@ function bindCenter(){
     dragresize.deselect(c);
     setStyle(c,"outline","none");
     counter=1;
+    vLast = hLast = false;
     html=document.documentElement;
     initScrollTop=document.body.scrollTop;
     initScrollLeft=document.body.scrollLeft;
@@ -152,7 +153,7 @@ function bindCenter(){
     initScrollTop>d&&(0>=g?document.body.scrollLeft=b:(wrapper.style.paddingRight=g+"px",document.body.scrollLeft+=g),0>=h?document.body.scrollTop=d:(wrapper.style.paddingTop=h+"px",document.body.scrollTop+=h)),getDocumentDimension(),updateCorners(b,d,e,f);
     if (initScrollTop>d){
       if(clientW>=e&&clientH>=f)return void setTimeout(sendRequest,300,{action:"visible",counter:counter,ratio:f%clientH/clientH,scrollBar:{x:!1,y:!1},centerW:e,centerH:f,menuType:"selected"});
-      setTimeout(sendRequest,300,{action:"scroll_next_done"});
+      fixAndCapture();
     } else {
       removeSelected();
       setTimeout(function(){sendRequest({action:"capture_selected_done",data:{x:g,y:h,w:e,h:f}})},100);
@@ -227,58 +228,143 @@ function getStyle(a,b){
   return parseInt(a.style.getPropertyValue(b));
 }
 
-function scrollNext(){
-  var a = document.body.scrollTop,b=document.body.scrollLeft;
+function scrollNext() {
+  var a = document.body.scrollTop;
+  var b = document.body.scrollLeft;
+  console.log('scrollNext', b, a);
+  enableFixedPosition(false);
   if (isSelected) {
     var c = document.getElementById("awesome_screenshot_center");
-    var d = getStyle(c,"left");
-    var e = getStyle(c,"top");
-    var f = getStyle(c,"width");
-    var g = getStyle(c,"height");
-    if (clientW>=f&&g>clientH) {
-      if(e+g==a+clientH)return void sendRequest({action:"entire_capture_done",counter:counter,ratio:{x:0,y:g%clientH/clientH},scrollBar:{x:!1,y:!0,realX:window.innerHeight>html.clientHeight?!0:!1},centerW:f,centerH:g});a+2*clientH>e+g?document.body.scrollTop=e+g-clientH:e+g>a+2*clientH&&(document.body.scrollTop=a+clientH);
+    var d = getStyle(c, "left");
+    var e = getStyle(c, "top");
+    var f = getStyle(c, "width");
+    var g = getStyle(c, "height");
+    if (clientW >= f && g > clientH) {
+      if (e + g == a + clientH) {
+        sendRequest({
+          action: "entire_capture_done",
+          counter: counter,
+          ratio: {x: 0, y: (g % clientH / clientH)},
+          scrollBar: {x: false, y: true, realX: (window.innerHeight > html.clientHeight) },
+          centerW: f,
+          centerH: g
+        });
+        return;
+      }
+      if (a + 2 * clientH > e + g) {
+        document.body.scrollTop = e + g - clientH;
+      } else if (e + g > a + 2 * clientH) {
+        document.body.scrollTop = a + clientH;
+      }
     }
-    if (f>clientW&&clientH>=g) {
-      if (d+f==b+clientW) return void sendRequest({action:"entire_capture_done",counter:counter,ratio:{x:f%clientW/clientW,y:0},scrollBar:{x:!0,y:!1,realY:window.innerWidth>html.clientWidth?!0:!1},centerW:f,centerH:g});
-      b+2*clientW>d+f ? document.body.scrollLeft=d+f-clientW : d+f>b+2*clientW&&(document.body.scrollLeft=b+clientW);
+    if (f > clientW && clientH >= g) {
+      if (d + f == b + clientW) {
+        sendRequest({
+          action: "entire_capture_done",
+          counter: counter,
+          ratio: {x: (f % clientW / clientW), y: 0},
+          scrollBar: {x: true, y: false, realY: (window.innerWidth > html.clientWidth)},
+          centerW: f,
+          centerH: g
+        });
+        return;
+      }
+      if (b + 2 * clientW > d + f) {
+        document.body.scrollLeft = d + f - clientW;
+      } else if (d + f > b + 2 * clientW) {
+        document.body.scrollLeft = b + clientW;
+      }
     }
-    if (f>clientW&&g>clientH) {
-      if (e+g==a+clientH) return d+f==b+clientW ? void sendRequest({action:"entire_capture_done",counter:counter,ratio:{x:f%clientW/clientW,y:g%clientH/clientH},scrollBar:{x:!0,y:!0},centerW:f,centerH:g}):(b+2*clientW>d+f?document.body.scrollLeft=d+f-clientW:d+f>b+2*clientW&&(document.body.scrollLeft=b+clientW),counter++,document.body.scrollTop=e,void setTimeout(sendRequest,300,{action:"scroll_next_done"}));
-      a+2*clientH>e+g?document.body.scrollTop=e+g-clientH:e+g>a+2*clientH&&(document.body.scrollTop=a+clientH);
+    if (f > clientW && g > clientH) {
+      if (e + g == a + clientH) {
+        if (d + f == b + clientW) {
+          sendRequest({
+            action: "entire_capture_done",
+            counter: counter,
+            ratio: {x: (f % clientW / clientW), y: (g % clientH / clientH)},
+            scrollBar: {x: true, y: true},
+            centerW: f,
+            centerH: g
+          });
+        } else {
+          if (b + 2 * clientW > d + f) {
+            document.body.scrollLeft = d + f - clientW;
+          } else if (d + f > b + 2 * clientW) {
+            document.body.scrollLeft = b + clientW;
+          }
+          counter++;
+          document.body.scrollTop = e;
+          fixAndCapture();
+        }
+        return;
+      }
+      if (a + 2 * clientH > e + g) {
+        document.body.scrollTop = e + g - clientH;
+      } else if (e + g > a + 2 * clientH) {
+        document.body.scrollTop = a + clientH;
+      }
     }
-  } else if(document.body.scrollTop=a+clientH,document.body.scrollTop==a) {
-    var b=document.body.scrollLeft;
-    if (document.body.scrollLeft=b+clientW,!scrollBar.x||document.body.scrollLeft==b) {
-      var h={};
-      h.y = a % clientH / clientH;
-      h.x = b % clientW / clientW;
-      document.body.scrollTop = initScrollTop;
-      document.body.scrollLeft = initScrollLeft;
-      enableFixedPosition(true);
-      sendRequest({action:"entire_capture_done", counter:counter, ratio:h, scrollBar:scrollBar});
+  } else {
+    document.body.scrollTop = a + clientH;
+    if (document.body.scrollTop == a || vLast) {
+      var b = document.body.scrollLeft;
+      document.body.scrollLeft = b + clientW;
+      if (!scrollBar.x || document.body.scrollLeft == b || hLast) {
+        var ratio = {
+          y: (a % clientH / clientH),
+          x: (b % clientW / clientW)
+        };
+        document.body.scrollTop = initScrollTop;
+        document.body.scrollLeft = initScrollLeft;
+        enableFixedPosition(true);
+        sendRequest({
+          action:"entire_capture_done",
+          counter: counter,
+          ratio: ratio,
+          scrollBar: scrollBar
+        });
+        return;
+      } else {
+        hLast = (document.body.scrollLeft - b < clientW);
+      }
+      counter++;
+      document.body.scrollTop = 0;
+      vLast = false;
+      fixAndCapture();
       return;
+    } else {
+      vLast = (document.body.scrollTop - a) < clientH;
     }
-    counter++;
-    document.body.scrollTop=0;
-    setTimeout(sendRequest,300,{action:"scroll_next_done"});
   }
-  setTimeout(sendRequest,300,{action:"scroll_next_done"});
+  fixAndCapture();
 }
 
-function sendRequest(a){chrome.extension.sendRequest(a)}
+function fixAndCapture() {
+  setTimeout(function() {
+    enableFixedPosition(false);
+    setTimeout(sendRequest, 150, {action:"scroll_next_done"});
+  }, 150);
+}
+
+function sendRequest(a){
+  console.log('<', a.action, a);
+  chrome.extension.sendRequest(a);
+}
 
 function enableFixedPosition(enabled){
-  console.log('enableFixedPosition', enabled);
   if (enabled) {
     for (var b=0,c=fixedElements.length;c>b;++b) fixedElements[b].style.position = "fixed";
     fixedElements=[];
   } else {
-    for (var d,e=document.createNodeIterator(document.documentElement,NodeFilter.SHOW_ELEMENT,null,!1);d=e.nextNode();){
-      var f = document.defaultView.getComputedStyle(d,"");
-      if (!f) return;
-      if (f.getPropertyValue("position") == "fixed") {
-        fixedElements.push(d);
-        d.style.position = "absolute";
+    var it = document.createNodeIterator(document.documentElement,NodeFilter.SHOW_ELEMENT, null, false);
+    var element;
+    while (element = it.nextNode()){
+      var style = document.defaultView.getComputedStyle(element, "");
+      if (!style) continue;
+      var position = style.getPropertyValue("position");
+      if (position == "fixed") {
+        fixedElements.push(element);
+        element.style.position = "absolute";
       }
     }
   }
@@ -317,15 +403,22 @@ var fixedElements=[];
 var wrapperHTML='<div id="awesome_screenshot_wrapper"><div id="awesome_screenshot_top"></div><div id="awesome_screenshot_right"></div><div id="awesome_screenshot_bottom"></div><div id="awesome_screenshot_left"></div><div id="awesome_screenshot_center" class="drsElement drsMoveHandle"><div id="awesome_screenshot_size" style="min-width:70px;"><span>0 X 0</span></div><div id="awesome_screenshot_action"><a id="awesome_screenshot_cancel"><span id="awesome_screenshot_cancel_icon"></span>Cancel</a><a id="awesome_screenshot_capture"><span id="awesome_screenshot_capture_icon"></span>Capture</a></div></div></div>';
 var wrapper,dragresize,isSelected=!1;
 var delayInterval = null;
+var vLast = false;
+var hLast = false;
 
 chrome.extension.onRequest.addListener(function(a){
-  switch(a.action){
+  console.log('>', a.action, a);
+  switch (a.action){
     case "init_entire_capture":   initEntireCapture(); break;
     case "init_selected_capture": initSelectedCapture(); break;
     case "init_delayed_capture":  initDelayedCapture(a.delay); break;
-    case "scroll_next": scrollNext();break;
+    case "scroll_next": scrollNext(); break;
     case "destroy_selected": removeSelected(); break;
-    case "finishAutoSave": var c="The screenshot has been saved in "+a.path+".";notification.show("success",c);break;
+    case "finishAutoSave": {
+      var c = "The screenshot has been saved in "+a.path+".";
+      notification.show("success",c);
+      break;
+    }
     case "tabupdate": break;
   }
 });

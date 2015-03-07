@@ -11,7 +11,7 @@ function captureVisible() {
               function(a){
                 dataURL.push(a);
                 console.log('ok', a.length);
-                newTab();
+                if (type == "visible") newTab();
               });
           });
       });
@@ -99,7 +99,7 @@ function prepareImage() {
   var d = c.getContext("2d");
   var e = document.getElementById("test_image");
   var f = 17;  //document.getElementById("temp_image"),17);
-  var g = function() {
+  var onTestImageReady = function() {
     function h(a,c,e,f,g,i,j,k,m) {
       j=r*b,r==u-1&&(e=b-lastH,g=m=lastH),console.log(r,n,u-1),$("#temp_image").attr({src:a}).load(function(){$(this).unbind("load"),d.drawImage(this,c,e,f,g,i,j,k,m),++r>u-1?(console.log("nextCol"),l()):(console.log("PrepareV"),h(q[++n],c,e,f,g,i,j,k,m))})
     }
@@ -114,16 +114,19 @@ function prepareImage() {
         var d = document.getElementById("pluginobj");
         return"jpg"==localStorage.format?tempDataUrl=c.toDataURL("image/jpeg"):"png"==localStorage.format&&(tempDataUrl=c.toDataURL()),console.log("final",tempDataUrl),d.AutoSave(tempDataUrl,tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," "),localStorage.savePath),void setTimeout(function(){chrome.tabs.getSelected(function(a){chrome.tabs.sendRequest(a.id,{action:"finishAutoSave",path:localStorage.savePath})}),chrome.extension.sendRequest({action:"close_popup"})},1e3);
       }
-    j==t-1?(v=a-lastW,w=dw=m-j*a,x=j*a):(v=0,w=dw=a,x=j*a);
-    y=0;
-    z=dh=b;
-    A=0;
-    r=0;
-    n=r+j*u;
-    h(q[n],v,y,w,z,x,A,dw,dh);
+      j==t-1?(v=a-lastW,w=dw=m-j*a,x=j*a):(v=0,w=dw=a,x=j*a);
+      y=0;
+      z=dh=b;
+      A=0;
+      r=0;
+      n=r+j*u;
+      h(q[n],v,y,w,z,x,A,dw,dh);
     }
 
-    if (a=e.width,b=e.height,console.log(menuType),"visible"==type) {
+    a=e.width;
+    b=e.height;
+    console.log(menuType);
+    if ("visible"==type) {
       var m,o;
       console.log(centerW,centerH,e.width,e.height);
       "selected"==menuType?(m=centerW*window.devicePixelRatio,o=centerH*window.devicePixelRatio,v=centerOffX,y=centerOffY):(m=e.width,o=e.height,v=0,y=0);
@@ -139,8 +142,8 @@ function prepareImage() {
         });
         chrome.extension.sendRequest({action:"close_popup"});
       }, 1e3);
-    } else if ("entire"==type||"selected"==type) {
-      var q=dataURL;
+    } else if ("entire"==type || "selected"==type) {
+      var q = dataURL;
       console.log("enter entire",q.length,counter,b,a);
       var r=j=n=0,s=q.length,t=counter,u=Math.round(s/t);
       if (!scrollBar.x && scrollBar.y) {
@@ -167,11 +170,11 @@ function prepareImage() {
         h(q[n],v,y,w,z,x,A,dw,dh);
       }
     }
-    dataURL=[];
-    e.removeEventListener("onload",g,!1);
-    e.src="";
+    dataURL = [];
+    e.removeEventListener("onload", onTestImageReady, !1);
+    e.src = "";
   };
-  e.onload = g;
+  e.onload = onTestImageReady;
   e.src = dataURL[0];
 }
 
@@ -201,7 +204,7 @@ function injectContentScripts(tab, cb) {
 }
 
 function sendRequest(a, tab, request){
-  console.log('sendRequest', a, tab, request);
+  console.log('<', a, tab, request.action, request);
   switch(a) {
     case "tab"  : {
       if (tab == tabid) {
@@ -237,7 +240,6 @@ $(document).ready(function(){});
 localStorage.autoSave="false";
 chrome.extension.onRequest.addListener(function(a,b,c){
   function onTestImageReady(){
-    console.log(77, menuType, editTabId, taburl);
     var e = document.getElementById("test_image");
     sendRequest("tab", editTabId, {
       menuType: menuType,
@@ -255,7 +257,7 @@ chrome.extension.onRequest.addListener(function(a,b,c){
       centerOffX: centerOffX,
       centerOffY: centerOffY
     });
-    dataURL=[];
+    dataURL = [];
     e.src = "";
     this.removeEventListener("onload", onTestImageReady, false);
   };
@@ -265,7 +267,7 @@ chrome.extension.onRequest.addListener(function(a,b,c){
     currentWindowId=a.windowId;
     currentTabId=a.id;
   });
-  console.log(a.action, menuType, b);
+  console.log('>', a.action, a);
   b.tab&&-1!=b.tab.id&&"visible"!=a.action&&"selected"!=a.action&&"entire"!=a.action||(menuType=a.action,a.menuType&&(menuType=a.menuType));
 
   switch (a.action){
@@ -303,27 +305,27 @@ chrome.extension.onRequest.addListener(function(a,b,c){
       break;
     }
     case "scroll_next_done": {
-      sendRequest("tab",tabid,{action:"hidescroll"});
       saveAndScroll();
-      sendRequest("tab",tabid,{action:"restorescroll"});
       break;
     }
     case "entire_capture_done": {
-      counter=a.counter;
-      ratio=a.ratio;
-      scrollBar=a.scrollBar;
-      type="entire";
-      "selected"==menuType&&(centerW=a.centerW,centerH=a.centerH);
-      console.log("newTab");
+      counter = a.counter;
+      ratio = a.ratio;
+      scrollBar = a.scrollBar;
+      type = "entire";
+      if ("selected" == menuType) {
+        centerW = a.centerW;
+        centerH = a.centerH;
+      }
       newTab();
       break;
     }
     case "capture_selected_done": {
-      type="visible";
-      centerH=a.data.h;
-      centerW=a.data.w;
-      centerOffX=a.data.x;
-      centerOffY=a.data.y;
+      type = "visible";
+      centerH = a.data.h;
+      centerW = a.data.w;
+      centerOffX = a.data.x;
+      centerOffY = a.data.y;
       captureVisible();
       break;
     }
