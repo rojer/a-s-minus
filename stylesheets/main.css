@@ -343,10 +343,13 @@ canvas, #helper, #crop-tip { position:absolute; top:0; left:0; }
 #input-helper { 
     visibility:hidden; font:bold 14px/18px Arial,Helvetica,sans-serif; text-align:left;
 }
-input:not(.cd-input) {
-    position:absolute;
-    border:none; outline:none; background:rgba(255,255,255,0);
-    font:bold 14px/18px Arial,Helvetica,sans-serif; text-align:left;
+.textinput {
+    position: absolute;
+    border: none;
+    outline: none;
+    background: rgba(255,255,255,0);
+    text-align: left;
+    font: bold 16pt Arial,Helvetica,sans-serif;
 }
 
 /*#helper { position:absolute; width:100%; height:100%; }*/

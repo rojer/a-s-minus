@@ -170,7 +170,6 @@ function prepareTools(){
       return a;
     }
     var c=b(a.target);
-    console.log(c);
     "DIV"!=c.nodeName&&selectTool(c.id);
   });
 }
@@ -417,7 +416,19 @@ function crop(){
 }
 
 function color(){
-  var a=null;$("#color").find("ul").fadeIn().hover(function(b){$(this).show(),a&&clearTimeout(a),b.stopPropagation()},function(){var b=$(this);a=setTimeout(function(){b.fadeOut(300)},300)}).click(function(a){var b=$(a.target).css("background-color");$(this).prev("span").css({"background-color":b}),drawColor=b,highlightColor=$(a.target).attr("data-highlight-color"),$("#text").hasClass("active")&&$("div[contenteditable]").css({color:drawColor}),a.stopPropagation()})
+  var a = null;
+  $("#color").find("ul").fadeIn()
+    .hover(function(b){ $(this).show(); if (a) clearTimeout(a); b.stopPropagation()},
+           function(){var b=$(this); a = setTimeout(function(){ b.fadeOut(300); },300);})
+    .click(function(a){
+      var b=$(a.target).css("background-color");
+      $(this).prev("span").css({"background-color":b});
+      drawColor = b;
+      highlightColor = $(a.target).attr("data-highlight-color");
+      contrastColor = $(a.target).attr("data-contrast-color");
+      if ($("#text").hasClass("active")) $("div[contenteditable]").css({color:drawColor});
+      a.stopPropagation();
+    });
 }
 
 function resize(a){
@@ -498,7 +509,7 @@ function text(pos){
       .keydown(function(e){
         var input = e.target;
         var keyCode = e.keyCode;
-        if ($(this).width() + 10 > inputMaxW && keyCode >= 48 ||
+        if (($(this).width() + 10 > inputMaxW && keyCode >= 48) ||
             parseInt($(this).css("top")) - textTop + 38 > inputMaxH && e.keyCode == 13) {
           return false;
         }
@@ -539,12 +550,21 @@ function saveText() {
     var input = this;
     var text = input.value;
     if (text) {
-      var fontSize = 14;
+      var borderWidth = 1;
+      var fontSize = parseInt($(input).css("font-size"));
       var textX = parseInt($(input).css("left"));
-      var textY = parseInt($(input).css("top")) + fontSize;
-      showCtx.font = "bold 14px/18px Arial,Helvetica,sans-serif";
+      var textY = parseInt($(input).css("top")) + fontSize - 2;
+      showCtx.font = $(input).css("font");
+      for (var i = 0; i < 16; i++) {
+        showCtx.save();
+        showCtx.translate(Math.cos(i * Math.PI / 8) * borderWidth,
+                          Math.sin(i * Math.PI / 8) * borderWidth);
+        showCtx.fillStyle = contrastColor;
+        showCtx.fillText(text, textX, textY);
+        showCtx.restore();
+      }
       showCtx.fillStyle = $(input).css("color");
-      //showCtx.fillText(text, textX, textY);
+      showCtx.fillText(text, textX, textY);
     };
     $(input).next().remove().end().remove();
   });
@@ -630,9 +650,12 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var dragresize;
 var lastH, lastW;
+var drawColor = "red";
+var contrastColor = "white";
+var highlightColor = "rgba(255,0,0,.3)";
 
 window.addEventListener("resize",function(){getEditOffset()});
 
