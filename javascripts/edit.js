@@ -413,7 +413,7 @@ function save() {
 }
 
 function crop(){
-  function a(){var a=document.getElementById("edit-area");dragresize=new DragResize("dragresize",{maxLeft:editW,maxTop:editH}),dragresize.isElement=function(a){return a.className&&a.className.indexOf("drsElement")>-1?!0:void 0},dragresize.isHandle=function(a){return a.className&&a.className.indexOf("drsMoveHandle")>-1?!0:void 0},dragresize.apply(a),dragresize.select(cropdiv);var e,f,g,h;drawCtx.fillStyle="rgba(80,80,80,0.4)",dragresize.ondragmove=function(a,i){m.hide(),e=parseInt($("#cropdiv").css("top")),f=parseInt($("#cropdiv").css("left")),g=parseInt($("#cropdiv").css("width")),h=parseInt($("#cropdiv").css("height")),drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(f,e,g,h),b(e),c(g,h),d(i)},dragresize.ondragend=function(){}}function b(a){n.css(30>a?{top:"5px"}:{top:"-25px"})}function c(a,b){n.html(Math.abs(a)+" X "+Math.abs(b)),$("#cd-width").val(Math.abs(a)),$("#cd-height").val(Math.abs(b))}function d(a){var b=a.clientY,c=k-b;80>b&&(document.body.scrollTop-=25),40>c&&(document.body.scrollTop+=60-c)}$("body").addClass("selected"),cflag=1,$("body").removeClass("draw").addClass("crop"),$("#crop-dimension").hide(),$(".cd-input").val(""),getEditOffset(),$(showCanvas).unbind("mousedown click"),$("#draw-canvas").css({left:"0px",top:"0px",cursor:"crosshair"}).unbind(),drawCanvas.height=showCanvas.height,drawCanvas.width=showCanvas.width,(cflag=1)&&(drawCtx.fillStyle="rgba(80,80,80,0.4)",drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height)),cflag=0;var e,f,g,h,i,j,k,l=mflag=0,m=$("#crop-tip"),n=$("#crop_size").hide();$("#draw-canvas").hover(function(){m.text(chrome.i18n.getMessage("cropTip")).show()},function(){m.hide()}).mousedown(function(a){m.hide(),$("#crop-dimension").show(),e=a.pageX-offsetX,f=a.pageY-offsetY,b(),k=window.innerHeight,l=1,$("#cropdiv").css({outline:"1px dashed #777"})}).mousemove(function(a){return g=a.pageX-offsetX,h=a.pageY-offsetY,drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(e,f,g-e,h-f),d(a),l?(i=g-e,j=h-f,mflag=1,void c(i,j)):void m.css({top:h+5+"px",left:g+5+"px"})}).mouseup(function(b){if(mflag){$("body").addClass("selected"),ex=b.pageX-offsetX,ey=b.pageY-offsetY,$(this).unbind(),l=mflag=0;var c=ex>e?e:ex,d=ey>f?f:ey,g=Math.abs(ex-e),h=Math.abs(ey-f);$("#cropdiv").css({left:c,top:d,width:g,height:h,display:"block"}),a()}})
+  function a(){var a=document.getElementById("edit-area");dragresize=new DragResize("dragresize",{maxLeft:editW,maxTop:editH}),dragresize.isElement=function(a){return a.className&&a.className.indexOf("drsElement")>-1?!0:void 0},dragresize.isHandle=function(a){return a.className&&a.className.indexOf("drsMoveHandle")>-1?!0:void 0},dragresize.apply(a),dragresize.select(cropdiv);var e,f,g,h;drawCtx.fillStyle="rgba(80,80,80,0.4)",dragresize.ondragmove=function(a,i){m.hide(),e=parseInt($("#cropdiv").css("top")),f=parseInt($("#cropdiv").css("left")),g=parseInt($("#cropdiv").css("width")),h=parseInt($("#cropdiv").css("height")),drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(f,e,g,h),b(e),c(g,h),d(i)},dragresize.ondragend=function(){}}function b(a){n.css(30>a?{top:"5px"}:{top:"-25px"})}function c(a,b){n.html(Math.abs(a)+" X "+Math.abs(b)),$("#cd-width").val(Math.abs(a)),$("#cd-height").val(Math.abs(b))}function d(a){var b=a.clientY,c=k-b;80>b&&(document.body.scrollTop-=25),40>c&&(document.body.scrollTop+=60-c)}$("body").addClass("selected"),cflag=1,$("body").removeClass("draw").addClass("crop"),$("#crop-dimension").hide(),$(".cd-input").val(""),getEditOffset(),$(showCanvas).unbind("mousedown click"),$("#draw-canvas").css({left:"0px",top:"0px",cursor:"crosshair"}).unbind(),drawCanvas.height=showCanvas.height,drawCanvas.width=showCanvas.width,(cflag=1)&&(drawCtx.fillStyle="rgba(80,80,80,0.4)",drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height)),cflag=0;var e,f,g,h,i,j,k,l=mflag=0,m=$("#crop-tip"),n=$("#crop_size").hide();$("#draw-canvas").hover(function(){m.text(chrome.i18n.getMessage("cropTip")).show()},function(){m.hide()}).mousedown(function(a){m.hide(),$("#crop-dimension").show(),e=a.pageX-editOffsetX,f=a.pageY-editOffsetY,b(),k=window.innerHeight,l=1,$("#cropdiv").css({outline:"1px dashed #777"})}).mousemove(function(a){return g=a.pageX-editOffsetX,h=a.pageY-editOffsetY,drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(e,f,g-e,h-f),d(a),l?(i=g-e,j=h-f,mflag=1,void c(i,j)):void m.css({top:h+5+"px",left:g+5+"px"})}).mouseup(function(b){if(mflag){$("body").addClass("selected"),ex=b.pageX-editOffsetX,ey=b.pageY-editOffsetY,$(this).unbind(),l=mflag=0;var c=ex>e?e:ex,d=ey>f?f:ey,g=Math.abs(ex-e),h=Math.abs(ey-f);$("#cropdiv").css({left:c,top:d,width:g,height:h,display:"block"}),a()}})
 }
 
 function color(){
@@ -474,11 +474,11 @@ function draw(a){
 }
 
 function shape(a,b){
-  function c(b,c){function f(){drawCtx.clearRect(0,0,o,q),drawCtx.strokeRect(j,j,o-2*j,q-2*j)}function g(){function a(a,b,c,d){var e=c/2*.5522848,f=d/2*.5522848,g=a+c,h=b+d,i=a+c/2,j=b+d/2;drawCtx.moveTo(a,j),drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b),drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j),drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h),drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j),drawCtx.closePath()}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath(),a(j,j,o-2*j,q-2*j),drawCtx.stroke()}function h(){function a(a){drawCtx.beginPath(),drawCtx.moveTo(a[0][0],a[0][1]);for(p in a)p>0&&drawCtx.lineTo(a[p][0],a[p][1]);drawCtx.lineTo(a[0][0],a[0][1]),drawCtx.fill()}function b(a,b,c){var d=[];for(p in a)d.push([a[p][0]+b,a[p][1]+c]);return d}function c(a,b){var c=[];for(p in a)c.push(f(b,a[p][0],a[p][1]));return c}function f(a,b,c){return[b*Math.cos(a)-c*Math.sin(a),b*Math.sin(a)+c*Math.cos(a)]}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var g=k>d?j:o-j,h=l>e?j:q-j,i=o-g;my1=q-h,drawCtx.moveTo(g,h),drawCtx.lineTo(i,my1),drawCtx.stroke();var m=[[4,0],[-10,-5.5],[-10,5.5]],n=Math.atan2(my1-h,i-g);a(b(c(m,n),i,my1))}function i(){drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var a=k>d?j:o-j,b=l>e?j:q-j,c=o-a;my1=q-b,drawCtx.moveTo(a,b),drawCtx.lineTo(c,my1),drawCtx.stroke(),drawCtx.closePath()}var j=4,k=b-offsetX,l=c-offsetY,m=Math.min(k,d)-j,n=Math.min(l,e)-j,o=Math.abs(k-d)+2*j,q=Math.abs(l-e)+2*j;switch($(drawCanvas).attr({width:o,height:q}).css({left:m+"px",top:n+"px",cursor:"crosshair"}).disableSelection(),drawCtx.strokeStyle=drawColor,drawCtx.fillStyle=drawColor,drawCtx.lineWidth=j,a){case"rectangle":f();break;case"ellipse":g();break;case"arrow":h();break;case"line":i()}}var d=b.x-offsetX,e=b.y-offsetY;$(this).mousemove(function(a){c(a.pageX,a.pageY)}).mouseup(function(){$(this).unbind("mousemove mouseup"),$(drawCanvas).unbind("mousedown"),enableUndo(),$.Draggable(drawCanvas)})
+  function c(b,c){function f(){drawCtx.clearRect(0,0,o,q),drawCtx.strokeRect(j,j,o-2*j,q-2*j)}function g(){function a(a,b,c,d){var e=c/2*.5522848,f=d/2*.5522848,g=a+c,h=b+d,i=a+c/2,j=b+d/2;drawCtx.moveTo(a,j),drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b),drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j),drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h),drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j),drawCtx.closePath()}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath(),a(j,j,o-2*j,q-2*j),drawCtx.stroke()}function h(){function a(a){drawCtx.beginPath(),drawCtx.moveTo(a[0][0],a[0][1]);for(p in a)p>0&&drawCtx.lineTo(a[p][0],a[p][1]);drawCtx.lineTo(a[0][0],a[0][1]),drawCtx.fill()}function b(a,b,c){var d=[];for(p in a)d.push([a[p][0]+b,a[p][1]+c]);return d}function c(a,b){var c=[];for(p in a)c.push(f(b,a[p][0],a[p][1]));return c}function f(a,b,c){return[b*Math.cos(a)-c*Math.sin(a),b*Math.sin(a)+c*Math.cos(a)]}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var g=k>d?j:o-j,h=l>e?j:q-j,i=o-g;my1=q-h,drawCtx.moveTo(g,h),drawCtx.lineTo(i,my1),drawCtx.stroke();var m=[[4,0],[-10,-5.5],[-10,5.5]],n=Math.atan2(my1-h,i-g);a(b(c(m,n),i,my1))}function i(){drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var a=k>d?j:o-j,b=l>e?j:q-j,c=o-a;my1=q-b,drawCtx.moveTo(a,b),drawCtx.lineTo(c,my1),drawCtx.stroke(),drawCtx.closePath()}var j=4,k=b-editOffsetX,l=c-editOffsetY,m=Math.min(k,d)-j,n=Math.min(l,e)-j,o=Math.abs(k-d)+2*j,q=Math.abs(l-e)+2*j;switch($(drawCanvas).attr({width:o,height:q}).css({left:m+"px",top:n+"px",cursor:"crosshair"}).disableSelection(),drawCtx.strokeStyle=drawColor,drawCtx.fillStyle=drawColor,drawCtx.lineWidth=j,a){case"rectangle":f();break;case"ellipse":g();break;case"arrow":h();break;case"line":i()}}var d=b.x-editOffsetX,e=b.y-editOffsetY;$(this).mousemove(function(a){c(a.pageX,a.pageY)}).mouseup(function(){$(this).unbind("mousemove mouseup"),$(drawCanvas).unbind("mousedown"),enableUndo(),$.Draggable(drawCanvas)})
 }
 
 function freeLine(){
-  $(drawCanvas).attr({width:editW,height:editH}).css({left:0,top:0,cursor:"url(../images/pen.png),auto !important"}).disableSelection().off("mousedown mouseup").mousedown(function(a){saveAction({type:"draw"});var b=document.getElementById("temp-canvas"),c=b.getContext("2d"),d=a.pageX-offsetX,e=a.pageY-offsetY,f=[];c.moveTo(d,e),$(this).mousemove(function(a){f.push({x:a.pageX-offsetX,y:a.pageY-offsetY}),c.clearRect(0,0,b.width,b.height),c.beginPath();for(var d=0;d<f.length;d++)c.lineTo(f[d].x,f[d].y),c.lineJoin="round",c.lineCap="round",c.strokeStyle=isHighlight?highlightColor:drawColor,c.lineWidth=isHighlight?highlightWidth:3,c.globalCompositeOperation="lighter";c.stroke(),c.closePath()}).mouseup(function(){$(this).unbind("mousemove mouseup"),enableUndo(),showCtx.drawImage(b,0,0),$(b).remove(),b=null,f=[],createTempCanvas()})})
+  $(drawCanvas).attr({width:editW,height:editH}).css({left:0,top:0,cursor:"url(../images/pen.png),auto !important"}).disableSelection().off("mousedown mouseup").mousedown(function(a){saveAction({type:"draw"});var b=document.getElementById("temp-canvas"),c=b.getContext("2d"),d=a.pageX-editOffsetX,e=a.pageY-editOffsetY,f=[];c.moveTo(d,e),$(this).mousemove(function(a){f.push({x:a.pageX-editOffsetX,y:a.pageY-editOffsetY}),c.clearRect(0,0,b.width,b.height),c.beginPath();for(var d=0;d<f.length;d++)c.lineTo(f[d].x,f[d].y),c.lineJoin="round",c.lineCap="round",c.strokeStyle=isHighlight?highlightColor:drawColor,c.lineWidth=isHighlight?highlightWidth:3,c.globalCompositeOperation="lighter";c.stroke(),c.closePath()}).mouseup(function(){$(this).unbind("mousemove mouseup"),enableUndo(),showCtx.drawImage(b,0,0),$(b).remove(),b=null,f=[],createTempCanvas()})})
 }
 
 function createTempCanvas(){
@@ -486,17 +486,49 @@ function createTempCanvas(){
 }
 
 function blur(){
-  function a(a,b){var c,d,e,f,g=a.width,h=a.height,i=a.data,j=b||0,k=step=jump=inner=outer=arr=0;for(f=0;j>f;f++)for(var l=0;2>l;l++)for(l?(outer=g,inner=h,step=4*g):(outer=h,inner=g,step=4),c=0;outer>c;c++)for(jump=0===l?c*g*4:4*c,e=0;3>e;e++){for(k=jump+e,arr=0,arr=i[k]+i[k+step]+i[k+2*step],i[k]=Math.floor(arr/3),arr+=i[k+3*step],i[k+step]=Math.floor(arr/4),arr+=i[k+4*step],i[k+2*step]=Math.floor(arr/5),d=3;inner-2>d;d++)arr=Math.max(0,arr-i[k+(d-2)*step]+i[k+(d+2)*step]),i[k+d*step]=Math.floor(arr/5);arr-=i[k+(d-2)*step],i[k+d*step]=Math.floor(arr/4),arr-=i[k+(d-1)*step],i[k+(d+1)*step]=Math.floor(arr/3)}return a}$(showCanvas).unbind().mousedown(function(){saveAction({type:"draw"}),$(this).mousemove(function(b){var c=b.pageX-offsetX,d=b.pageY-offsetY,e=showCtx.getImageData(c,d,20,20);e=a(e,1),showCtx.putImageData(e,c,d),$("body").hasClass("blurBugFix")?$("body").removeClass("blurBugFix"):$("body").addClass("blurBugFix")})}).mouseup(function(){$(this).unbind("mousemove"),enableUndo()})
+  function a(a,b){var c,d,e,f,g=a.width,h=a.height,i=a.data,j=b||0,k=step=jump=inner=outer=arr=0;for(f=0;j>f;f++)for(var l=0;2>l;l++)for(l?(outer=g,inner=h,step=4*g):(outer=h,inner=g,step=4),c=0;outer>c;c++)for(jump=0===l?c*g*4:4*c,e=0;3>e;e++){for(k=jump+e,arr=0,arr=i[k]+i[k+step]+i[k+2*step],i[k]=Math.floor(arr/3),arr+=i[k+3*step],i[k+step]=Math.floor(arr/4),arr+=i[k+4*step],i[k+2*step]=Math.floor(arr/5),d=3;inner-2>d;d++)arr=Math.max(0,arr-i[k+(d-2)*step]+i[k+(d+2)*step]),i[k+d*step]=Math.floor(arr/5);arr-=i[k+(d-2)*step],i[k+d*step]=Math.floor(arr/4),arr-=i[k+(d-1)*step],i[k+(d+1)*step]=Math.floor(arr/3)}return a}$(showCanvas).unbind().mousedown(function(){saveAction({type:"draw"}),$(this).mousemove(function(b){var c=b.pageX-editOffsetX,d=b.pageY-editOffsetY,e=showCtx.getImageData(c,d,20,20);e=a(e,1),showCtx.putImageData(e,c,d),$("body").hasClass("blurBugFix")?$("body").removeClass("blurBugFix"):$("body").addClass("blurBugFix")})}).mouseup(function(){$(this).unbind("mousemove"),enableUndo()})
 }
   
-function text(a){
-  function b(){$('<input class="textinput"></input>').appendTo($editArea).css({top:c+"px",left:d+"px",width:e+"px",color:drawColor}).focus().autoGrowInput({comfortZone:20,minWidth:20,maxWidth:f}).keydown(function(a){if($(this).width()+10>f&&a.keyCode>=48||parseInt($(this).css("top"))-startT+38>g&&13==a.keyCode)return!1;var d=a.target,e=a.keyCode;13==e&&(c+=18,b()),8==e&&(d.value||($(d).prev().prev().focus().end().end().next().remove().end().remove(),c-=18)),38==e&&$(d).prev().prev().focus(),40==e&&$(d).next().next().focus(),a.stopPropagation()})}saveText(),$("body").addClass("draw-text");var c=startT=a.y-offsetY-10,d=a.x-offsetX;d>editW-e?d=editW-e:"";var e=20,f=editW-d,g=editH-c;1==textFlag&&b(),2==textFlag&&(textFlag=1)
+function text(pos){
+  function addInput() {
+    $('<input class="textinput"></input>').appendTo($editArea)
+      .css({top:inputTop+"px", left:inputLeft+"px", width:inputMinW+"px", color:drawColor})
+      .focus()
+      .autoGrowInput({comfortZone:20, minWidth:20, maxWidth:inputMaxW})
+      .keydown(function(e){
+        var input = e.target;
+        var keyCode = e.keyCode;
+        if ($(this).width() + 10 > inputMaxW && keyCode >= 48 ||
+            parseInt($(this).css("top")) - textTop + 38 > inputMaxH && e.keyCode == 13) {
+          return false;
+        }
+        if (13 == keyCode) { inputTop += 18; addInput(); }  // CR
+        if (8 == keyCode && !input.value) {  // Backspace
+          $(input).prev().prev().focus().end().end().next().remove().end().remove();
+          inputTop -= 18;
+        }
+        if (38 == keyCode) $(input).prev().prev().focus();  // Up
+        if (40 == keyCode) $(input).next().next().focus();  // Down
+        e.stopPropagation();
+      });
+  }
+  saveText();
+  $("body").addClass("draw-text");
+  var inputTop = pos.y - editOffsetY - 10;
+  var textTop = inputTop;
+  var inputLeft = pos.x - editOffsetX;
+  var inputMinW = 20;
+  var inputMaxW = editW - inputLeft;
+  var inputMaxH = editH - inputTop;
+  if (inputLeft > editW - inputMinW) inputLeft = editW - inputMinW;
+  if (textFlag == 1) addInput();
+  if (textFlag == 2) textFlag = 1;
 }
 
 function saveText() {
   var inputs = $($editArea).find('input[class="textinput"]');
   if (inputs.length == 0) return;
-  var b="";
+  var b = "";
   inputs.each(function(){b+=this.value});
   if (!b) return;
   enableUndo();
@@ -512,7 +544,7 @@ function saveText() {
       var textY = parseInt($(input).css("top")) + fontSize;
       showCtx.font = "bold 14px/18px Arial,Helvetica,sans-serif";
       showCtx.fillStyle = $(input).css("color");
-      showCtx.fillText(text, textX, textY);
+      //showCtx.fillText(text, textX, textY);
     };
     $(input).next().remove().end().remove();
   });
@@ -548,11 +580,14 @@ function updateBtnBg(a){
 }
 
 function getInitDim(){
-  editW=$(window).width(),editH=$(window).height();
+  editW = $(window).width();
+  editH = $(window).height();
 }
 
 function getEditOffset(){
-  var a=$editArea.offset();offsetX=a.left,offsetY=a.top
+  var a = $editArea.offset();
+  editOffsetX = a.left;
+  editOffsetY = a.top;
 }
 
 function getScrollbarWidth(){
@@ -583,7 +618,7 @@ function getLocVersion(){
 }
 
 function addMargin(){
-  offsetX||48!=offsetY&&88!=offsetY?$editArea.addClass("add-margin"):$editArea.removeClass("add-margin")
+  editOffsetX||48!=editOffsetY&&88!=editOffsetY?$editArea.addClass("add-margin"):$editArea.removeClass("add-margin")
 }
 
 function isCrOS(){
@@ -595,7 +630,7 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,offsetX,offsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,drawColor="red",highlightColor="rgba(255,0,0,.3)",highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var dragresize;
 var lastH, lastW;
 
