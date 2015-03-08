@@ -98,7 +98,12 @@ input[type=password] {
     width:60px !important; margin-right:10px; border-radius:6px;
 }
 #tool-panel #save, #tool-panel #done, #tool-panel #cancel { 
-    -webkit-border-radius:6px; width:auto; padding:2px 8px 2px 6px; font-size:14px; line-height:20px; }
+    -webkit-border-radius:6px;
+    width:auto;
+    padding:2px 8px 2px 6px;
+    font-size:14px;
+    line-height:20px;
+}
 #tool-panel #done, #tool-panel #cancel, #tool-panel #crop-dimension{ display:none; }
 #tool-panel #done { margin-right:20px; font-size:13px !important; font-weight:bold; }
 #tool-panel>div>a#save { 

@@ -171,20 +171,102 @@ function prepareTools(){
     }
     var c=b(a.target);
     console.log(c);
-    "DIV"!=c.nodeName&&tool(c.id);
+    "DIV"!=c.nodeName&&selectTool(c.id);
   });
 }
 
 function bindShortcuts(){
-  var a=!1;$("body").keydown(function(b){var c="";switch(b.which){case 83:c="save";break;case 67:c="crop";break;case 82:c="rectangle";break;case 69:c="ellipse";break;case 65:c="arrow";break;case 76:c="line";break;case 70:c="free-line";break;case 66:c="blur";break;case 84:c="text";break;case 17:a=!0;break;case 90:a&&(c="undo");break;case 16:shift=!0;break;case 13:c="done";break;case 27:c="cancel"}c&&(tool($("body").hasClass("selected")?c:c),"undo"!=c&&(a=!1))}).keyup(function(a){switch(a.which){case 16:shift=!1}})
+  var a = false;
+  $("body").keydown(function(b){
+    var tool = "";
+    switch (b.which) {
+      case 83: tool = "save"; break;
+      case 67: tool = "crop"; break;
+      case 82: tool = "rectangle"; break;
+      case 69: tool = "ellipse"; break;
+      case 65: tool = "arrow"; break;
+      case 76: tool = "line"; break;
+      case 70: tool = "free-line"; break;
+      case 66: tool = "blur"; break;
+      case 84: tool = "text"; break;
+      case 17: a = true; break;
+      case 90: {
+        if (a) tool = "undo";
+        break;
+      }
+      case 16: shift = true; break;
+      case 13: tool = "done"; break;
+      case 27: tool = "cancel";
+    }
+    if (tool) {
+      selectTool($("body").hasClass("selected") ? tool : tool);
+      if (tool != "undo") a = false;
+    }
+  }).keyup(function(a){
+    switch (a.which) {
+      case 16: shift = false;
+    }
+  });
 }
 
-function tool(a){
-  if(drawCanvas.width*drawCanvas.height!=0&&"color"!=a&&"done"!=a&&"cancel"!=a){if("undo"==a)return $("body").hasClass("draw_free_line")||$("body").hasClass("draw_text_highlight")?undo():$(drawCanvas).attr({width:0,height:0}).unbind().css({left:0,top:0}),void(0==actions.length&&disableUndo());$("body").hasClass("draw_free_line")||$("body").hasClass("draw_text_highlight")||(saveAction({type:"draw"}),showCtx.drawImage(drawCanvas,parseInt($(drawCanvas).css("left")),parseInt($(drawCanvas).css("top")))),$(drawCanvas).attr({width:0,height:0})}switch("color"!=a&&(saveText(),"undo"!=a&&"resize"!=a&&($("#temp-canvas").remove(),$("body").removeClass("justCropped draw draw-text draw-blur"))),updateBtnBg(a),a){case"save":save();break;case"crop":crop();break;case"color":color();break;case"done":done();break;case"cancel":cancel();break;case"resize":$("#resize select").unbind().change(function(){resize(this.value)});break;case"undo":undo();break;default:draw(a)}$(".cd-input").off().on("input",function(){var a=$("#cd-width").val(),b=$("#cd-height").val();console.log("sdf"),changeDimension(a,b)}).on("focus",function(){try{dragresize.deselect(!0)}catch(a){console.log(a)}}),$("#cropdiv").on("mousedown",function(){$(".cd-input").trigger("blur")})
+function selectTool(tool){
+  if (drawCanvas.width * drawCanvas.height != 0 &&
+      tool != "color" && tool != "done" && tool != "cancel") {
+    if ("undo" == tool) {
+      if ($("body").hasClass("draw_free_line") || $("body").hasClass("draw_text_highlight")) {
+        undo();
+      } else {
+        $(drawCanvas).attr({width:0,height:0}).unbind().css({left:0,top:0});
+      }
+      if (actions.length == 0) disableUndo();
+      return;
+    }
+    $("body").hasClass("draw_free_line")||$("body").hasClass("draw_text_highlight")||(saveAction({type:"draw"}),showCtx.drawImage(drawCanvas,parseInt($(drawCanvas).css("left")),parseInt($(drawCanvas).css("top"))));
+    $(drawCanvas).attr({width:0,height:0});
+  }
+  if ("color"!=tool) {
+    saveText();
+    if ("undo"!=tool&&"resize"!=tool) {
+      $("#temp-canvas").remove();
+      $("body").removeClass("draw draw-text draw-blur");
+    }
+  }
+  updateBtnBg(tool);
+  switch (tool){
+    case "save": save();  break;
+    case "crop": crop();  break;
+    case "color": color(); break;
+    case "done": cropDone();  break;
+    case "cancel": cancelCrop(); break;
+    case "resize": $("#resize select").unbind().change(function(){resize(this.value)}); break;
+    case "undo": undo(); break;
+    default: draw(tool); break;
+  }
+  $(".cd-input").off()
+    .on("input", function(){
+      var a=$("#cd-width").val();
+      var b=$("#cd-height").val();
+      changeDimension(a,b);
+    })
+    .on("focus", function(){
+      try {
+        dragresize.deselect(true);
+      } catch (a) {
+        console.log(a);
+      }
+    });
+  $("#cropdiv").on("mousedown", function(){$(".cd-input").trigger("blur")});
 }
 
 function changeDimension(a,b){
-  var c=$("#cropdiv"),d=parseInt(c.css("top")),e=parseInt(c.css("left"));c.css({width:a,height:b}),drawCtx.fillStyle="rgba(80,80,80,0.4)",drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(e,d,a,b)
+  var c=$("#cropdiv");
+  var d=parseInt(c.css("top"));
+  var e=parseInt(c.css("left"));
+  c.css({width:a,height:b});
+  drawCtx.fillStyle="rgba(80,80,80,0.4)";
+  drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+  drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
+  drawCtx.clearRect(e,d,a,b);
 }
 
 function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
@@ -342,12 +424,37 @@ function resize(a){
   var b=parseInt(a),c=b/100,d=showCtx.getImageData(0,0,editW,editH);$("body").removeClass("draw draw-text draw-blur"),saveAction({type:"resize",data:d,relFactor:b});var e=actions.length;if(e>1)for(var f=e-1;f>=0;f--){var g=actions[f],h=g.type;if("resize"==h&&(0==f||"resize"!=actions[f-1].type)){d=g.data,editW=g.w,editH=g.h;break}}$(drawCanvas).attr({width:editW,height:editH}).hide(),drawCtx.putImageData(d,0,0),editW*=c,editH*=c,updateEditArea(),updateShowCanvas(),showCtx.drawImage(drawCanvas,0,0,editW,editH),$(drawCanvas).attr({width:0,height:0}).show(),getEditOffset(),addMargin(),getEditOffset(),$("body").addClass("resized"),$("#undo span").css({"background-position-y":"0"}),d=null
 }
 
-function done(){
-  $(drawCanvas).attr({width:0,height:0}).unbind(),$("#cropdiv").hide(),$("#crop-tip").hide(),$("#crop-dimension").hide(),a=parseInt($("#cropdiv").css("top")),b=parseInt($("#cropdiv").css("left")),c=parseInt($("#cropdiv").css("width")),d=parseInt($("#cropdiv").css("height")),saveAction({type:"crop"});var a,b,c,d,e=showCtx.getImageData(b,a,c,d);$(showCanvas).attr({width:c,height:d}),showCtx.putImageData(e,0,0),$("body").removeClass().addClass("cropped justCropped"),$("#crop").removeClass("active"),enableUndo(),editW=c,editH=d,updateEditArea(),$("#cropdiv").css({width:0,height:0,outline:"none"}),getEditOffset()
+function cropDone() {
+  $("#cropdiv").hide();
+  $("#crop-tip").hide();
+  $("#crop-dimension").hide();
+  $(drawCanvas).attr({width:0,height:0}).unbind();
+  var cropLeft = parseInt($("#cropdiv").css("left"));
+  var cropTop = parseInt($("#cropdiv").css("top"));
+  var cropWidth = parseInt($("#cropdiv").css("width"));
+  var cropHeight = parseInt($("#cropdiv").css("height"));
+  saveAction({type:"crop"});
+  var croppedImageData = showCtx.getImageData(cropLeft,cropTop,cropWidth,cropHeight);
+  $(showCanvas).attr({width:cropWidth,height:cropHeight});
+  showCtx.putImageData(croppedImageData, 0, 0);
+  $("body").removeClass("crop selected").addClass("cropped");
+  $("#crop").removeClass("active");
+  enableUndo();
+  editW = cropWidth;
+  editH = cropHeight;
+  updateEditArea();
+  $("#cropdiv").css({width:0,height:0,outline:"none"});
+  getEditOffset();
 }
 
-function cancel(){
-  $("#crop_size").hide(),$("#crop-dimension").hide(),$(drawCanvas).attr({width:0,height:0}),$("body").removeClass("crop selected"),$("#crop").removeClass("active"),$("#cropdiv").hide(),$("#cropdiv").css({width:0,height:0,outline:"none"}),$("#draw-canvas").unbind()
+function cancelCrop() {
+  $("#crop_size").hide();
+  $("#crop-dimension").hide();
+  $(drawCanvas).attr({width:0,height:0}).unbind();
+  $("body").removeClass("crop selected");
+  $("#crop").removeClass("active");
+  $("#cropdiv").hide();
+  $("#cropdiv").css({width:0,height:0,outline:"none"});
 }
 
 function undo(){
@@ -386,8 +493,29 @@ function text(a){
   function b(){$('<input class="textinput"></input>').appendTo($editArea).css({top:c+"px",left:d+"px",width:e+"px",color:drawColor}).focus().autoGrowInput({comfortZone:20,minWidth:20,maxWidth:f}).keydown(function(a){if($(this).width()+10>f&&a.keyCode>=48||parseInt($(this).css("top"))-startT+38>g&&13==a.keyCode)return!1;var d=a.target,e=a.keyCode;13==e&&(c+=18,b()),8==e&&(d.value||($(d).prev().prev().focus().end().end().next().remove().end().remove(),c-=18)),38==e&&$(d).prev().prev().focus(),40==e&&$(d).next().next().focus(),a.stopPropagation()})}saveText(),$("body").addClass("draw-text");var c=startT=a.y-offsetY-10,d=a.x-offsetX;d>editW-e?d=editW-e:"";var e=20,f=editW-d,g=editH-c;1==textFlag&&b(),2==textFlag&&(textFlag=1)
 }
 
-function saveText(){
-  console.log("1");var a=$($editArea).find('input[class="textinput"]');if(console.log(a),a.length){var b="";if(a.each(function(){b+=this.value}),!b)return;enableUndo(),saveAction({type:"draw"}),textFlag=2,a.each(function(){console.log(this);var a=this,b=a.value;if(b){var c=parseInt($(a).css("left")),d=parseInt($(a).css("top"));showCtx.font="bold 14px/18px Arial,Helvetica,sans-serif",showCtx.fillStyle=$(a).css("color"),showCtx.fillText(b,c,d+14)}console.log("2"),$(a).next().remove().end().remove()})}
+function saveText() {
+  var inputs = $($editArea).find('input[class="textinput"]');
+  if (inputs.length == 0) return;
+  var b="";
+  inputs.each(function(){b+=this.value});
+  if (!b) return;
+  enableUndo();
+  saveAction({type:"draw"});
+  textFlag = 2;
+  inputs.each(function(){
+    console.log(this);
+    var input = this;
+    var text = input.value;
+    if (text) {
+      var fontSize = 14;
+      var textX = parseInt($(input).css("left"));
+      var textY = parseInt($(input).css("top")) + fontSize;
+      showCtx.font = "bold 14px/18px Arial,Helvetica,sans-serif";
+      showCtx.fillStyle = $(input).css("color");
+      showCtx.fillText(text, textX, textY);
+    };
+    $(input).next().remove().end().remove();
+  });
 }
 
 function saveAction(a){
