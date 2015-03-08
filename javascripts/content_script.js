@@ -15,7 +15,7 @@ function removeClass(a,b){
 
 function initEntireCapture(){
   console.log('initEntireCapture');
-  counter = 1;
+  numColumns = 1;
   vLast = hLast = false;
   getDocumentNode();
   html = doc.documentElement;
@@ -25,13 +25,19 @@ function initEntireCapture(){
   clientW = html.clientWidth;
   document.body.scrollTop = 0;
   document.body.scrollLeft = 0;
-  checkScrollBar();
-  window.onresize = checkScrollBar;
+  var scrollBar = getScrollBar();
   if (scrollBar.x || scrollBar.y) {
     setTimeout(sendRequest,150,{action:"scroll_next_done"});
   } else {
     sendRequest({action:"visible"});
   }
+}
+
+function getScrollBar() {
+  return {
+    x: (window.innerHeight > getClientH()),
+    y: (document.body.scrollHeight > window.innerHeight)
+  };
 }
 
 function initSelectedCapture(){
@@ -45,15 +51,15 @@ function initSelectedCapture(){
   getDocumentNode();
   getDocumentDimension();
   if (!document.getElementById("awesome_screenshot_wrapper")) {
-    var c=document.createElement("div");
+    var c = document.createElement("div");
     document.body.appendChild(c);
-    c.innerHTML+=wrapperHTML;
+    c.innerHTML += wrapperHTML;
   }
-  wrapper=document.getElementById("awesome_screenshot_wrapper");
+  wrapper = document.getElementById("awesome_screenshot_wrapper");
   updateWrapper();
-  window.addEventListener("resize",windowResize,!1);
-  document.body.addEventListener("keydown",selectedKeyDown,!1);
-  wrapper.addEventListener("mousedown",wrapperMouseDown,!1);
+  window.addEventListener("resize", windowResize, false);
+  document.body.addEventListener("keydown", selectedKeyDown, false);
+  wrapper.addEventListener("mousedown", onWrapperMouseDown, false);
 }
 
 function initDelayedCapture(delaySeconds) {
@@ -87,76 +93,124 @@ function initDelayedCapture(delaySeconds) {
   }, 1000);
 }
 
-function wrapperMouseDown(a){
-  function b(a){
+function onWrapperMouseDown(a) {
+  function onWrapperMouseMove(a){
     setStyle(wrapper,"background-color","rgba(0,0,0,0)");
-    e=a.pageX-f;
-    d=a.pageY-g;
-    h.children[0].innerHTML=Math.abs(e)+" X "+Math.abs(d);
+    e = a.pageX - f;
+    d = a.pageY - g;
+    selSizeDisplay.children[0].innerHTML = Math.abs(e) + " X " + Math.abs(d);
     updateCorners(f,g,e,d);
     updateCenter(f,g,e,d);
     autoScroll(a);
   }
-  function c(a){
-    a.pageX-f!=0&&a.pageY-g!=0||0!=$("#awesome_screenshot_center").width()||(setStyle(wrapper,"background-color","rgba(0,0,0,0)"),h.children[0].innerHTML=Math.abs(200)+" X "+Math.abs(200),updateCorners(f-100,g-100,200,200),updateCenter(f-100,g-100,200,200)),wrapper.removeEventListener("mousedown",wrapperMouseDown,!1),wrapper.removeEventListener("mousemove",b,!1),wrapper.removeEventListener("mouseup",c,!1),setStyle(document.getElementById("awesome_screenshot_action"),"display","block"),setStyle(h,"display","block"),bindCenter();
+  function onWrapperMouseUp(a) {
+    a.pageX-f!=0&&a.pageY-g!=0||0!=$("#awesome_screenshot_center").width()||(
+        setStyle(wrapper,"background-color","rgba(0,0,0,0)"),
+        selSizeDisplay.children[0].innerHTML=Math.abs(200)+" X "+Math.abs(200),
+        updateCorners(f-100,g-100,200,200),
+        updateCenter(f-100,g-100,200,200));
+    wrapper.removeEventListener("mousedown", onWrapperMouseDown, false);
+    wrapper.removeEventListener("mousemove", onWrapperMouseMove, false);
+    wrapper.removeEventListener("mouseup", onWrapperMouseUp, false);
+    setStyle(document.getElementById("awesome_screenshot_action"), "display", "block");
+    setStyle(selSizeDisplay, "display", "block");
+    bindCenter();
   }
-  if(0==a.button){
-    var d,e,f=a.pageX,g=a.pageY,h=document.getElementById("awesome_screenshot_size");
+  if (0 == a.button) {
+    var d,e,f=a.pageX,g=a.pageY;
+    var selSizeDisplay = document.getElementById("awesome_screenshot_size");
     document.getElementById("awesome_screenshot_action");
-    wrapper.addEventListener("mousemove",b,!1);
-    wrapper.addEventListener("mouseup",c,!1);
+    wrapper.addEventListener("mousemove", onWrapperMouseMove, false);
+    wrapper.addEventListener("mouseup", onWrapperMouseUp, false);
   }
 }
 
 function selectedKeyDown(a){
-  27==a.keyCode&&removeSelected();
+  27==a.keyCode&&removeSelection();
+}
+
+function getSelection() {
+  var selection = document.getElementById("awesome_screenshot_center");
+  return {
+    left:   getStyle(selection, "left"),
+    top:    getStyle(selection, "top"),
+    width:  getStyle(selection, "width"),
+    height: getStyle(selection, "height")
+  };
 }
 
 function windowResize(){
   updateWrapper();
   getDocumentDimension();
-  var a = document.getElementById("awesome_screenshot_center");
-  var b = getStyle(a,"width");
-  var c = getStyle(a,"height");
-  if(b*c){
-    var d = getStyle(a,"left");
-    var e = getStyle(a,"top");
-    updateCorners(d,e,b,c);
+  var sel = getSelection();
+  if (sel.width * sel.height > 0) {
+    updateCorners(sel.left, sel.top, sel.width, sel.height);
   }
   dragresize.maxLeft = docW;
   dragresize.maxTop = docH;
 }
 
 function bindCenter(){
-  function a(a){
-    switch(a.target.id){
-      case "awesome_screenshot_capture": b();break;
-      case "awesome_screenshot_capture_icon": b();break;
-      case "awesome_screenshot_cancel": removeSelected();break;
-      case "awesome_screenshot_cancel_icon": removeSelected();
+  function onActionBarClick(a){
+    switch (a.target.id) {
+      case "awesome_screenshot_capture": captureSelection(); break;
+      case "awesome_screenshot_capture_icon": captureSelection(); break;
+      case "awesome_screenshot_cancel": removeSelection(); break;
+      case "awesome_screenshot_cancel_icon": removeSelection(); break;
     }
   }
-  function b(){
-    var a=document.getElementById("awesome_screenshot_size");
-    setStyle(a,"display","none");
+  function captureSelection() {
+    var a = document.getElementById("awesome_screenshot_size");
+    setStyle(a, "display", "none");
     dragresize.deselect(c);
-    setStyle(c,"outline","none");
-    counter=1;
+    setStyle(c, "outline", "none");
+    numColumns = 1;
     vLast = hLast = false;
-    html=document.documentElement;
-    initScrollTop=document.body.scrollTop;
-    initScrollLeft=document.body.scrollLeft;
-    clientH=html.clientHeight;
-    clientW=html.clientWidth;
-    isSelected=!0;
-    var b=dragresize.elmX,d=dragresize.elmY,e=dragresize.elmW,f=dragresize.elmH,g=b-document.body.scrollLeft,h=d-document.body.scrollTop;
-    initScrollTop>d&&(0>=g?document.body.scrollLeft=b:(wrapper.style.paddingRight=g+"px",document.body.scrollLeft+=g),0>=h?document.body.scrollTop=d:(wrapper.style.paddingTop=h+"px",document.body.scrollTop+=h)),getDocumentDimension(),updateCorners(b,d,e,f);
-    if (initScrollTop>d){
-      if(clientW>=e&&clientH>=f)return void setTimeout(sendRequest,300,{action:"visible",counter:counter,ratio:f%clientH/clientH,scrollBar:{x:!1,y:!1},centerW:e,centerH:f,menuType:"selected"});
+    html = document.documentElement;
+    initScrollTop = document.body.scrollTop;
+    initScrollLeft = document.body.scrollLeft;
+    clientH = html.clientHeight;
+    clientW = html.clientWidth;
+    isSelected = true;
+    var selLeft = dragresize.elmX;
+    var selTop = dragresize.elmY;
+    var selW = dragresize.elmW;
+    var selH = dragresize.elmH;
+    var offsetX = selLeft - document.body.scrollLeft;
+    var offsetY = selTop - document.body.scrollTop;
+    if (initScrollTop > selTop) {
+      if (offsetX < 0) {
+        document.body.scrollLeft = selLeft;
+      } else {
+        wrapper.style.paddingRight = offsetX + "px";
+        document.body.scrollLeft += offsetX;
+      }
+      if (offsetY < 0) {
+        document.body.scrollTop = selTop;
+      } else {
+        wrapper.style.paddingTop = offsetY + "px";
+        document.body.scrollTop += offsetY;
+      }
+    }
+    getDocumentDimension();
+    updateCorners(selLeft, selTop, selW, selH);
+    if (initScrollTop>selTop){
+      if (clientW >= selW && clientH >= selH) {
+        setTimeout(sendRequest, 300, {
+          action: "visible",
+          counter: numColumns,
+          ratio: (selH % clientH / clientH),
+          scrollBar: {x: false, y: false},
+          centerW: selW,
+          centerH: selH,
+          menuType: "selected"
+        });
+        return;
+      }
       fixAndCapture();
     } else {
-      removeSelected();
-      setTimeout(function(){sendRequest({action:"capture_selected_done",data:{x:g,y:h,w:e,h:f}})},100);
+      removeSelection();
+      setTimeout(function(){sendRequest({action:"capture_selected_done",data:{x:offsetX,y:offsetY,w:selW,h:selH}})}, 100);
     }
   }
   var c=document.getElementById("awesome_screenshot_center");
@@ -175,14 +229,15 @@ function bindCenter(){
   }
   dragresize.apply(wrapper);
   dragresize.select(c);
-  document.getElementById("awesome_screenshot_action").addEventListener("click",a,!1);
+  document.getElementById("awesome_screenshot_action")
+    .addEventListener("click", onActionBarClick, false);
 }
 
-function removeSelected(){
+function removeSelection(){
   window.removeEventListener("resize",windowResize);
   document.body.removeEventListener("keydown",selectedKeyDown,!1);
   wrapper.parentNode&&wrapper.parentNode.removeChild(wrapper);
-  isSelected=!1;
+  isSelected = false;
 }
 
 function autoScroll(a){
@@ -193,22 +248,35 @@ function autoScroll(a){
   40>e&&(document.body.scrollLeft+=60-e);
 }
 
-function updateCorners(a,b,c,d){
-  var e=c>=0?a+c:a,f=d>=0?b:b+d,g=c>=0?docW-a-c:docW-a,h=d>=0?b+d:b,i=c>=0?docW-a:docW-a-c,j=docH-h,k=docW-i,l=docH-f,m=document.getElementById("awesome_screenshot_top"),n=document.getElementById("awesome_screenshot_right"),o=document.getElementById("awesome_screenshot_bottom"),p=document.getElementById("awesome_screenshot_left");
-  setStyle(m,"width",e+"px");
-  setStyle(m,"height",f+"px");
-  setStyle(n,"width",g+"px");
-  setStyle(n,"height",h+"px");
-  setStyle(o,"width",i+"px");
-  setStyle(o,"height",j+"px");
-  setStyle(p,"width",k+"px");
-  setStyle(p,"height",l+"px");
+function updateCorners(selLeft, selTop, selW, selH){
+  var topW =    selW >= 0 ? selLeft + selW : selLeft;
+  var topH =    selH >= 0 ? selTop : selTop + selH;
+  var rightW =  selW >= 0 ? docW - selLeft - selW : docW - selLeft;
+  var rightH =  selH >= 0 ? selTop + selH : selTop;
+  var bottomW = selW >= 0 ? docW - selLeft : docW - selLeft - selW;
+  var bottomH = docH - rightH;
+  var leftW =   docW - bottomW;
+  var leftH =   docH - topH;
+  var m = document.getElementById("awesome_screenshot_top");
+  setStyle(m, "width",  topW + "px");
+  setStyle(m, "height", topH + "px");
+  var n = document.getElementById("awesome_screenshot_right");
+  setStyle(n, "width",  rightW + "px");
+  setStyle(n, "height", rightH + "px");
+  var o = document.getElementById("awesome_screenshot_bottom");
+  setStyle(o, "width",  bottomW + "px");
+  setStyle(o, "height", bottomH + "px");
+  var p = document.getElementById("awesome_screenshot_left");
+  setStyle(p, "width",  leftW + "px");
+  setStyle(p, "height", leftH + "px");
 }
 
-function updateCenter(a,b,c,d){
-  var e=c>=0?a:a+c,f=d>=0?b:b+d,g=document.getElementById("awesome_screenshot_center");
-  setStyle(g,"width",Math.abs(c)+"px");
-  setStyle(g,"height",Math.abs(d)+"px");
+function updateCenter(a,b,selW,selH){
+  var e = selW >= 0 ? a : a + selW;
+  var f = selH >= 0 ? b : b + selH;
+  var g = document.getElementById("awesome_screenshot_center");
+  setStyle(g,"width",Math.abs(selW)+"px");
+  setStyle(g,"height",Math.abs(selH)+"px");
   setStyle(g,"top",f+"px");
   setStyle(g,"left",e+"px");
 }
@@ -229,111 +297,108 @@ function getStyle(a,b){
 }
 
 function scrollNext() {
-  var a = document.body.scrollTop;
-  var b = document.body.scrollLeft;
-  console.log('scrollNext', b, a);
+  var scrollTop = document.body.scrollTop;
+  var scrollLeft = document.body.scrollLeft;
+  console.log('scrollNext', scrollLeft, scrollTop);
   enableFixedPosition(false);
+  var scrollBar = getScrollBar();
   if (isSelected) {
-    var c = document.getElementById("awesome_screenshot_center");
-    var d = getStyle(c, "left");
-    var e = getStyle(c, "top");
-    var f = getStyle(c, "width");
-    var g = getStyle(c, "height");
-    if (clientW >= f && g > clientH) {
-      if (e + g == a + clientH) {
+    var sel = getSelection();
+    if (clientW >= sel.width && sel.height > clientH) {
+      if (sel.top + sel.height == scrollTop + clientH) {
         sendRequest({
           action: "entire_capture_done",
-          counter: counter,
-          ratio: {x: 0, y: (g % clientH / clientH)},
-          scrollBar: {x: false, y: true, realX: (window.innerHeight > html.clientHeight) },
-          centerW: f,
-          centerH: g
+          counter: numColumns,
+          ratio: {x: 0, y: (sel.height % clientH / clientH)},
+          scrollBar: {x: false, y: true, realX: (window.innerHeight > html.clientHeight)},
+          centerW: sel.width,
+          centerH: sel.height
         });
         return;
       }
-      if (a + 2 * clientH > e + g) {
-        document.body.scrollTop = e + g - clientH;
-      } else if (e + g > a + 2 * clientH) {
-        document.body.scrollTop = a + clientH;
+      if (scrollTop + 2 * clientH > sel.top + sel.height) {
+        document.body.scrollTop = sel.top + sel.height - clientH;
+      } else if (sel.top + sel.height > scrollTop + 2 * clientH) {
+        document.body.scrollTop = scrollTop + clientH;
       }
     }
-    if (f > clientW && clientH >= g) {
-      if (d + f == b + clientW) {
+    if (sel.width > clientW && clientH >= sel.height) {
+      if (sel.left + sel.width == scrollLeft + clientW) {
         sendRequest({
           action: "entire_capture_done",
-          counter: counter,
-          ratio: {x: (f % clientW / clientW), y: 0},
+          counter: numColumns,
+          ratio: {x: (sel.width % clientW / clientW), y: 0},
           scrollBar: {x: true, y: false, realY: (window.innerWidth > html.clientWidth)},
-          centerW: f,
-          centerH: g
+          centerW: sel.width,
+          centerH: sel.height
         });
         return;
       }
-      if (b + 2 * clientW > d + f) {
-        document.body.scrollLeft = d + f - clientW;
-      } else if (d + f > b + 2 * clientW) {
-        document.body.scrollLeft = b + clientW;
+      if (scrollLeft + 2 * clientW > sel.left + sel.width) {
+        document.body.scrollLeft = sel.left + sel.width - clientW;
+      } else if (sel.left + sel.width > scrollLeft + 2 * clientW) {
+        document.body.scrollLeft = scrollLeft + clientW;
       }
     }
-    if (f > clientW && g > clientH) {
-      if (e + g == a + clientH) {
-        if (d + f == b + clientW) {
+    if (sel.width > clientW && sel.height > clientH) {
+      if (sel.top + sel.height == scrollTop + clientH) {
+        if (sel.left + sel.width == scrollLeft + clientW) {
           sendRequest({
             action: "entire_capture_done",
-            counter: counter,
-            ratio: {x: (f % clientW / clientW), y: (g % clientH / clientH)},
+            counter: numColumns,
+            ratio: {x: (sel.width % clientW / clientW), y: (sel.height % clientH / clientH)},
             scrollBar: {x: true, y: true},
-            centerW: f,
-            centerH: g
+            centerW: sel.width,
+            centerH: sel.height
           });
         } else {
-          if (b + 2 * clientW > d + f) {
-            document.body.scrollLeft = d + f - clientW;
-          } else if (d + f > b + 2 * clientW) {
-            document.body.scrollLeft = b + clientW;
+          if (scrollLeft + 2 * clientW > sel.left + sel.width) {
+            document.body.scrollLeft = sel.left + sel.width - clientW;
+          } else if (sel.left + sel.width > scrollLeft + 2 * clientW) {
+            document.body.scrollLeft = scrollLeft + clientW;
           }
-          counter++;
-          document.body.scrollTop = e;
+          numColumns++;
+          document.body.scrollTop = sel.top;
           fixAndCapture();
         }
         return;
       }
-      if (a + 2 * clientH > e + g) {
-        document.body.scrollTop = e + g - clientH;
-      } else if (e + g > a + 2 * clientH) {
-        document.body.scrollTop = a + clientH;
+      if (scrollTop + 2 * clientH > sel.top + sel.height) {
+        document.body.scrollTop = sel.top + sel.height - clientH;
+      } else if (sel.top + sel.height > scrollTop + 2 * clientH) {
+        document.body.scrollTop = scrollTop + clientH;
       }
     }
   } else {
-    document.body.scrollTop = a + clientH;
-    if (document.body.scrollTop == a || vLast) {
-      var b = document.body.scrollLeft;
-      document.body.scrollLeft = b + clientW;
-      if (!scrollBar.x || document.body.scrollLeft == b || hLast) {
+    document.body.scrollTop = scrollTop + clientH;
+    if (document.body.scrollTop == scrollTop || vLast) {
+      var scrollLeft = document.body.scrollLeft;
+      document.body.scrollLeft = scrollLeft + clientW;
+      if (!scrollBar.x || document.body.scrollLeft == scrollLeft || hLast) {
         var ratio = {
-          y: (a % clientH / clientH),
-          x: (b % clientW / clientW)
+          y: (scrollTop % clientH / clientH),
+          x: (scrollLeft % clientW / clientW)
         };
         document.body.scrollTop = initScrollTop;
         document.body.scrollLeft = initScrollLeft;
         enableFixedPosition(true);
         sendRequest({
           action:"entire_capture_done",
-          counter: counter,
+          counter: numColumns,
           ratio: ratio,
           scrollBar: scrollBar
         });
         return;
       } else {
-        hLast = (document.body.scrollLeft - b < clientW);
+        hLast = (document.body.scrollLeft - scrollLeft < clientW);
       }
-      counter++;
+      numColumns++;
       document.body.scrollTop = 0;
       vLast = false;
       fixAndCapture();
       return;
     } else {
-      vLast = (document.body.scrollTop - a) < clientH;
+      vLast = (document.body.scrollTop - scrollTop) < clientH;
     }
   }
   fixAndCapture();
@@ -370,11 +435,6 @@ function enableFixedPosition(enabled){
   }
 }
 
-function checkScrollBar(){
-  scrollBar.x = window.innerHeight>getClientH() ? !0 : !1;
-  scrollBar.y = document.body.scrollHeight > window.innerHeight ? !0 : !1;
-}
-
 function myReplace(a,b){
   var c=a.replace(/[\.\$\^\{\[\(\|\)\*\+\?\\]/gi,"\\$1");
   var d=new RegExp("("+c+")","ig");
@@ -398,9 +458,23 @@ function getClientH() {
 }
 
 var isContentScriptLoaded = true;
-var doc,html,docW,docH,initScrollTop,initScrollLeft,clientH,clientW,scrollBar={},counter=1;
+var doc,html,docW,docH,initScrollTop,initScrollLeft,clientH,clientW;
+var numColumns = 1;
 var fixedElements=[];
-var wrapperHTML='<div id="awesome_screenshot_wrapper"><div id="awesome_screenshot_top"></div><div id="awesome_screenshot_right"></div><div id="awesome_screenshot_bottom"></div><div id="awesome_screenshot_left"></div><div id="awesome_screenshot_center" class="drsElement drsMoveHandle"><div id="awesome_screenshot_size" style="min-width:70px;"><span>0 X 0</span></div><div id="awesome_screenshot_action"><a id="awesome_screenshot_cancel"><span id="awesome_screenshot_cancel_icon"></span>Cancel</a><a id="awesome_screenshot_capture"><span id="awesome_screenshot_capture_icon"></span>Capture</a></div></div></div>';
+var wrapperHTML =
+  '<div id="awesome_screenshot_wrapper">' +
+  '  <div id="awesome_screenshot_top"></div>' +
+  '  <div id="awesome_screenshot_right"></div>' +
+  '  <div id="awesome_screenshot_bottom"></div>' +
+  '  <div id="awesome_screenshot_left"></div>' +
+  '  <div id="awesome_screenshot_center" class="drsElement drsMoveHandle">' +
+  '    <div id="awesome_screenshot_size" style="min-width:70px;"><span>0 X 0</span></div>' +
+  '    <div id="awesome_screenshot_action">' +
+  '      <a id="awesome_screenshot_cancel"><span id="awesome_screenshot_cancel_icon"></span>Cancel</a>' +
+  '      <a id="awesome_screenshot_capture"><span id="awesome_screenshot_capture_icon"></span>Capture</a>' +
+  '    </div>' +
+  '  </div>' +
+  '</div>';
 var wrapper,dragresize,isSelected=!1;
 var delayInterval = null;
 var vLast = false;
@@ -413,7 +487,7 @@ chrome.extension.onRequest.addListener(function(a){
     case "init_selected_capture": initSelectedCapture(); break;
     case "init_delayed_capture":  initDelayedCapture(a.delay); break;
     case "scroll_next": scrollNext(); break;
-    case "destroy_selected": removeSelected(); break;
+    case "destroy_selected": removeSelection(); break;
     case "finishAutoSave": {
       var c = "The screenshot has been saved in "+a.path+".";
       notification.show("success",c);
