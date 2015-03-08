@@ -427,6 +427,7 @@ function color(){
       highlightColor = $(a.target).attr("data-highlight-color");
       contrastColor = $(a.target).attr("data-contrast-color");
       if ($("#text").hasClass("active")) $("div[contenteditable]").css({color:drawColor});
+      $("#color").find("ul").fadeOut(300);
       a.stopPropagation();
     });
 }
