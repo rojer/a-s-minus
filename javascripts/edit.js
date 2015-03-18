@@ -582,8 +582,8 @@ function drawShape(which, pagePos) {
       drawCtx.lineTo(lineEndX, lineEndY);
       drawCtx.stroke();
       var arrowPoints = [[4, 0], [-10, -5.5], [-10, 5.5]];
-      var angle = Math.atan2(lineEndY - lineStartY, lineEndX - lineStartX);
-      drawPoly(shift(rotate(arrowPoints, angle), lineEndX, lineEndY));
+      var angle = Math.atan2(lineStartY - lineEndY, lineStartX - lineEndX);
+      drawPoly(shift(rotate(arrowPoints, angle), lineStartX, lineStartY));
     }
 
     function drawLine() {
