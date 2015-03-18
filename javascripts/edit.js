@@ -481,16 +481,191 @@ function disableUndo(){
   $("#undo").addClass("disable").find("span").css({"background-position":"-200px -20px"})
 }
 
-function draw(a){
-  return $("body").removeClass("crop draw_free_line draw_text_highlight").addClass("draw"),textFlag=1,"free-line"==a?($("body").addClass("draw_free_line"),isHighlight=!1,$(showCanvas).unbind(),$("#temp-canvas").length||createTempCanvas(),void freeLine()):"text-highlighter"==a?($("body").addClass("draw_text_highlight"),$(showCanvas).unbind(),$("#temp-canvas").length||createTempCanvas(),isHighlight=!0,void freeLine()):($(drawCanvas).unbind("mousedown"),"blur"==a?($("body").addClass("draw-blur"),void blur()):("text"==a&&$("body").addClass("draw-text"),void $(showCanvas).unbind().click(function(b){if("text"==a){var c={x:b.pageX,y:b.pageY};text(c)}}).mousedown(function(b){drawCanvas.width*drawCanvas.height!=0&&(saveAction({type:"draw"}),showCtx.drawImage(drawCanvas,parseInt($(drawCanvas).css("left")),parseInt($(drawCanvas).css("top")))),$(drawCanvas).attr({width:0,height:0});var c={x:b.pageX,y:b.pageY};switch(a){case"text":break;default:shape(a,c)}})))
+function draw(tool) {
+  $("body").removeClass("crop draw_free_line draw_text_highlight").addClass("draw");
+  textFlag = 1;
+  if ("free-line" == tool) {
+    $("body").addClass("draw_free_line");
+    $(showCanvas).unbind();
+    $("#temp-canvas").length || createTempCanvas();
+    freeLine(false);
+  } else if ("text-highlighter"==tool) {
+    $("body").addClass("draw_text_highlight");
+    $(showCanvas).unbind();
+    $("#temp-canvas").length || createTempCanvas();
+    freeLine(true);
+  } else {
+    $(drawCanvas).unbind("mousedown");
+    if ("blur" == tool) {
+      $("body").addClass("draw-blur");
+      blur();
+    } else {
+      if ("text" == tool) $("body").addClass("draw-text");
+      $(showCanvas).unbind()
+        .click(function(b) {if ("text" == tool) text({x: b.pageX, y: b.pageY});})
+        .mousedown(function(b) {
+          if (drawCanvas.width * drawCanvas.height != 0) {
+            saveAction({type: "draw"});
+            showCtx.drawImage(drawCanvas, parseInt($(drawCanvas).css("left")), parseInt($(drawCanvas).css("top")));
+          }
+          $(drawCanvas).attr({width: 0, height: 0});
+          var c={x: b.pageX, y: b.pageY};
+          if (tool != "text") drawShape(tool, c);
+        });
+    }
+  }
 }
 
-function shape(a,b){
-  function c(b,c){function f(){drawCtx.clearRect(0,0,o,q),drawCtx.strokeRect(j,j,o-2*j,q-2*j)}function g(){function a(a,b,c,d){var e=c/2*.5522848,f=d/2*.5522848,g=a+c,h=b+d,i=a+c/2,j=b+d/2;drawCtx.moveTo(a,j),drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b),drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j),drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h),drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j),drawCtx.closePath()}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath(),a(j,j,o-2*j,q-2*j),drawCtx.stroke()}function h(){function a(a){drawCtx.beginPath(),drawCtx.moveTo(a[0][0],a[0][1]);for(p in a)p>0&&drawCtx.lineTo(a[p][0],a[p][1]);drawCtx.lineTo(a[0][0],a[0][1]),drawCtx.fill()}function b(a,b,c){var d=[];for(p in a)d.push([a[p][0]+b,a[p][1]+c]);return d}function c(a,b){var c=[];for(p in a)c.push(f(b,a[p][0],a[p][1]));return c}function f(a,b,c){return[b*Math.cos(a)-c*Math.sin(a),b*Math.sin(a)+c*Math.cos(a)]}drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var g=k>d?j:o-j,h=l>e?j:q-j,i=o-g;my1=q-h,drawCtx.moveTo(g,h),drawCtx.lineTo(i,my1),drawCtx.stroke();var m=[[4,0],[-10,-5.5],[-10,5.5]],n=Math.atan2(my1-h,i-g);a(b(c(m,n),i,my1))}function i(){drawCtx.clearRect(0,0,o,q),drawCtx.beginPath();var a=k>d?j:o-j,b=l>e?j:q-j,c=o-a;my1=q-b,drawCtx.moveTo(a,b),drawCtx.lineTo(c,my1),drawCtx.stroke(),drawCtx.closePath()}var j=4,k=b-editOffsetX,l=c-editOffsetY,m=Math.min(k,d)-j,n=Math.min(l,e)-j,o=Math.abs(k-d)+2*j,q=Math.abs(l-e)+2*j;switch($(drawCanvas).attr({width:o,height:q}).css({left:m+"px",top:n+"px",cursor:"crosshair"}).disableSelection(),drawCtx.strokeStyle=drawColor,drawCtx.fillStyle=drawColor,drawCtx.lineWidth=j,a){case"rectangle":f();break;case"ellipse":g();break;case"arrow":h();break;case"line":i()}}var d=b.x-editOffsetX,e=b.y-editOffsetY;$(this).mousemove(function(a){c(a.pageX,a.pageY)}).mouseup(function(){$(this).unbind("mousemove mouseup"),$(drawCanvas).unbind("mousedown"),enableUndo(),$.Draggable(drawCanvas)})
+function drawShape(which, pagePos) {
+  function onMouseMove(pageX, pageY) {
+    function drawRectangle() {
+      drawCtx.clearRect(0, 0, drawRectW, drawRectH);
+      drawCtx.strokeRect(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
+    }
+
+    function drawEllipse() {
+      function _drawEllipse(a,b,c,d) {
+        var e = c / 2 * 0.5522848;
+        var f = d / 2 * 0.5522848;
+        var g = a + c;
+        var h = b + d;
+        var i = a + c / 2;
+        var j = b + d / 2;
+        drawCtx.moveTo(a,j);
+        drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b);
+        drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j);
+        drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h);
+        drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j);
+        drawCtx.closePath();
+      }
+      drawCtx.clearRect(0,0,drawRectW,drawRectH);
+      drawCtx.beginPath();
+      _drawEllipse(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
+      drawCtx.stroke();
+    }
+
+    function drawArrow() {
+      function drawPoly(points) {
+        drawCtx.beginPath();
+        drawCtx.moveTo(points[0][0], points[0][1]);
+        for (var i = 1; i < points.length; i++) {
+          drawCtx.lineTo(points[i][0], points[i][1]);
+        }
+        drawCtx.lineTo(points[0][0], points[0][1]);
+        drawCtx.fill();
+      }
+      function shift(points, dx, dy) {
+        var d = [];
+        for (var p in points) d.push([points[p][0] + dx, points[p][1] + dy]);
+        return d;
+      }
+      function rotate(points, angle) {
+        var c = [];
+        for (var i in points) c.push(rotatePoint(angle, points[i][0], points[i][1]));
+        return c;
+      }
+      function rotatePoint(angle, x, y) {
+        return [x*Math.cos(angle) - y*Math.sin(angle),
+                x*Math.sin(angle) + y*Math.cos(angle)];
+      }
+
+      drawCtx.clearRect(0,0,drawRectW,drawRectH);
+      drawCtx.beginPath();
+      var lineStartX = mouseX > startX ? margin : drawRectW - margin;
+      var lineStartY = mouseY > startY ? margin : drawRectH - margin;
+      var lineEndX = drawRectW - lineStartX;
+      var lineEndY = drawRectH - lineStartY;
+      drawCtx.moveTo(lineStartX, lineStartY);
+      drawCtx.lineTo(lineEndX, lineEndY);
+      drawCtx.stroke();
+      var arrowPoints = [[4, 0], [-10, -5.5], [-10, 5.5]];
+      var angle = Math.atan2(lineEndY - lineStartY, lineEndX - lineStartX);
+      drawPoly(shift(rotate(arrowPoints, angle), lineEndX, lineEndY));
+    }
+
+    function drawLine() {
+      drawCtx.clearRect(0, 0, drawRectW, drawRectH);
+      drawCtx.beginPath();
+      var lineStartX = mouseX > startX ? margin : drawRectW - margin;
+      var lineStartY = mouseY > startY ? margin : drawRectH - margin;
+      var lineEndX = drawRectW - lineStartX;
+      var lineEndY = drawRectH - lineStartY;
+      drawCtx.moveTo(lineStartX, lineStartY);
+      drawCtx.lineTo(lineEndX, lineEndY);
+      drawCtx.stroke();
+      drawCtx.closePath();
+    }
+
+    var margin = freeLineWidth;
+    var mouseX = pageX - editOffsetX;
+    var mouseY = pageY - editOffsetY;
+    var drawRectX = Math.min(mouseX, startX) - margin;
+    var drawRectY = Math.min(mouseY, startY) - margin;
+    var drawRectW = Math.abs(mouseX - startX) + 2 * margin;
+    var drawRectH = Math.abs(mouseY - startY) + 2 * margin;
+    $(drawCanvas).attr({width: drawRectW, height: drawRectH})
+                 .css({left: drawRectX+"px", top: drawRectY+"px", cursor: "crosshair"})
+                 .disableSelection();
+    drawCtx.strokeStyle = drawColor;
+    drawCtx.fillStyle = drawColor;
+    drawCtx.lineWidth = margin;
+    switch (which) {
+      case "rectangle": drawRectangle(); break;
+      case "ellipse": drawEllipse(); break;
+      case "arrow": drawArrow(); break;
+      case "line": drawLine(); break;
+    }
+  }
+  var startX = pagePos.x - editOffsetX;
+  var startY = pagePos.y - editOffsetY;
+  $(this).mousemove(function(a){onMouseMove(a.pageX,a.pageY);})
+         .mouseup(function(){
+           $(this).unbind("mousemove mouseup");
+           $(drawCanvas).unbind("mousedown");
+           enableUndo();
+           $.Draggable(drawCanvas);
+         });
 }
 
-function freeLine(){
-  $(drawCanvas).attr({width:editW,height:editH}).css({left:0,top:0,cursor:"url(../images/pen.png),auto !important"}).disableSelection().off("mousedown mouseup").mousedown(function(a){saveAction({type:"draw"});var b=document.getElementById("temp-canvas"),c=b.getContext("2d"),d=a.pageX-editOffsetX,e=a.pageY-editOffsetY,f=[];c.moveTo(d,e),$(this).mousemove(function(a){f.push({x:a.pageX-editOffsetX,y:a.pageY-editOffsetY}),c.clearRect(0,0,b.width,b.height),c.beginPath();for(var d=0;d<f.length;d++)c.lineTo(f[d].x,f[d].y),c.lineJoin="round",c.lineCap="round",c.strokeStyle=isHighlight?highlightColor:drawColor,c.lineWidth=isHighlight?highlightWidth:3,c.globalCompositeOperation="lighter";c.stroke(),c.closePath()}).mouseup(function(){$(this).unbind("mousemove mouseup"),enableUndo(),showCtx.drawImage(b,0,0),$(b).remove(),b=null,f=[],createTempCanvas()})})
+function freeLine(isHighlight) {
+  $(drawCanvas)
+    .attr({width:editW,height:editH})
+    .css({left:0,top:0,cursor:"url(../images/pen.png),auto !important"})
+    .disableSelection().off("mousedown mouseup")
+    .mousedown(function(a){
+      saveAction({type:"draw"});
+      var tempCanvas = document.getElementById("temp-canvas");
+      var tempContext = tempCanvas.getContext("2d");
+      var mouseX = a.pageX - editOffsetX;
+      var mouseY = a.pageY - editOffsetY;
+      var segments = [];
+      tempContext.moveTo(mouseX,mouseY);
+      $(this)
+        .mousemove(function(a) {
+          segments.push({x:a.pageX-editOffsetX,y:a.pageY-editOffsetY});
+          tempContext.clearRect(0,0,tempCanvas.width,tempCanvas.height);
+          tempContext.beginPath();
+          for(var i = 0; i < segments.length; i++) {
+            tempContext.lineTo(segments[i].x, segments[i].y);
+            tempContext.lineJoin = "round";
+            tempContext.lineCap = "round";
+            tempContext.strokeStyle = isHighlight ? highlightColor : drawColor;
+            tempContext.lineWidth = isHighlight ? highlightWidth : freeLineWidth;
+            tempContext.globalCompositeOperation = "lighter";
+          }
+          tempContext.stroke();
+          tempContext.closePath();
+        })
+        .mouseup(function(){
+          $(this).unbind("mousemove mouseup");
+          enableUndo();
+          showCtx.drawImage(tempCanvas,0,0);
+          $(tempCanvas).remove();
+          tempCanvas = null;
+          segments = [];
+          createTempCanvas();
+        });
+    });
 }
 
 function createTempCanvas(){
@@ -651,7 +826,9 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx,highlightWidth=16,taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx;
+var highlightWidth = 16, freeLineWidth = 4;
+var taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var dragresize;
 var lastH, lastW;
 var drawColor = "red";

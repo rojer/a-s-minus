@@ -45,7 +45,7 @@ input[type=password] {
 
 #tool-panel>div {
     margin:0 auto; padding:12px 240px;
-    min-width:440px; height:24px; 
+    min-width:500px; height:24px; 
     text-align:center;
 }
 
