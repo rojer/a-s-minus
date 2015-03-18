@@ -220,7 +220,10 @@ function selectTool(tool){
       if (actions.length == 0) disableUndo();
       return;
     }
-    $("body").hasClass("draw_free_line")||$("body").hasClass("draw_text_highlight")||(saveAction({type:"draw"}),showCtx.drawImage(drawCanvas,parseInt($(drawCanvas).css("left")),parseInt($(drawCanvas).css("top"))));
+    if (!$("body").hasClass("draw_free_line") && !$("body").hasClass("draw_text_highlight")) {
+      saveAction({type:"draw"});
+      showCtx.drawImage(drawCanvas, parseInt($(drawCanvas).css("left")), parseInt($(drawCanvas).css("top")));
+    }
     $(drawCanvas).attr({width:0,height:0});
   }
   if ("color"!=tool) {
