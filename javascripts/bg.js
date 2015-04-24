@@ -228,12 +228,13 @@ function sendRequest(a, tab, request){
   }
 }
 
-var win, menuType, type, dataURL=[], tabid, editTabId, taburl, tabtitle, counter, ratio, scrollBar, centerW=0, centerH=0, data, tempDataUrl, currentWindowId, currentTabId, D_T, centerOffX=0, centerOffY=0;
+var win, menuType, type, dataURL=[], tabid, editTabId, taburl, tabtitle, counter, ratio, scrollBar, centerW=0, centerH=0, data, tempDataUrl, currentWindowId, currentTabId, centerOffX=0, centerOffY=0;
 localStorage.msObj||(localStorage.msObj='{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
 localStorage.format||(localStorage.format="png");
 localStorage.delay_sec||(localStorage.delay_sec=3);
-localStorage["data-tracking"]||(localStorage["data-tracking"]=!0);
-D_T="true"==localStorage["data-tracking"];
+
+// Clean up old junk from localStorage.
+localStorage.removeItem("data-tracking");
 
 $(document).ready(function(){});
 
