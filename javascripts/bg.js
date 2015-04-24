@@ -83,99 +83,10 @@ function newTab(){
     if ("selected"==menuType) {
       sendRequest("tab",tabid,{action:"destroy_selected"});
     }
-    if ("true"==localStorage.autoSave) {
-      prepareImage();
-    } else {
-      chrome.tabs.create({url:"edit.html"});
-    }
+    chrome.tabs.create({url:"edit.html"});
   } else {
     alert("Screen Capture Fail!!");
   }
-}
-
-function prepareImage() {
-  var a,b;
-  var c = document.getElementById("tempCanvas");
-  var d = c.getContext("2d");
-  var e = document.getElementById("test_image");
-  var f = 17;  //document.getElementById("temp_image"),17);
-  var onTestImageReady = function() {
-    function h(a,c,e,f,g,i,j,k,m) {
-      j=r*b,r==u-1&&(e=b-lastH,g=m=lastH),console.log(r,n,u-1),$("#temp_image").attr({src:a}).load(function(){$(this).unbind("load"),d.drawImage(this,c,e,f,g,i,j,k,m),++r>u-1?(console.log("nextCol"),l()):(console.log("PrepareV"),h(q[++n],c,e,f,g,i,j,k,m))})
-    }
-    function i(b,c,e,f,g,h,k,l,m) {
-      h=j*a,j==t-1&&(c=a-lastW,f=l=lastW),$("#temp_image").attr({src:b}).load(function(){$(this).unbind("load"),d.drawImage(this,c,e,f,g,h,k,l,m),t-1>j&&i(q[++j],c,e,f,g,h,k,l,m)});
-    }
-    function k(){
-      $(c).attr({width:m,height:o});
-    }
-    function l(){
-      if(++j>t-1){
-        var d = document.getElementById("pluginobj");
-        return"jpg"==localStorage.format?tempDataUrl=c.toDataURL("image/jpeg"):"png"==localStorage.format&&(tempDataUrl=c.toDataURL()),console.log("final",tempDataUrl),d.AutoSave(tempDataUrl,tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," "),localStorage.savePath),void setTimeout(function(){chrome.tabs.getSelected(function(a){chrome.tabs.sendRequest(a.id,{action:"finishAutoSave",path:localStorage.savePath})}),chrome.extension.sendRequest({action:"close_popup"})},1e3);
-      }
-      j==t-1?(v=a-lastW,w=dw=m-j*a,x=j*a):(v=0,w=dw=a,x=j*a);
-      y=0;
-      z=dh=b;
-      A=0;
-      r=0;
-      n=r+j*u;
-      h(q[n],v,y,w,z,x,A,dw,dh);
-    }
-
-    a=e.width;
-    b=e.height;
-    console.log(menuType);
-    if ("visible"==type) {
-      var m,o;
-      console.log(centerW,centerH,e.width,e.height);
-      "selected"==menuType?(m=centerW*window.devicePixelRatio,o=centerH*window.devicePixelRatio,v=centerOffX,y=centerOffY):(m=e.width,o=e.height,v=0,y=0);
-      $("#tempCanvas").attr({width:m,height:o});
-      d.drawImage(e,v*window.devicePixelRatio,y*window.devicePixelRatio,m,o,0,0,m,o);
-      "jpg"==localStorage.format?tempDataUrl=c.toDataURL("image/jpeg"):"png"==localStorage.format&&(tempDataUrl=c.toDataURL());
-      var p=document.getElementById("pluginobj");
-      console.log(tempDataUrl,tabtitle);
-      p.AutoSave(tempDataUrl,tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," "),localStorage.savePath);
-      setTimeout(function(){
-        chrome.tabs.getSelected(function(a){
-          chrome.tabs.sendRequest(a.id,{action:"finishAutoSave",path:localStorage.savePath});
-        });
-        chrome.extension.sendRequest({action:"close_popup"});
-      }, 1e3);
-    } else if ("entire"==type || "selected"==type) {
-      var q = dataURL;
-      console.log("enter entire",q.length,counter,b,a);
-      var r=j=n=0,s=q.length,t=counter,u=Math.round(s/t);
-      if (!scrollBar.x && scrollBar.y) {
-        a-=f,u=s,lastH=b*ratio.y;
-        "selected"==menuType?(scrollBar.realX&&(b-=f),m=centerW*window.devicePixelRatio):m=a;
-        o=lastH?b*(u-1)+lastH:b*u;
-        k();
-        var v=0,w=dw=a,x=0,y=0,z=dh=b,A=0;
-        h(q[n],v,y,w,z,x,A,dw,dh);
-      }
-      if (scrollBar.x && !scrollBar.y) {
-        b-=f,t=s,lastW=a*ratio.x;
-        "selected"==menuType?(scrollBar.realY&&(a-=f),o=centerH*window.devicePixelRatio):o=b;
-        m=lastW?a*(t-1)+lastW:a*t;
-        k();
-        var v=0,w=dw=a,x=0,y=0,z=dh=b,A=0;
-        i(q[n],v,y,w,z,x,A,dw,dh);
-      }
-      if (scrollBar.x && scrollBar.y) {
-        lastW=a*ratio.x,lastH=b*ratio.y,a-=f,b-=f;
-        "selected"==menuType?(m=centerW*window.devicePixelRatio,o=centerH*window.devicePixelRatio):(m=lastW?a*(t-1)+lastW:a*t,o=lastH?b*(u-1)+lastH:b*u);
-        k();
-        var v=0,w=dw=a,x=0,y=0,z=dh=b,A=0;
-        h(q[n],v,y,w,z,x,A,dw,dh);
-      }
-    }
-    dataURL = [];
-    e.removeEventListener("onload", onTestImageReady, !1);
-    e.src = "";
-  };
-  e.onload = onTestImageReady;
-  e.src = dataURL[0];
 }
 
 function injectContentScripts(tab, cb) {
