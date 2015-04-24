@@ -198,8 +198,8 @@ function bindCenter(){
       if (clientW >= selW && clientH >= selH) {
         setTimeout(sendRequest, 300, {
           action: "visible",
-          counter: numColumns,
-          ratio: (selH % clientH / clientH),
+          numColumns: numColumns,
+          remainderRatio: (selH % clientH / clientH),
           scrollBar: {x: false, y: false},
           centerW: selW,
           centerH: selH,
@@ -308,8 +308,8 @@ function scrollNext() {
       if (sel.top + sel.height == scrollTop + clientH) {
         sendRequest({
           action: "entire_capture_done",
-          counter: numColumns,
-          ratio: {x: 0, y: (sel.height % clientH / clientH)},
+          numColumns: numColumns,
+          remainderRatio: {x: 0, y: (sel.height % clientH / clientH)},
           scrollBar: {x: false, y: true, realX: (window.innerHeight > html.clientHeight)},
           centerW: sel.width,
           centerH: sel.height
@@ -326,8 +326,8 @@ function scrollNext() {
       if (sel.left + sel.width == scrollLeft + clientW) {
         sendRequest({
           action: "entire_capture_done",
-          counter: numColumns,
-          ratio: {x: (sel.width % clientW / clientW), y: 0},
+          numColumns: numColumns,
+          remainderRatio: {x: (sel.width % clientW / clientW), y: 0},
           scrollBar: {x: true, y: false, realY: (window.innerWidth > html.clientWidth)},
           centerW: sel.width,
           centerH: sel.height
@@ -345,8 +345,8 @@ function scrollNext() {
         if (sel.left + sel.width == scrollLeft + clientW) {
           sendRequest({
             action: "entire_capture_done",
-            counter: numColumns,
-            ratio: {x: (sel.width % clientW / clientW), y: (sel.height % clientH / clientH)},
+            numColumns: numColumns,
+            remainderRatio: {x: (sel.width % clientW / clientW), y: (sel.height % clientH / clientH)},
             scrollBar: {x: true, y: true},
             centerW: sel.width,
             centerH: sel.height
@@ -375,7 +375,7 @@ function scrollNext() {
       var scrollLeft = document.body.scrollLeft;
       document.body.scrollLeft = scrollLeft + clientW;
       if (!scrollBar.x || document.body.scrollLeft == scrollLeft || hLast) {
-        var ratio = {
+        var remainderRatio = {
           y: (scrollTop % clientH / clientH),
           x: (scrollLeft % clientW / clientW)
         };
@@ -383,9 +383,9 @@ function scrollNext() {
         document.body.scrollLeft = initScrollLeft;
         enableFixedPosition(true);
         sendRequest({
-          action:"entire_capture_done",
-          counter: numColumns,
-          ratio: ratio,
+          action: "entire_capture_done",
+          numColumns: numColumns,
+          remainderRatio: remainderRatio,
           scrollBar: scrollBar
         });
         return;

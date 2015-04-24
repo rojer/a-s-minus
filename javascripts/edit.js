@@ -1,4 +1,5 @@
-function prepareEditArea(req){
+function prepareEditArea(req) {
+  console.log('prepare', req);
   function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
     dy = counterY * imageHeight;
     if (counterY == numTilesY - 1) {
@@ -847,11 +848,11 @@ $(document).ready(function(){
   showCtx = showCanvas.getContext("2d");
   drawCanvas = document.getElementById("draw-canvas");
   drawCtx = drawCanvas.getContext("2d");
-  chrome.extension.onRequest.addListener(function(a){
-    console.log('edit', requestFlag, a);
-    if (requestFlag && a.menuType) {
+  chrome.extension.onRequest.addListener(function(req){
+    console.log('edit', requestFlag, req);
+    if (requestFlag && req.menuType) {
       i18n();
-      prepareEditArea(a);
+      prepareEditArea(req);
       prepareTools();
       requestFlag = 0;
     }
