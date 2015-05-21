@@ -4,6 +4,7 @@ Awesome Screenshot extension
 
  -- spyware and tracking crap
 
+ ++ Desktop capture
  ++ GDrive URL shortening
 
  ** Less intrusive (minimum amount of code is injected into pages).
