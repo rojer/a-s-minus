@@ -203,7 +203,7 @@ function bindCenter(){
           scrollBar: {x: false, y: false},
           centerW: selW,
           centerH: selH,
-          menuType: "selected"
+          userAction: "selected"
         });
         return;
       }

@@ -29,15 +29,16 @@ a span, #capturing span { float:left; width:20px; height:20px; margin-right:5px;
 a span {background:url(../images/icons.png) no-repeat -260px 0; }
 a#selected span { background-position: -260px -40px; }
 a#entire span { background-position: -260px -20px; }
+a#delayed span { background-position: -200px -40px; }
+a#desktop span { background-position: -240px -40px; }
+a#upload span { background-position: -320px -40px; }
+a#option span{ background-position: -280px -40px; }
+a#help span { background-position: -299px -40px; }
 #entire b { font-size:10px;  }
 #capturing {display:none; font-weight:bold; margin: 15px 0px; text-align:center;}
 #capturing .inner{width:100px; margin:auto; text-align:left;}
 #capturing span { background:url(../images/loader.gif) no-repeat center center; }
 #script_off {display:none; text-align: center; }
-a#option span{background-position: -280px -40px;}
-a#help span {background-position: -299px -40px;}
-a#upload span {background-position: -320px -40px;}
-a#delayed span {background-position: -200px -40px;}
 
 .shortcut{
     float: right;

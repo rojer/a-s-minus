@@ -65,7 +65,7 @@ function prepareEditArea(req) {
   switch (req.type){
     case "visible": {
       $("#save-image").attr({src:images[0]}).load(function(){
-        if ("selected" == req.menuType) {
+        if ("selected" == req.userAction) {
           editW = req.centerW * window.devicePixelRatio;
           editH = req.centerH * window.devicePixelRatio;
           updateEditArea();
@@ -73,7 +73,7 @@ function prepareEditArea(req) {
           getEditOffset();
           addMargin();
           getEditOffset();
-        } else if ("upload" == req.menuType) {
+        } else if ("upload" == req.userAction) {
           editW = imageWidth;
           editH = imageHeight;
           centerOffX = 0;
@@ -110,7 +110,7 @@ function prepareEditArea(req) {
         imageWidth -= scrollbarWidth;
         numTilesY = numImages;
         lastH = imageHeight * lastRatio.y;
-        if ("selected" == req.menuType) {
+        if ("selected" == req.userAction) {
           if (scrollBar.realX) imageHeight -= scrollbarWidth;
           editW = req.centerW * window.devicePixelRatio;
         } else {
@@ -127,7 +127,7 @@ function prepareEditArea(req) {
         imageHeight -= scrollbarWidth;
         numTilesX = numImages;
         lastW = imageWidth * lastRatio.x;
-        if ("selected" == req.menuType) {
+        if ("selected" == req.userAction) {
           if (scrollBar.realY) imageWidth -= scrollbarWidth;
           editH = req.centerH * window.devicePixelRatio;
         } else {
@@ -144,7 +144,7 @@ function prepareEditArea(req) {
         imageHeight -= scrollbarWidth;
         lastW = imageWidth * lastRatio.x;
         lastH = imageHeight * lastRatio.y;
-        if ("selected" == req.menuType) {
+        if ("selected" == req.userAction) {
           editW = req.centerW * window.devicePixelRatio;
           editH = req.centerH * window.devicePixelRatio;
         } else {
@@ -850,7 +850,7 @@ $(document).ready(function(){
   drawCtx = drawCanvas.getContext("2d");
   chrome.extension.onRequest.addListener(function(req){
     console.log('edit', requestFlag, req);
-    if (requestFlag && req.menuType) {
+    if (requestFlag && req.userAction) {
       i18n();
       prepareEditArea(req);
       prepareTools();

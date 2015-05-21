@@ -20,3 +20,4 @@ Note on permissions:
   * identity: For GDrive uploads.
   * identity.email: To display account name where the file is uploaded.
   * storage: To store options.
+  * desktopCapture, notifications: for capturing desktop screenshots.

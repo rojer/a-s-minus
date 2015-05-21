@@ -33,6 +33,93 @@ function captureDelayed(ctx) {
                                  delay: localStorage.delay_sec});
 }
 
+function grabFrame(ctx, video, stream) {
+  var canvas = document.getElementById('tempCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  var url = canvas.toDataURL("png", null);
+  console.log('captured', url.length, 'bytes,', canvas.width+'x'+canvas.height);
+  ctx.imageData.push(url);
+  stream.stop();
+  video.src = "";
+  newTab(ctx);
+}
+
+function attachToVideo(ctx, stream) {
+  var video = document.getElementById('temp_video');
+  video.src = URL.createObjectURL(stream);
+  video.onloadedmetadata = function () {
+    // Delay capture to allow notification to disappear.
+    setTimeout(function() { grabFrame(ctx, video, stream); }, 500);
+  };
+  video.play();
+}
+
+var notificationHandlers = {};
+
+chrome.notifications.onClicked.addListener(function(notificationId) {
+  var handler = notificationHandlers[notificationId];
+  if (handler) handler("clicked");
+});
+
+chrome.notifications.onClosed.addListener(function(notificationId) {
+  var handler = notificationHandlers[notificationId];
+  if (handler) handler("closed");
+
+});
+
+function showNotification(ctx, stream) {
+  var notificationId = "ASM" + (new Date()).toString();
+  var doCapture = false;
+  notificationHandlers[notificationId] = function(action) {
+    if (action == "clicked") {
+      doCapture = true;
+      chrome.notifications.clear(notificationId);
+    }
+    if (action == "closed") {
+      if (doCapture) {
+        attachToVideo(ctx, stream);
+      } else {
+        stream.stop();
+      }
+    }
+  };
+  chrome.notifications.create(
+      notificationId,
+      { type: "basic",
+        title: "Desktop Capture",
+        message: "Prepare your desktop for capture and click this notification when ready.",
+        iconUrl: "images/icon128.png",
+        priority: 2,  // highest
+        isClickable: true },
+      function(notificationId) {}
+  );
+}
+
+function captureDesktop(ctx) {
+  ctx.userAction = "desktop";
+  ctx.editAction = "visible";
+  chrome.desktopCapture.chooseDesktopMedia(
+      ["screen", "window"], null,
+      function(streamId) {
+        if (!streamId) return;  // User canceled.
+        navigator.webkitGetUserMedia(
+            { audio: false, 
+              video: {
+                mandatory: {
+                  chromeMediaSource: 'desktop',
+                  chromeMediaSourceId: streamId,
+                  maxWidth: window.screen.width,
+                  maxHeight: window.screen.height
+                }
+              }
+            },
+            function(stream) { showNotification(ctx, stream); },  // success
+            function(err) { alert("Screen capture failed: " + err); });
+      });
+}
+
 function saveAndScroll(ctx){
   captureVisible(ctx, function(){
     sendContentScriptRequest(ctx, {action:"scroll_next"});
@@ -103,9 +190,9 @@ function sendContentScriptRequest(ctx, request){
   });
 }
 
-localStorage.msObj||(localStorage.msObj='{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
-localStorage.format||(localStorage.format="png");
-localStorage.delay_sec||(localStorage.delay_sec=3);
+localStorage.msObj || (localStorage.msObj = '{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
+localStorage.format || (localStorage.format = "png");
+localStorage.delay_sec || (localStorage.delay_sec = 3);
 
 // Clean up old junk from localStorage.
 localStorage.removeItem("data-tracking");
@@ -119,7 +206,7 @@ function handleRequest(ctx, req, sender) {
   function onTestImageReady(){
     var testImage = document.getElementById("test_image");
     var req = {
-      menuType: ctx.userAction,
+      userAction: ctx.userAction,
       type: ctx.editAction,
       data: ctx.imageData,
       taburl: ctx.tabURL,
@@ -154,6 +241,7 @@ function handleRequest(ctx, req, sender) {
     case "selected": captureSelected(ctx); break;
     case "entire": captureEntire(ctx); break;
     case "delayed": captureDelayed(ctx); break;
+    case "desktop": captureDesktop(ctx); break;
     case "upload": {
       ctx.userAction = "upload";
       ctx.editAction = "visible";
@@ -221,11 +309,10 @@ function handleRequest(ctx, req, sender) {
 
 var contexts = {};
 
-function newContextForTab(tab) {
-  console.log('new ctx for', tab);
-  var ctx = {
-    windowId: tab.windowId,
-    tabId: tab.id,
+function newContext() {
+  return {
+    windowId: null,
+    tabId: null,
     tabURL: "",
     tabTitle: "",
 
@@ -243,8 +330,14 @@ function newContextForTab(tab) {
 
     imageData: [],
   };
+}
+
+function newContextForTab(tab) {
+  console.log('new ctx for', tab);
+  var ctx = newContext();
+  ctx.windowId = tab.windowId;
+  ctx.tabId = tab.id;
   setContextForTab(tab, ctx);
-  return ctx;
 }
 
 function stripCtx(ctx) {
@@ -298,16 +391,24 @@ function getCurrentTab(sender, cb) {
 }
 
 chrome.extension.onRequest.addListener(function(req, sender){
+  if (req.action == "desktop") {
+    // Desktop captures do not have tab to be associated with.
+    var ctx = newContext();
+    ctx.userAction = req.action;
+    ctx.tabTitle = "Desktop";
+    handleRequest(ctx, req, sender);
+    return;
+  }
   getCurrentTab(sender, function(tab) {
     var ctx = getContextForTab(tab);
     console.log('>', req.action, req, tab);
     if ("visible" == req.action || "selected" == req.action ||
         "entire" == req.action || "delayed" == req.action) {
       ctx.userAction = req.action;
-      if (req.menuType) ctx.userAction = req.menuType;
       ctx.tabURL = tab.url;
       ctx.tabTitle = tab.title;
     }
+    if (req.userAction) ctx.userAction = req.userAction;
     handleRequest(ctx, req, sender);
   });
 });
