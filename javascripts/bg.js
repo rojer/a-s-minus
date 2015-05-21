@@ -40,7 +40,7 @@ function grabFrame(ctx, video, stream) {
   canvas.getContext('2d').drawImage(video, 0, 0);
   var url = canvas.toDataURL("png", null);
   console.log('captured', url.length, 'bytes,', canvas.width+'x'+canvas.height);
-  ctx.imageData.push(url);
+  ctx.imageData = [url];
   stream.stop();
   video.src = "";
   newTab(ctx);
