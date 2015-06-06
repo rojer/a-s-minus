@@ -338,6 +338,7 @@ function newContextForTab(tab) {
   ctx.windowId = tab.windowId;
   ctx.tabId = tab.id;
   setContextForTab(tab, ctx);
+  return ctx;
 }
 
 function stripCtx(ctx) {
