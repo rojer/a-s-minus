@@ -246,31 +246,6 @@ function selectTool(tool){
     case "undo": undo(); break;
     default: draw(tool); break;
   }
-  $(".cd-input").off()
-    .on("input", function(){
-      var a=$("#cd-width").val();
-      var b=$("#cd-height").val();
-      changeDimension(a,b);
-    })
-    .on("focus", function(){
-      try {
-        dragresize.deselect(true);
-      } catch (a) {
-        console.log(a);
-      }
-    });
-  $("#cropdiv").on("mousedown", function(){$(".cd-input").trigger("blur")});
-}
-
-function changeDimension(a,b){
-  var c=$("#cropdiv");
-  var d=parseInt(c.css("top"));
-  var e=parseInt(c.css("left"));
-  c.css({width:a,height:b});
-  drawCtx.fillStyle="rgba(80,80,80,0.4)";
-  drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
-  drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
-  drawCtx.clearRect(e,d,a,b);
 }
 
 function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
@@ -416,9 +391,148 @@ function save() {
   }
 }
 
-function crop(){
-  function a(){var a=document.getElementById("edit-area");dragresize=new DragResize("dragresize",{maxLeft:editW,maxTop:editH}),dragresize.isElement=function(a){return a.className&&a.className.indexOf("drsElement")>-1?!0:void 0},dragresize.isHandle=function(a){return a.className&&a.className.indexOf("drsMoveHandle")>-1?!0:void 0},dragresize.apply(a),dragresize.select(cropdiv);var e,f,g,h;drawCtx.fillStyle="rgba(80,80,80,0.4)",dragresize.ondragmove=function(a,i){m.hide(),e=parseInt($("#cropdiv").css("top")),f=parseInt($("#cropdiv").css("left")),g=parseInt($("#cropdiv").css("width")),h=parseInt($("#cropdiv").css("height")),drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(f,e,g,h),b(e),c(g,h),d(i)},dragresize.ondragend=function(){}}function b(a){n.css(30>a?{top:"5px"}:{top:"-25px"})}function c(a,b){n.html(Math.abs(a)+" X "+Math.abs(b)),$("#cd-width").val(Math.abs(a)),$("#cd-height").val(Math.abs(b))}function d(a){var b=a.clientY,c=k-b;80>b&&(document.body.scrollTop-=25),40>c&&(document.body.scrollTop+=60-c)}$("body").addClass("selected"),cflag=1,$("body").removeClass("draw").addClass("crop"),$("#crop-dimension").hide(),$(".cd-input").val(""),getEditOffset(),$(showCanvas).unbind("mousedown click"),$("#draw-canvas").css({left:"0px",top:"0px",cursor:"crosshair"}).unbind(),drawCanvas.height=showCanvas.height,drawCanvas.width=showCanvas.width,(cflag=1)&&(drawCtx.fillStyle="rgba(80,80,80,0.4)",drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height)),cflag=0;var e,f,g,h,i,j,k,l=mflag=0,m=$("#crop-tip"),n=$("#crop_size").hide();$("#draw-canvas").hover(function(){m.text(chrome.i18n.getMessage("cropTip")).show()},function(){m.hide()}).mousedown(function(a){m.hide(),$("#crop-dimension").show(),e=a.pageX-editOffsetX,f=a.pageY-editOffsetY,b(),k=window.innerHeight,l=1,$("#cropdiv").css({outline:"1px dashed #777"})}).mousemove(function(a){return g=a.pageX-editOffsetX,h=a.pageY-editOffsetY,drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.fillRect(0,0,drawCanvas.width,drawCanvas.height),drawCtx.clearRect(e,f,g-e,h-f),d(a),l?(i=g-e,j=h-f,mflag=1,void c(i,j)):void m.css({top:h+5+"px",left:g+5+"px"})}).mouseup(function(b){if(mflag){$("body").addClass("selected"),ex=b.pageX-editOffsetX,ey=b.pageY-editOffsetY,$(this).unbind(),l=mflag=0;var c=ex>e?e:ex,d=ey>f?f:ey,g=Math.abs(ex-e),h=Math.abs(ey-f);$("#cropdiv").css({left:c,top:d,width:g,height:h,display:"block"}),a()}})
+function crop() {
+  $("body").addClass("selected");
+  $("body").removeClass("draw").addClass("crop");
+  $("#crop-dimension").hide();
+  $(".cd-input").val("");
+  getEditOffset();
+  $(showCanvas).unbind("mousedown click");
+  $("#draw-canvas").css({left: "0px", top: "0px", cursor: "crosshair"}).unbind();
+  drawCanvas.height = showCanvas.height;
+  drawCanvas.width = showCanvas.width;
+  drawCtx.fillStyle = "rgba(80,80,80,0.4)";
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+  var selecting = false;
+  var cropTip = $("#crop-tip");
+  var cropSize = $("#crop-size").hide();
+  var cd = $("#cropdiv");
+  var drag = null;
+
+  function updateCropWindow() {
+    var c = cd;
+    var t = parseInt(cd.css("top"));
+    var l = parseInt(cd.css("left"));
+    var w = parseInt(cd.css("width"));
+    var h = parseInt(cd.css("height"));
+    drawCtx.fillStyle = "rgba(80,80,80,0.4)";
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+    drawCtx.clearRect(l, t, w, h);
+    updateCropSize(w, h);
+  }
+  function updateCropSize(a, b) {
+    cropSize
+      .html(Math.abs(a) + " X " + Math.abs(b))
+      .css({top: (parseInt(cd.css("top")) < 30 ? "5px" : "-25px")});
+    $("#cd-width").val(Math.abs(a));
+    $("#cd-height").val(Math.abs(b));
+  }
+  function edgeScroll(e) {
+    var y = e.clientY;
+    var yLeft = window.innerHeight - y;
+    if (y < 80) document.body.scrollTop -= 25;
+    if (yLeft < 40) document.body.scrollTop += 60 - yLeft;
+    var x = e.clientX;
+    var xLeft = window.innerWidth - x;
+    if (x < 80) document.body.scrollLeft -= 25;
+    if (xLeft < 40) document.body.scrollLeft += 60 - xLeft;
+  }
+  var cropStartX, cropStartY;
+  function startSelection(l, t) {
+    cropTip.hide();
+    $("#crop-size").show();
+    $("#crop-dimension").show();
+    cropStartX = l;
+    cropStartY = t;
+    selecting = true;
+    cd.show();
+    cd.css({pointerEvents: "none", left: l, top: t, width: 0, height: 0, outline: "1px dashed #777"});
+    updateCropWindow();
+  }
+  function continueSelection(x, y) {
+    var cropLeft = x > cropStartX ? cropStartX : x;
+    var cropTop = y > cropStartY ? cropStartY : y;
+    var cropW = Math.abs(x - cropStartX);
+    var cropH = Math.abs(y - cropStartY);
+    cd.css({left: cropLeft, top: cropTop, width: cropW, height: cropH});
+    updateCropWindow();
+  }
+  function endSelection() {
+    if (!selecting) return;
+    selecting = false;
+    $("#draw-canvas").unbind();
+    $("body").addClass("selected");
+
+    cd.css({pointerEvents: "auto"});
+    drag = new DragResize("dragresize", {maxLeft: editW, maxTop: editH, allowBlur: false});
+    drag.isElement = function(a) {
+      return a.className && a.className.indexOf("drsElement") > -1 ? true : false;
+    };
+    drag.isHandle = function(a) {
+      return a.className && a.className.indexOf("drsMoveHandle") > -1 ? true : false;
+    };
+    drag.apply(document.getElementById("edit-area"));
+    drag.select(cd[0]);
+    drag.ondragmove = function() {
+      cropTip.hide();
+      updateCropWindow();
+    };
+  }
+  $("#draw-canvas").hover(function() {
+    cropTip.text(chrome.i18n.getMessage("cropTip")).show();
+  }, function() {
+    cropTip.hide();
+  });
+  $("#draw-canvas")
+    .on("mousedown", function(e) {
+      startSelection(e.pageX - editOffsetX, e.pageY - editOffsetY);
+    })
+    .on("mousemove", function(e) {
+      edgeScroll(e);
+      var x = e.pageX - editOffsetX;
+      var y = e.pageY - editOffsetY;
+      if (selecting) {
+        if (e.buttons & 1) {
+          continueSelection(x, y);
+        } else {
+          endSelection();
+        }
+      } else {
+        cropTip.css({left: x + 5 + "px", top: y + 5 + "px"});
+      }
+    })
+    .on("mouseup", function(b) { endSelection(); })
+    .on("touchstart", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      startSelection(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      e.originalEvent.preventDefault();
+    })
+    .on("touchmove", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      edgeScroll(t);
+      continueSelection(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      e.originalEvent.preventDefault();
+    })
+    .on("touchend", function(e) {
+      endSelection();
+      e.originalEvent.preventDefault();
+    });
+
+  $(".cd-input").off()
+    .on("input", function(){
+      var w = $("#cd-width").val();
+      var h = $("#cd-height").val();
+      cd.css({width:w, height:h});
+      updateCropWindow();
+      if (drag != null) {
+        drag.deselect(cd[0]);
+        drag.select(cd[0]);
+      }
+    });
+  cd.on("mousedown", function(){$(".cd-input").trigger("blur")});
 }
+
 
 function color(){
   var a = null;
@@ -444,6 +558,7 @@ function resize(a){
 function cropDone() {
   $("#cropdiv").hide();
   $("#crop-tip").hide();
+  $("#crop-size").hide();
   $("#crop-dimension").hide();
   $(drawCanvas).attr({width:0,height:0}).unbind();
   var cropLeft = parseInt($("#cropdiv").css("left"));
@@ -465,7 +580,7 @@ function cropDone() {
 }
 
 function cancelCrop() {
-  $("#crop_size").hide();
+  $("#crop-size").hide();
   $("#crop-dimension").hide();
   $(drawCanvas).attr({width:0,height:0}).unbind();
   $("body").removeClass("crop selected");
@@ -712,7 +827,6 @@ function freeLine(isHighlight) {
     .on("mouseup", function() { lc.end(); })
     .on("touchstart", function(e) {
       var t = e.originalEvent.changedTouches[0];
-      console.log('touch start', t);
       lc.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
       e.originalEvent.preventDefault();
     })
@@ -722,8 +836,6 @@ function freeLine(isHighlight) {
       e.originalEvent.preventDefault();
     })
     .on("touchend", function(e) {
-      var t = e.originalEvent.changedTouches[0];
-      console.log('touch end', t);
       lc.end();
       e.originalEvent.preventDefault();
     });
@@ -890,15 +1002,12 @@ function showInfo(a){
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx;
 var highlightWidth = 16, freeLineWidth = 4;
 var taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
-var dragresize;
 var lastH, lastW;
 var drawColor = "red";
 var contrastColor = "white";
 var highlightColor = "rgba(255,0,0,.3)";
 
 window.addEventListener("resize",function(){getEditOffset()});
-
-var cflag=0;
 
 function handleReq(req) {
   if (requestFlag && req.userAction) {
@@ -922,7 +1031,7 @@ $(document).ready(function(){
   });
   if (window.location.hash == "#test") {
     console.log('loading test image');
-    $('<img id="test_image" src="../images/screenshot.jpg" style="display:none">').appendTo($('body'));
+    $('<img id="test_image" src="../test/long-wide.png" style="display:none">').appendTo($('body'));
     $("#test_image").on("load", function() {
       var c = document.createElement("canvas");
       c.width = this.width;
