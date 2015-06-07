@@ -49,7 +49,8 @@ input[type=password] {
     text-align:center;
 }
 
-#tool-panel>div>a,#tool-panel>div>span>a  {
+#tool-panel>div>a,
+#tool-panel>div>span>a  {
     display:inline-block;
     padding:2px 5px;
     width:20px; height:20px;  
@@ -58,8 +59,10 @@ input[type=password] {
     color:#000;
     text-shadow: 0 1px 0 #f5f5f5;
 }
-#tool-panel>div>a.active, #tool-panel>div>a:hover { background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#e5e5e5)); }
-#tool-panel>div>a:active { background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e5e5e5), to(#ddd)); }
+#tool-panel>div>a.active,
+#tool-panel>div>a.enabled:hover {
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#e5e5e5));
+}
 
 #tool-panel>div>a>span, #exit span {
     display:inline-block;
@@ -72,19 +75,10 @@ input[type=password] {
     background-image:url(../images/icons.png); background-repeat:no-repeat;
 }
 #tool-panel #undo { 
-    visibility:hidden; /*float:right; resize need*/
     margin-right:0; 
     padding:2px 7px;
     -webkit-border-radius:6px;
 }
-#tool-panel #eraser{
-    visibility:hidden; /*float:right; resize need*/
-    margin-right:0; 
-    padding:2px 7px;
-    -webkit-border-radius:6px;
-    margin-left:5px;
-}
-
 #tool-panel #crop { 
     padding-left:6px;
     border-right:1px solid #c1c1c1;
@@ -282,8 +276,6 @@ li#diigo_web_highlighter:hover a {
 #exit span { background-position:-320px -20px;}
 #exit:hover span { background-position:-320px 0; }
 
-#undo span { background-position:-200px 0; }
-#undo.disable:hover { background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F8F8F8), to(#D2D2D2)) !important; }
 #crop span { background-position:0 0; }
 #rectangle span { background-position:-20px 0; }
 #ro-rectangle span {background-position:-20px 0; }
@@ -317,6 +309,9 @@ li#diigo_web_highlighter:hover a {
 	border-right: 1px solid #C1C1C1;
 }*/
 #resizer ul { }
+
+#undo span { background-position:-200px -20px; }
+#undo.enabled span { background-position:-200px 0; }
 
 #save b { background-position:-220px -1px; margin-right:4px; }
 #done b { background-position:0 0; margin-right:4px; }
@@ -416,10 +411,12 @@ input.cd-input{
 ----------------------------------*/
 .selected #tool-panel>div { text-align:center; }
 .selected #tool-panel>div a,
-.selected .tip, .selected .annotate{ display:none; }
+.selected .tip, .selected .annotate
+{ display:none; }
 .selected #tool-panel>div a#done, 
 .selected #tool-panel>div a#cancel,
-.selected #tool-panel>div #crop-dimension{ display:inline-block; }
+.selected #tool-panel>div #crop-dimension
+{ display:inline-block; }
 
 .changed #top, 
 .changed #right,
@@ -434,27 +431,16 @@ input.cd-input{
 .changing #center div{ display:block !important;}
 
 
-/* Cropped
-----------------------------------*/
-.cropped #tool-panel #undo { visibility:visible; }
-.cropped #edit-area { margin-top:88px; }
-
-/* resized
-----------------------------------*/
-.resized #tool-panel #undo { visibility:visible; }
-
 /* Draw
 ----------------------------------*/
 .draw #show-canvas { cursor:crosshair;}
 .draw #draw-canvas:hover { 
     cursor:move;
 }
-.draw_free_line #draw-canvas:hover { 
-    /*cursor:crosshair !important;*/
+#free-line-canvas:hover { 
     cursor:url(../images/pen.png),auto !important;
 }
-
-.draw_text_highlight #draw-canvas:hover {
+#highlight-canvas:hover {
     cursor:url(../images/brush.png) 10 10,auto !important;
 }
 
