@@ -227,11 +227,12 @@ function selectTool(tool){
     }
     $(drawCanvas).attr({width:0,height:0});
   }
-  if ("color"!=tool) {
+  if ("color" != tool) {
     saveText();
-    if ("undo"!=tool&&"resize"!=tool) {
+    if ("undo" != tool && "resize" != tool) {
       $("#temp-canvas").remove();
       $("body").removeClass("draw draw-text draw-blur");
+      $(drawCanvas).unbind();
     }
   }
   updateBtnBg(tool);
@@ -704,11 +705,28 @@ function freeLine(isHighlight) {
     .attr({width:editW, height:editH})
     .css({left:0, top:0, cursor:"url(../images/pen.png),auto !important"})
     .disableSelection().off("mousedown mouseup")
-    .mousedown(function(e) { lc.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
-    .mousemove(function(e) { lc.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
-    .mouseout(function() { lc.pause(); })
-    .mouseenter(function(e) { if (e.buttons & 1) lc.resume(); else lc.end(); })
-    .mouseup(function() { lc.end(); });
+    .on("mousedown", function(e) { lc.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .on("mousemove", function(e) { lc.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .on("mouseout", function() { lc.pause(); })
+    .on("mouseenter", function(e) { if (e.buttons & 1) lc.resume(); else lc.end(); })
+    .on("mouseup", function() { lc.end(); })
+    .on("touchstart", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      console.log('touch start', t);
+      lc.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      e.originalEvent.preventDefault();
+    })
+    .on("touchmove", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      lc.draw(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      e.originalEvent.preventDefault();
+    })
+    .on("touchend", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      console.log('touch end', t);
+      lc.end();
+      e.originalEvent.preventDefault();
+    });
 }
 
 function createTempCanvas() {
