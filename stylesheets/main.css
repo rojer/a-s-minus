@@ -359,8 +359,8 @@ canvas, #helper, #crop-tip { position:absolute; top:0; left:0; }
     width:140px; padding:0 10px; border-radius:10px; background-color:rgba(0, 0, 0, 0.7);
     color:#eee; text-align:center; line-height:20px;
 }
-#crop_size { 
-    display:none; position:absolute; z-index:5000; top:-25px; left:0;
+#crop-size { 
+    display:none; position:absolute; z-index:5000; top:-25px; left:5px;
     min-width:60px; padding:0 10px; border-radius:10px; background-color:rgba(0, 0, 0, 0.7); cursor:default;
     color:#eee; text-align:center; line-height:20px;
 }
