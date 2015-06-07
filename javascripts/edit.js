@@ -631,48 +631,87 @@ function drawShape(which, pagePos) {
          });
 }
 
+var freeLineC = function(isHighlight) {
+  this.drawing = false;
+  this.paused = false;
+  this.canvas = document.getElementById("temp-canvas");
+  this.ctx = this.canvas.getContext("2d");
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+  this.begin = function(startX, startY) {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    saveAction({type:"draw"});
+    this.ctx.beginPath();
+    this.ctx.moveTo(startX, startY);
+    this.lastX = startX;
+    this.lastY = startY;
+    this.drawing = true;
+  }
+
+  this.draw = function(toX, toY) {
+    if (!this.drawing || this.paused) return;
+    if (this.lastX !== null) {
+      this.ctx.lineTo(toX, toY);
+      this.lastX = toX;
+      this.lastY = toY;
+    } else {
+      this.ctx.moveTo(toX, toY);
+      this.lastX = toX;
+      this.lastY = toY;
+      return;
+    }
+    this.ctx.lineJoin = "round";
+    this.ctx.lineCap = "round";
+    if (isHighlight) {
+      this.ctx.strokeStyle = highlightColor;
+      this.ctx.lineWidth = highlightWidth;
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.globalCompositeOperation = "lighter";
+    } else {
+      this.ctx.strokeStyle = drawColor;
+      this.ctx.lineWidth = freeLineWidth;
+    }
+    this.ctx.stroke();
+  };
+
+  this.pause = function() {
+    if (!this.drawing) return;
+    this.paused = true;
+    this.lastX = null;
+    this.lastY = null;
+  };
+
+  this.resume = function() {
+    if (!this.drawing) return;
+    this.paused = false;
+  };
+
+  this.end = function() {
+    if (!this.drawing) return;
+    this.drawing = false;
+    this.paused = false;
+    this.ctx.closePath();
+    enableUndo();
+    showCtx.drawImage(this.canvas, 0, 0);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  };
+};
+
 function freeLine(isHighlight) {
+  var lc = new freeLineC(isHighlight);
+  dc = $(drawCanvas);
   $(drawCanvas)
-    .attr({width:editW,height:editH})
-    .css({left:0,top:0,cursor:"url(../images/pen.png),auto !important"})
+    .attr({width:editW, height:editH})
+    .css({left:0, top:0, cursor:"url(../images/pen.png),auto !important"})
     .disableSelection().off("mousedown mouseup")
-    .mousedown(function(a){
-      saveAction({type:"draw"});
-      var tempCanvas = document.getElementById("temp-canvas");
-      var tempContext = tempCanvas.getContext("2d");
-      var mouseX = a.pageX - editOffsetX;
-      var mouseY = a.pageY - editOffsetY;
-      var segments = [];
-      tempContext.moveTo(mouseX,mouseY);
-      $(this)
-        .mousemove(function(a) {
-          segments.push({x:a.pageX-editOffsetX,y:a.pageY-editOffsetY});
-          tempContext.clearRect(0,0,tempCanvas.width,tempCanvas.height);
-          tempContext.beginPath();
-          for(var i = 0; i < segments.length; i++) {
-            tempContext.lineTo(segments[i].x, segments[i].y);
-            tempContext.lineJoin = "round";
-            tempContext.lineCap = "round";
-            tempContext.strokeStyle = isHighlight ? highlightColor : drawColor;
-            tempContext.lineWidth = isHighlight ? highlightWidth : freeLineWidth;
-            tempContext.globalCompositeOperation = "lighter";
-          }
-          tempContext.stroke();
-          tempContext.closePath();
-        })
-        .mouseup(function(){
-          $(this).unbind("mousemove mouseup");
-          enableUndo();
-          showCtx.drawImage(tempCanvas,0,0);
-          $(tempCanvas).remove();
-          tempCanvas = null;
-          segments = [];
-          createTempCanvas();
-        });
-    });
+    .mousedown(function(e) { lc.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .mousemove(function(e) { lc.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .mouseout(function() { lc.pause(); })
+    .mouseenter(function(e) { if (e.buttons & 1) lc.resume(); else lc.end(); })
+    .mouseup(function() { lc.end(); });
 }
 
-function createTempCanvas(){
+function createTempCanvas() {
   $(document.createElement("canvas")).attr({width:editW,height:editH,id:"temp-canvas"}).insertBefore($(drawCanvas));
 }
 
@@ -842,26 +881,59 @@ var highlightColor = "rgba(255,0,0,.3)";
 window.addEventListener("resize",function(){getEditOffset()});
 
 var cflag=0;
+
+function handleReq(req) {
+  if (requestFlag && req.userAction) {
+    i18n();
+    prepareEditArea(req);
+    prepareTools();
+    requestFlag = 0;
+  }
+}
+
 $(document).ready(function(){
   $editArea=$("#edit-area").disableSelection();
   showCanvas = document.getElementById("show-canvas");
   showCtx = showCanvas.getContext("2d");
   drawCanvas = document.getElementById("draw-canvas");
   drawCtx = drawCanvas.getContext("2d");
-  chrome.extension.onRequest.addListener(function(req){
-    console.log('edit', requestFlag, req);
-    if (requestFlag && req.userAction) {
-      i18n();
-      prepareEditArea(req);
-      prepareTools();
-      requestFlag = 0;
-    }
-  });
-  chrome.extension.sendRequest({action:"edit_ready"});
+  chrome.extension.onRequest.addListener(handleReq);
   $(window).unbind("resize").resize(function(){
     getEditOffset();
     addMargin();
   });
+  if (window.location.hash == "#test") {
+    console.log('loading test image');
+    $('<img id="test_image" src="../images/screenshot.jpg" style="display:none">').appendTo($('body'));
+    $("#test_image").on("load", function() {
+      var c = document.createElement("canvas");
+      c.width = this.width;
+      c.height = this.height;
+      var ctx = c.getContext("2d");
+      ctx.drawImage(this, 0, 0);
+      var dataURL = c.toDataURL("image/png");
+      $(this).remove();
+      var req = {
+        userAction: "upload",
+        type: "visible",
+        data: [dataURL],
+        taburl: "http://dummy/",
+        tabtitle: "test image",
+        counter: 0,
+        ratio: 0,
+        scrollBar: 0,
+        centerW: 0,
+        centerH: 0,
+        w: this.width,
+        h: this.height,
+        centerOffX: 0,
+        centerOffY: 0
+      };
+      handleReq(req);
+    });
+  } else {
+    chrome.extension.sendRequest({action:"edit_ready"});
+  }
 });
 
 var Account={};
@@ -1187,7 +1259,7 @@ SavePage.initSaveOption = function(){
   });
 };
 
-SavePage.init=function(){
+SavePage.init = function(){
   SavePage.initSaveOption();
   SavePage.initAccount();
   $("#open-path").click(function(){SavePage.openSavePath()});
