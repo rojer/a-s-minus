@@ -170,8 +170,8 @@ function prepareTools(){
       "A"!=c&&"DIV"!=c&&(a=a.parentNode,b(a));
       return a;
     }
-    var c=b(a.target);
-    "DIV"!=c.nodeName&&selectTool(c.id);
+    var c = b(a.target);
+    if (c.nodeName != "DIV") selectTool(c.id);
   });
 }
 
@@ -209,43 +209,95 @@ function bindShortcuts(){
   });
 }
 
-function selectTool(tool){
-  if (drawCanvas.width * drawCanvas.height != 0 &&
-      tool != "color" && tool != "done" && tool != "cancel") {
-    if ("undo" == tool) {
-      if ($("body").hasClass("draw_free_line") || $("body").hasClass("draw_text_highlight")) {
-        undo();
-      } else {
-        $(drawCanvas).attr({width:0,height:0}).unbind().css({left:0,top:0});
-      }
-      if (actions.length == 0) disableUndo();
-      return;
-    }
-    if (!$("body").hasClass("draw_free_line") && !$("body").hasClass("draw_text_highlight")) {
-      saveAction({type:"draw"});
-      showCtx.drawImage(drawCanvas, parseInt($(drawCanvas).css("left")), parseInt($(drawCanvas).css("top")));
-    }
-    $(drawCanvas).attr({width:0,height:0});
+var Repeated = function(actionConstructor, resultCb) {
+  var o = this;
+  this.actionConstructor = actionConstructor;
+  this.resultCb = function(result) {
+    resultCb(result);
+    o.newAction();
+  };
+ 
+  this.newAction = function() {
+    o.action = o.actionConstructor(o.resultCb);
   }
-  if ("color" != tool) {
-    saveText();
-    if ("undo" != tool && "resize" != tool) {
-      $("#temp-canvas").remove();
-      $("body").removeClass("draw draw-text draw-blur");
-      $(drawCanvas).unbind();
-    }
+
+  this.done = function() {
+    o.action.done();
   }
-  updateBtnBg(tool);
-  switch (tool){
+  this.cancel = function() { o.action.cancel(); }
+
+  this.newAction();
+}
+
+function selectTool(tool) {
+  if (tool != "undo" && tool != "color" && tool != "cancel" && tool != "done" && tool != "save") {
+    $($("#"+tool)).siblings().removeClass("active").end().addClass("active");
+    if (selectedTool == tool) return;
+    selectedTool = tool;
+    if (currentAction != null) {
+      currentAction.done();
+      currentAction = null;
+    }
+    $(showCanvas).unbind();
+  }
+
+  switch (tool) {
     case "save": save();  break;
-    case "crop": crop();  break;
+    case "crop": {
+      currentAction = new CropAction(commit);
+      break;
+    }
+    case "free-line": {
+      currentAction = new Repeated(FreeLineAction, commit);
+      break;
+    }
+    case "text-highlighter": {
+      currentAction = new Repeated(HighLightAction, commit);
+      break;
+    }
     case "color": color(); break;
-    case "done": cropDone();  break;
-    case "cancel": cancelCrop(); break;
-    case "resize": $("#resize select").unbind().change(function(){resize(this.value)}); break;
+    case "done": currentAction.done(); currentAction = null; break;
+    case "cancel": currentAction.cancel(); currentAction = null; break;
     case "undo": undo(); break;
-    default: draw(tool); break;
   }
+}
+
+function commit(a) {
+  var before = {
+    a: "undo " + a.a,
+    data: showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height),
+    w: showCanvas.width,
+    h: showCanvas.height,
+  };
+  actions.push([before, a]);
+  applyAction(a);
+  enableUndo();
+}
+
+function applyAction(a) {
+  var x, y;
+  console.log('applyAction', a);
+  if (!('x' in a && 'y' in a)) {
+    editW = a.w;
+    editH = a.h;
+    updateShowCanvas();
+    updateEditArea();
+    getEditOffset();
+    showCtx.putImageData(a.data, 0, 0);
+  } else {
+    var c = document.createElement("canvas");
+    c.width = a.w;
+    c.height = a.h;
+    c.getContext("2d").putImageData(a.data, 0, 0);
+    showCtx.drawImage(c, a.x, a.y);
+  }
+}
+
+function undo() {
+  if (actions.length == 0) return;
+  var before = actions.pop()[0];
+  applyAction(before);
+  if (actions.length == 0) disableUndo();
 }
 
 function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
@@ -362,7 +414,6 @@ function save() {
   $("body").removeClass("crop draw-text").addClass("save");
   $("#save").removeClass("active");
   $("#show-canvas").toggle();
-  $("#draw-canvas").attr({width:0,height:0});
   $("#share+dd").html(chrome.i18n.getMessage("savedShareDesc"));
   $("#upload").parent().html($("#upload")[0].outerHTML);
   $($editArea).enableSelection();
@@ -391,17 +442,18 @@ function save() {
   }
 }
 
-function crop() {
+var CropAction = function(resultCb) {
   $("body").addClass("selected");
   $("body").removeClass("draw").addClass("crop");
-  $("#crop-dimension").hide();
   $(".cd-input").val("");
   getEditOffset();
+  var drawCanvas = $('<canvas id="draw-canvas">').insertAfter(showCanvas)[0];
   $(showCanvas).unbind("mousedown click");
-  $("#draw-canvas").css({left: "0px", top: "0px", cursor: "crosshair"}).unbind();
-  drawCanvas.height = showCanvas.height;
-  drawCanvas.width = showCanvas.width;
-  drawCtx.fillStyle = "rgba(80,80,80,0.4)";
+  $(drawCanvas)
+    .css({left: "0px", top: "0px", cursor: "crosshair"})
+    .attr({width: showCanvas.width, height: showCanvas.height});
+  var drawCtx = drawCanvas.getContext("2d");
+  drawCtx.fillStyle = "rgba(80, 80, 80, 0.4)";
   drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
   var selecting = false;
   var cropTip = $("#crop-tip");
@@ -415,7 +467,6 @@ function crop() {
     var l = parseInt(cd.css("left"));
     var w = parseInt(cd.css("width"));
     var h = parseInt(cd.css("height"));
-    drawCtx.fillStyle = "rgba(80,80,80,0.4)";
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
     drawCtx.clearRect(l, t, w, h);
@@ -531,8 +582,31 @@ function crop() {
       }
     });
   cd.on("mousedown", function(){$(".cd-input").trigger("blur")});
-}
 
+  this.finish = function() {
+    $("#cropdiv").hide();
+    $("#crop-tip").hide();
+    $("#crop-size").hide();
+    $("#crop-dimension").hide();
+    $("body").removeClass("crop selected").addClass("cropped");
+    $("#crop").removeClass("active");
+    $(drawCanvas).remove();
+  }
+
+  this.done = function() {
+    this.finish();
+    var cropLeft = parseInt($("#cropdiv").css("left"));
+    var cropTop = parseInt($("#cropdiv").css("top"));
+    var cropWidth = parseInt($("#cropdiv").css("width"));
+    var cropHeight = parseInt($("#cropdiv").css("height"));
+    var croppedImageData = showCtx.getImageData(cropLeft, cropTop, cropWidth, cropHeight);
+    resultCb({a: "crop", data: croppedImageData, w: cropWidth, h: cropHeight});
+  }
+
+  this.cancel = function() {
+    this.finish();
+  }
+}
 
 function color(){
   var a = null;
@@ -551,92 +625,41 @@ function color(){
     });
 }
 
-function resize(a){
-  var b=parseInt(a),c=b/100,d=showCtx.getImageData(0,0,editW,editH);$("body").removeClass("draw draw-text draw-blur"),saveAction({type:"resize",data:d,relFactor:b});var e=actions.length;if(e>1)for(var f=e-1;f>=0;f--){var g=actions[f],h=g.type;if("resize"==h&&(0==f||"resize"!=actions[f-1].type)){d=g.data,editW=g.w,editH=g.h;break}}$(drawCanvas).attr({width:editW,height:editH}).hide(),drawCtx.putImageData(d,0,0),editW*=c,editH*=c,updateEditArea(),updateShowCanvas(),showCtx.drawImage(drawCanvas,0,0,editW,editH),$(drawCanvas).attr({width:0,height:0}).show(),getEditOffset(),addMargin(),getEditOffset(),$("body").addClass("resized"),$("#undo span").css({"background-position-y":"0"}),d=null
-}
-
-function cropDone() {
-  $("#cropdiv").hide();
-  $("#crop-tip").hide();
-  $("#crop-size").hide();
-  $("#crop-dimension").hide();
-  $(drawCanvas).attr({width:0,height:0}).unbind();
-  var cropLeft = parseInt($("#cropdiv").css("left"));
-  var cropTop = parseInt($("#cropdiv").css("top"));
-  var cropWidth = parseInt($("#cropdiv").css("width"));
-  var cropHeight = parseInt($("#cropdiv").css("height"));
-  saveAction({type:"crop"});
-  var croppedImageData = showCtx.getImageData(cropLeft,cropTop,cropWidth,cropHeight);
-  $(showCanvas).attr({width:cropWidth,height:cropHeight});
-  showCtx.putImageData(croppedImageData, 0, 0);
-  $("body").removeClass("crop selected").addClass("cropped");
-  $("#crop").removeClass("active");
-  enableUndo();
-  editW = cropWidth;
-  editH = cropHeight;
-  updateEditArea();
-  $("#cropdiv").css({width:0,height:0,outline:"none"});
-  getEditOffset();
-}
-
-function cancelCrop() {
-  $("#crop-size").hide();
-  $("#crop-dimension").hide();
-  $(drawCanvas).attr({width:0,height:0}).unbind();
-  $("body").removeClass("crop selected");
-  $("#crop").removeClass("active");
-  $("#cropdiv").hide();
-  $("#cropdiv").css({width:0,height:0,outline:"none"});
-}
-
-function undo(){
-  function a(){editW=c.w,editH=c.h,updateEditArea(),getEditOffset(),addMargin(),getEditOffset(),updateShowCanvas(),showCtx.putImageData(c.data,0,0),c=null}var b=actions.length,c=actions.pop();if(0!=b)switch(1==b&&disableUndo(),c.f&&($("body").removeClass("cropped"),initFlag=1),c.type){case"draw":console.log("undo"),showCtx.putImageData(c.data,0,0);break;case"crop":a();break;case"resize":resizeFactor=c.factor,$("#resize select option").each(function(){$(this).text()==resizeFactor+"%"&&$(this).siblings().removeAttr("selected").end().attr({selected:"selected"})}),a()}
-}
-
 function enableUndo(){
-  $("#undo").css({visibility:"visible"}).removeClass("disable").find("span").css({"background-position":"-200px 0"})
+  $("#undo").addClass("enabled");
 }
 
 function disableUndo(){
-  $("#undo").addClass("disable").find("span").css({"background-position":"-200px -20px"})
+  $("#undo").removeClass("enabled");
 }
 
 function draw(tool) {
+  $(showCanvas).unbind();
   $("body").removeClass("crop draw_free_line draw_text_highlight").addClass("draw");
   textFlag = 1;
-  if ("free-line" == tool) {
-    $("body").addClass("draw_free_line");
-    $(showCanvas).unbind();
-    $("#temp-canvas").length || createTempCanvas();
-    freeLine(false);
-  } else if ("text-highlighter"==tool) {
-    $("body").addClass("draw_text_highlight");
-    $(showCanvas).unbind();
-    $("#temp-canvas").length || createTempCanvas();
-    freeLine(true);
-  } else {
-    $(drawCanvas).unbind("mousedown");
-    if ("blur" == tool) {
+  switch (tool) {
+    case "blur": {
       $("body").addClass("draw-blur");
       blur();
-    } else {
-      if ("text" == tool) $("body").addClass("draw-text");
-      $(showCanvas).unbind()
-        .click(function(b) {if ("text" == tool) text({x: b.pageX, y: b.pageY});})
-        .mousedown(function(b) {
-          if (drawCanvas.width * drawCanvas.height != 0) {
-            saveAction({type: "draw"});
-            showCtx.drawImage(drawCanvas, parseInt($(drawCanvas).css("left")), parseInt($(drawCanvas).css("top")));
-          }
-          $(drawCanvas).attr({width: 0, height: 0});
-          var c={x: b.pageX, y: b.pageY};
-          if (tool != "text") drawShape(tool, c);
-        });
     }
+    case "text": {
+      $("body").addClass("draw-text");
+      $(showCanvas).click(function(b) { text({x: b.pageX, y: b.pageY});});
+    }
+    case "rectangle":
+    case "ellipse":
+    case "arrow":
+    case "line": {
+      $(showCanvas)
+        .on("mousedown", function(e) {drawShape(tool, {x: e.pageX, y: e.pageY});});
+      break;
+    }
+    default:
+      console.log("Unknown tool:", tool);
   }
 }
 
-function drawShape(which, pagePos) {
+function drawShape(shape, pagePos) {
   function onMouseMove(pageX, pageY) {
     function drawRectangle() {
       drawCtx.clearRect(0, 0, drawRectW, drawRectH);
@@ -729,7 +752,7 @@ function drawShape(which, pagePos) {
     drawCtx.strokeStyle = drawColor;
     drawCtx.fillStyle = drawColor;
     drawCtx.lineWidth = margin;
-    switch (which) {
+    switch (shape) {
       case "rectangle": drawRectangle(); break;
       case "ellipse": drawEllipse(); break;
       case "arrow": drawArrow(); break;
@@ -738,25 +761,36 @@ function drawShape(which, pagePos) {
   }
   var startX = pagePos.x - editOffsetX;
   var startY = pagePos.y - editOffsetY;
-  $(this).mousemove(function(a){onMouseMove(a.pageX,a.pageY);})
-         .mouseup(function(){
-           $(this).unbind("mousemove mouseup");
-           $(drawCanvas).unbind("mousedown");
-           enableUndo();
-           $.Draggable(drawCanvas);
-         });
+  $(this)
+    .mousemove(function(a){onMouseMove(a.pageX,a.pageY);})
+    .mouseup(function(){
+      $(this).unbind("mousemove mouseup");
+      $(drawCanvas).unbind("mousedown touchstart");
+      if (shape != "line") $.Draggable(drawCanvas);
+    });
 }
 
-var freeLineC = function(isHighlight) {
+function FreeLineAction(resultCb) {
+  return new freeLineOrHighlightAction(false /* isHighlight */, resultCb);
+}
+
+function HighLightAction(resultCb) {
+  return new freeLineOrHighlightAction(true /* isHighlight */, resultCb);
+}
+
+function freeLineOrHighlightAction(isHighlight, resultCb) {
+  this.canvas = $('<canvas>')
+    .attr({id: isHighlight ? "highlight-canvas" : "free-line-canvas"})
+    .css({left: 0, top: 0, width: showCanvas.width, height: showCanvas.height})
+    .addClass(isHighlight ? "draw_text_highlight" : "draw_free_line")
+    .insertAfter(showCanvas)[0];
+  this.ctx = this.canvas.getContext("2d");
+
   this.drawing = false;
   this.paused = false;
-  this.canvas = document.getElementById("temp-canvas");
-  this.ctx = this.canvas.getContext("2d");
-  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
   this.begin = function(startX, startY) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    saveAction({type:"draw"});
     this.ctx.beginPath();
     this.ctx.moveTo(startX, startY);
     this.lastX = startX;
@@ -806,44 +840,48 @@ var freeLineC = function(isHighlight) {
     if (!this.drawing) return;
     this.drawing = false;
     this.paused = false;
-    this.ctx.closePath();
-    enableUndo();
-    showCtx.drawImage(this.canvas, 0, 0);
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    $(this.canvas).remove();
+    resultCb({
+      a: isHighlight ? "highlight" : "free-line",
+      data: this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height),
+      x: 0, y: 0,
+      w: this.canvas.width, h: this.canvas.height,
+    });
   };
-};
 
-function freeLine(isHighlight) {
-  var lc = new freeLineC(isHighlight);
-  dc = $(drawCanvas);
-  $(drawCanvas)
+  this.done = function() {
+    $(this.canvas).remove();
+  }
+
+  this.cancel = function() {
+    $(this.canvas).remove();
+  }
+
+  var a = this;
+  $(this.canvas)
     .attr({width:editW, height:editH})
     .css({left:0, top:0, cursor:"url(../images/pen.png),auto !important"})
     .disableSelection().off("mousedown mouseup")
-    .on("mousedown", function(e) { lc.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
-    .on("mousemove", function(e) { lc.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
-    .on("mouseout", function() { lc.pause(); })
-    .on("mouseenter", function(e) { if (e.buttons & 1) lc.resume(); else lc.end(); })
-    .on("mouseup", function() { lc.end(); })
+    .on("mousedown", function(e) { a.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .on("mousemove", function(e) { a.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .on("mouseout", function() { a.pause(); })
+    .on("mouseenter", function(e) { if (e.buttons & 1) a.resume(); else a.end(); })
+    .on("mouseup", function() { a.end(); })
     .on("touchstart", function(e) {
       var t = e.originalEvent.changedTouches[0];
-      lc.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      a.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
       e.originalEvent.preventDefault();
     })
     .on("touchmove", function(e) {
       var t = e.originalEvent.changedTouches[0];
-      lc.draw(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      a.draw(t.pageX - editOffsetX, t.pageY - editOffsetY);
       e.originalEvent.preventDefault();
     })
     .on("touchend", function(e) {
-      lc.end();
+      a.end();
       e.originalEvent.preventDefault();
     });
-}
-
-function createTempCanvas() {
-  $(document.createElement("canvas")).attr({width:editW,height:editH,id:"temp-canvas"}).insertBefore($(drawCanvas));
-}
+};
 
 function blur(){
   function a(a,b){var c,d,e,f,g=a.width,h=a.height,i=a.data,j=b||0,k=step=jump=inner=outer=arr=0;for(f=0;j>f;f++)for(var l=0;2>l;l++)for(l?(outer=g,inner=h,step=4*g):(outer=h,inner=g,step=4),c=0;outer>c;c++)for(jump=0===l?c*g*4:4*c,e=0;3>e;e++){for(k=jump+e,arr=0,arr=i[k]+i[k+step]+i[k+2*step],i[k]=Math.floor(arr/3),arr+=i[k+3*step],i[k+step]=Math.floor(arr/4),arr+=i[k+4*step],i[k+2*step]=Math.floor(arr/5),d=3;inner-2>d;d++)arr=Math.max(0,arr-i[k+(d-2)*step]+i[k+(d+2)*step]),i[k+d*step]=Math.floor(arr/5);arr-=i[k+(d-2)*step],i[k+d*step]=Math.floor(arr/4),arr-=i[k+(d-1)*step],i[k+(d+1)*step]=Math.floor(arr/3)}return a}$(showCanvas).unbind().mousedown(function(){saveAction({type:"draw"}),$(this).mousemove(function(b){var c=b.pageX-editOffsetX,d=b.pageY-editOffsetY,e=showCtx.getImageData(c,d,20,20);e=a(e,1),showCtx.putImageData(e,c,d),$("body").hasClass("blurBugFix")?$("body").removeClass("blurBugFix"):$("body").addClass("blurBugFix")})}).mouseup(function(){$(this).unbind("mousemove"),enableUndo()})
@@ -891,11 +929,9 @@ function saveText() {
   var b = "";
   inputs.each(function(){b+=this.value});
   if (!b) return;
-  enableUndo();
   saveAction({type:"draw"});
   textFlag = 2;
   inputs.each(function(){
-    console.log(this);
     var input = this;
     var text = input.value;
     if (text) {
@@ -919,33 +955,12 @@ function saveText() {
   });
 }
 
-function saveAction(a){
-  switch (a.type) {
-    case "draw": {
-      actions.push({type:"draw",data:showCtx.getImageData(0,0,editW,editH)});
-      break;
-    }
-    case "crop": {
-      actions.push({type:"crop",data:showCtx.getImageData(0,0,editW,editH),w:editW,h:editH,f:initFlag});
-      initFlag=0;
-      break;
-    }
-    case "resize": {
-      actions.push({type:"resize",data:a.data,w:editW,h:editH,absFactor:a.absFactor});
-    }
-  }
-}
-
 function updateEditArea(){
   $editArea.css({width:editW+"px",height:editH+"px"});
 }
 
 function updateShowCanvas(){
   $(showCanvas).attr({width:editW,height:editH})
-}
-
-function updateBtnBg(a){
-  "undo"!=a&&"color"!=a&&"cancel"!=a&&"done"!=a&&$($("#"+a)).siblings().removeClass("active").end().addClass("active");
 }
 
 function getInitDim(){
@@ -999,13 +1014,15 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx,drawCanvas,drawCtx;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx;
 var highlightWidth = 16, freeLineWidth = 4;
 var taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var lastH, lastW;
 var drawColor = "red";
 var contrastColor = "white";
 var highlightColor = "rgba(255,0,0,.3)";
+var currentAction = null;
+var selectedTool = null;
 
 window.addEventListener("resize",function(){getEditOffset()});
 
@@ -1022,8 +1039,6 @@ $(document).ready(function(){
   $editArea=$("#edit-area").disableSelection();
   showCanvas = document.getElementById("show-canvas");
   showCtx = showCanvas.getContext("2d");
-  drawCanvas = document.getElementById("draw-canvas");
-  drawCtx = drawCanvas.getContext("2d");
   chrome.extension.onRequest.addListener(handleReq);
   $(window).unbind("resize").resize(function(){
     getEditOffset();
