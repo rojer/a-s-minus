@@ -264,6 +264,10 @@ function selectTool(tool) {
       break;
     }
     case "color": color(); break;
+    case "blur": {
+      currentAction = new Repeated(function(cb) { return new BlurAction(cb); }, commit);
+      break;
+    }
     case "done": {
       if (currentAction != null) currentAction.done();
       currentAction = null;
@@ -276,7 +280,13 @@ function selectTool(tool) {
       break;
     }
     case "undo": undo(); break;
-    case "save": save();  break;
+    case "save": {
+      if (currentAction != null) currentAction.cancel();
+      currentAction = null;
+      selectedTool = null;
+      save();
+      break;
+    }
   }
 }
 
@@ -810,81 +820,82 @@ function HighLightAction(resultCb) {
 }
 
 function freeLineOrHighlightAction(isHighlight, resultCb) {
-  this.canvas = $('<canvas>')
+  var drawCanvas = $('<canvas>')
     .attr({id: isHighlight ? "highlight-canvas" : "free-line-canvas"})
     .css({left: 0, top: 0, width: showCanvas.width, height: showCanvas.height})
     .addClass(isHighlight ? "draw_text_highlight" : "draw_free_line")
     .insertAfter(showCanvas)[0];
-  this.ctx = this.canvas.getContext("2d");
+  var drawCtx = drawCanvas.getContext("2d");
 
-  this.drawing = false;
-  this.paused = false;
+  var drawing = false;
+  var paused = false;
+  var isTouch = false;
 
   this.begin = function(startX, startY) {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.beginPath();
-    this.ctx.moveTo(startX, startY);
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    drawCtx.beginPath();
+    drawCtx.moveTo(startX, startY);
     this.lastX = startX;
     this.lastY = startY;
-    this.drawing = true;
+    drawing = true;
   }
 
   this.draw = function(toX, toY) {
-    if (!this.drawing || this.paused) return;
+    if (!drawing || paused) return;
     if (this.lastX !== null) {
-      this.ctx.lineTo(toX, toY);
+      drawCtx.lineTo(toX, toY);
       this.lastX = toX;
       this.lastY = toY;
     } else {
-      this.ctx.moveTo(toX, toY);
+      drawCtx.moveTo(toX, toY);
       this.lastX = toX;
       this.lastY = toY;
       return;
     }
-    this.ctx.lineJoin = "round";
-    this.ctx.lineCap = "round";
+    drawCtx.lineJoin = "round";
+    drawCtx.lineCap = "round";
     if (isHighlight) {
-      this.ctx.strokeStyle = highlightColor;
-      this.ctx.lineWidth = highlightWidth;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.globalCompositeOperation = "lighter";
+      drawCtx.strokeStyle = highlightColor;
+      drawCtx.lineWidth = highlightWidth;
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      drawCtx.globalCompositeOperation = "lighter";
     } else {
-      this.ctx.strokeStyle = drawColor;
-      this.ctx.lineWidth = freeLineWidth;
+      drawCtx.strokeStyle = drawColor;
+      drawCtx.lineWidth = freeLineWidth;
     }
-    this.ctx.stroke();
+    drawCtx.stroke();
   };
 
   this.pause = function() {
-    if (!this.drawing) return;
-    this.paused = true;
+    if (!drawing) return;
+    paused = true;
     this.lastX = null;
     this.lastY = null;
   };
 
   this.resume = function() {
-    if (!this.drawing) return;
-    this.paused = false;
+    if (!drawing) return;
+    paused = false;
   };
 
   this.end = function() {
-    if (!this.drawing) return;
-    this.drawing = false;
-    this.paused = false;
+    if (!drawing) return;
+    drawing = false;
+    paused = false;
     this.done();
     resultCb({
       a: isHighlight ? "highlight" : "free-line",
-      data: this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height),
+      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
       x: 0, y: 0,
-      w: this.canvas.width, h: this.canvas.height,
+      w: drawCanvas.width, h: drawCanvas.height,
     });
   };
 
-  this.done = function() { $(this.canvas).remove(); }
+  this.done = function() { $(drawCanvas).remove(); }
   this.cancel = this.done;
 
   var a = this;
-  $(this.canvas)
+  $(drawCanvas)
     .attr({width:editW, height:editH})
     .css({left:0, top:0, cursor:"url(../images/pen.png),auto !important"})
     .disableSelection().off("mousedown mouseup")
@@ -894,6 +905,7 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     .on("mouseenter", function(e) { if (e.buttons & 1) a.resume(); else a.end(); })
     .on("mouseup", function() { a.end(); })
     .on("touchstart", function(e) {
+      isTouch = true;
       var t = e.originalEvent.changedTouches[0];
       a.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
       e.originalEvent.preventDefault();
@@ -909,9 +921,108 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     });
 };
 
-function blur(){
-  function a(a,b){var c,d,e,f,g=a.width,h=a.height,i=a.data,j=b||0,k=step=jump=inner=outer=arr=0;for(f=0;j>f;f++)for(var l=0;2>l;l++)for(l?(outer=g,inner=h,step=4*g):(outer=h,inner=g,step=4),c=0;outer>c;c++)for(jump=0===l?c*g*4:4*c,e=0;3>e;e++){for(k=jump+e,arr=0,arr=i[k]+i[k+step]+i[k+2*step],i[k]=Math.floor(arr/3),arr+=i[k+3*step],i[k+step]=Math.floor(arr/4),arr+=i[k+4*step],i[k+2*step]=Math.floor(arr/5),d=3;inner-2>d;d++)arr=Math.max(0,arr-i[k+(d-2)*step]+i[k+(d+2)*step]),i[k+d*step]=Math.floor(arr/5);arr-=i[k+(d-2)*step],i[k+d*step]=Math.floor(arr/4),arr-=i[k+(d-1)*step],i[k+(d+1)*step]=Math.floor(arr/3)}return a}$(showCanvas).unbind().mousedown(function(){saveAction({type:"draw"}),$(this).mousemove(function(b){var c=b.pageX-editOffsetX,d=b.pageY-editOffsetY,e=showCtx.getImageData(c,d,20,20);e=a(e,1),showCtx.putImageData(e,c,d),$("body").hasClass("blurBugFix")?$("body").removeClass("blurBugFix"):$("body").addClass("blurBugFix")})}).mouseup(function(){$(this).unbind("mousemove"),enableUndo()})
+function BlurAction(resultCb) {
+  var o = this;
+  var drawCanvas = $('<canvas>')
+    .attr({id: "blur-canvas", width: showCanvas.width, height: showCanvas.height})
+    .insertAfter(showCanvas)[0];
+  var drawCtx = drawCanvas.getContext("2d");
+  var imageData = showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height);
+  drawCtx.putImageData(imageData, 0, 0);
+
+  // rojer: I do not claim to understand what's going on here. Is this reversible?
+  function mix(imgData) {
+    var w = imgData.width;
+    var h = imgData.height;
+    var id = imgData.data;
+    var k, step, jump, inner, outer, arr;
+    k = step = jump = inner = outer = arr = 0;
+    for (var l = 0; l < 2; l++) {
+      if (l > 0) {
+        outer = w;
+        inner = h;
+        step = 4 * w;
+      } else {
+        outer = h;
+        inner = w;
+        step = 4;
+      }
+      for (var c = 0; c < outer; c++) {
+        jump = (l == 0) ? c * w * 4 : 4 * c;
+        for (var e = 0; e < 3; e++) {
+          k = jump + e;
+          arr = id[k] + id[k + step] + id[k + 2 * step];
+          id[k] = Math.floor(arr / 3);
+          arr += id[k + 3 * step];
+          id[k + step] = Math.floor(arr / 4);
+          arr += id[k + 4 * step];
+          id[k + 2 * step] = Math.floor(arr / 5);
+          for (var d = 3; d < inner - 2; d++) {
+            arr = Math.max(0, arr - id[k + (d - 2) * step] + id[k + (d + 2) * step]);
+            id[k + d * step] = Math.floor(arr / 5);
+          }
+          arr -= id[k + (d - 2) * step];
+          id[k + d * step] = Math.floor(arr / 4);
+          arr -= id[k + (d - 1) * step];
+          id[k + (d + 1) * step] = Math.floor(arr / 3);
+        }
+      }
+    }
+    return imgData;
+  }
+
+  function onPointerMove(pageX, pageY) {
+    var c = pageX - editOffsetX;
+    var d = pageY - editOffsetY;
+    imageData = drawCtx.getImageData(c, d, blurWidth, blurWidth);
+    imageData = mix(imageData);
+    var tc1 = document.createElement('canvas').getContext('2d');
+    tc1.canvas.width = tc1.canvas.height = blurWidth;
+    tc1.putImageData(imageData, 0, 0);
+    var tc2 = document.createElement('canvas').getContext('2d');
+    tc2.canvas.width = tc2.canvas.height = blurWidth;
+    tc2.beginPath();
+    tc2.arc(blurWidth / 2, blurWidth / 2, blurWidth / 2, 0, Math.PI*2, true);
+    tc2.clip();
+    tc2.drawImage(tc1.canvas, 0, 0);
+    drawCtx.drawImage(tc2.canvas, c, d);
+  }
+
+  function onPointerUp() {
+    o.done();
+    resultCb({
+      a: "blur",
+      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
+      x: 0, y: 0,
+      w: drawCanvas.width, h: drawCanvas.height,
+    });
+  }
+
+  $(drawCanvas)
+    .on("mousedown", function(e) { onPointerDown(e.pageX, e.pageY); })
+    .on("touchstart", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      onPointerDown(t.pageX, t.pageY);
+      e.originalEvent.preventDefault();
+    });
+
+  function onPointerDown(pageX, pageY) {
+    onPointerMove(pageX, pageY);
+    $(drawCanvas)
+      .on("mousemove", function(e) { onPointerMove(e.pageX, e.pageY); })
+      .on("touchmove", function(e) {
+        var t = e.originalEvent.changedTouches[0];
+        onPointerMove(t.pageX, t.pageY);
+        e.originalEvent.preventDefault();
+      })
+      .on("mouseup touchend", function() { onPointerUp(); });
+  }
+
+
+  this.done = function() { $(showCanvas).unbind(); $(drawCanvas).remove(); }
+  this.cancel = this.done;
 }
+
   
 function text(pos){
   function addInput() {
@@ -1041,7 +1152,7 @@ function showInfo(a){
   
 
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx;
-var highlightWidth = 16, freeLineWidth = 4;
+var highlightWidth = 20, freeLineWidth = 4, blurWidth = 20;
 var taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var lastH, lastW;
 var drawColor = "red";

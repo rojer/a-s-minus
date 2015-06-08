@@ -448,14 +448,8 @@ input.cd-input{
 	margin-bottom:1px; /* fix blur bug fix */
 }
 
-.draw-blur #show-canvas { 
-    /** 2010-08-04 18:01:36
-	Must add 'default' keyword, 
-	otherwise there is a f**king annoying bug
-	(cursor image just don't show up)
-	which wasted me one afternoon! 
-	*/
-    cursor: url(../images/cursor-blur.png), default;
+#blur-canvas { 
+  cursor: url(../images/cursor-blur.png), default;
 }
 /* Draw Text
 ----------------------------------*/
