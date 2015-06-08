@@ -433,10 +433,8 @@ input.cd-input{
 
 /* Draw
 ----------------------------------*/
-.draw #show-canvas { cursor:crosshair;}
-.draw #draw-canvas:hover { 
-    cursor:move;
-}
+#show-canvas.draw:hover { cursor:crosshair; }
+#draw-canvas:hover { cursor:move; }
 #free-line-canvas:hover { 
     cursor:url(../images/pen.png),auto !important;
 }

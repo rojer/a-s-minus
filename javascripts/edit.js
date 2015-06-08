@@ -221,15 +221,14 @@ var Repeated = function(actionConstructor, resultCb) {
     o.action = o.actionConstructor(o.resultCb);
   }
 
-  this.done = function() {
-    o.action.done();
-  }
+  this.done = function() { o.action.done(); }
   this.cancel = function() { o.action.cancel(); }
 
   this.newAction();
 }
 
 function selectTool(tool) {
+  console.log("selectTool", tool);
   if (tool != "undo" && tool != "color" && tool != "cancel" && tool != "done" && tool != "save") {
     $($("#"+tool)).siblings().removeClass("active").end().addClass("active");
     if (selectedTool == tool) return;
@@ -242,9 +241,18 @@ function selectTool(tool) {
   }
 
   switch (tool) {
-    case "save": save();  break;
     case "crop": {
       currentAction = new CropAction(commit);
+      break;
+    }
+    case "rectangle":
+    case "ellipse":
+    case "arrow": {
+      currentAction = new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
+      break;
+    }
+    case "line": {
+      currentAction = new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
       break;
     }
     case "free-line": {
@@ -256,9 +264,19 @@ function selectTool(tool) {
       break;
     }
     case "color": color(); break;
-    case "done": currentAction.done(); currentAction = null; break;
-    case "cancel": currentAction.cancel(); currentAction = null; break;
+    case "done": {
+      if (currentAction != null) currentAction.done();
+      currentAction = null;
+      break;
+    }
+    case "cancel": {
+      if (currentAction != null) currentAction.cancel();
+      currentAction = null;
+      selectedTool = null;
+      break;
+    }
     case "undo": undo(); break;
+    case "save": save();  break;
   }
 }
 
@@ -276,7 +294,7 @@ function commit(a) {
 
 function applyAction(a) {
   var x, y;
-  console.log('applyAction', a);
+  console.log('applyAction', a.a);
   if (!('x' in a && 'y' in a)) {
     editW = a.w;
     editH = a.h;
@@ -633,36 +651,42 @@ function disableUndo(){
   $("#undo").removeClass("enabled");
 }
 
-function draw(tool) {
-  $(showCanvas).unbind();
-  $("body").removeClass("crop draw_free_line draw_text_highlight").addClass("draw");
-  textFlag = 1;
-  switch (tool) {
-    case "blur": {
-      $("body").addClass("draw-blur");
-      blur();
-    }
-    case "text": {
-      $("body").addClass("draw-text");
-      $(showCanvas).click(function(b) { text({x: b.pageX, y: b.pageY});});
-    }
-    case "rectangle":
-    case "ellipse":
-    case "arrow":
-    case "line": {
-      $(showCanvas)
-        .on("mousedown", function(e) {drawShape(tool, {x: e.pageX, y: e.pageY});});
-      break;
-    }
-    default:
-      console.log("Unknown tool:", tool);
-  }
-}
+function DrawShapeAction(shape, resultCb) {
+  var o = this;
+  $(showCanvas).addClass("draw");
 
-function drawShape(shape, pagePos) {
-  function onMouseMove(pageX, pageY) {
+  var startX, startY, drawCanvas, drawCtx;
+  var drawRectX, drawRectY, drawRectW, drawRectH;
+  $(showCanvas)
+    .on("mousedown", function(e) { onPointerDown(e.pageX, e.pageY); })
+    .on("touchstart", function(e) {
+      var t = e.originalEvent.changedTouches[0];
+      onPointerDown(t.pageX, t.pageY);
+      e.originalEvent.preventDefault();
+    });
+
+  function onPointerDown(pageX, pageY) {
+    startX = pageX - editOffsetX;
+    startY = pageY - editOffsetY;
+    drawCanvas = $('<canvas>')
+      .attr({id: "draw-canvas", width: 0, height: 0})
+      .css({left: startX, top: startY, pointerEvents: "none"})
+      .insertAfter(showCanvas)[0];
+    drawCtx = drawCanvas.getContext("2d");
+
+    $(showCanvas)
+      .unbind("mousedown touchstart")
+      .on("mousemove", function(e) { onPointerMove(e.pageX, e.pageY); })
+      .on("touchmove", function(e) {
+        var t = e.originalEvent.changedTouches[0];
+        onPointerMove(t.pageX, t.pageY);
+        e.originalEvent.preventDefault();
+      })
+      .on("mouseup touchend", function() { onPointerUp(); });
+  }
+
+  function onPointerMove(pageX, pageY) {
     function drawRectangle() {
-      drawCtx.clearRect(0, 0, drawRectW, drawRectH);
       drawCtx.strokeRect(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
     }
 
@@ -681,7 +705,6 @@ function drawShape(shape, pagePos) {
         drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j);
         drawCtx.closePath();
       }
-      drawCtx.clearRect(0,0,drawRectW,drawRectH);
       drawCtx.beginPath();
       _drawEllipse(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
       drawCtx.stroke();
@@ -712,7 +735,6 @@ function drawShape(shape, pagePos) {
                 x*Math.sin(angle) + y*Math.cos(angle)];
       }
 
-      drawCtx.clearRect(0,0,drawRectW,drawRectH);
       drawCtx.beginPath();
       var lineStartX = mouseX > startX ? margin : drawRectW - margin;
       var lineStartY = mouseY > startY ? margin : drawRectH - margin;
@@ -727,7 +749,6 @@ function drawShape(shape, pagePos) {
     }
 
     function drawLine() {
-      drawCtx.clearRect(0, 0, drawRectW, drawRectH);
       drawCtx.beginPath();
       var lineStartX = mouseX > startX ? margin : drawRectW - margin;
       var lineStartY = mouseY > startY ? margin : drawRectH - margin;
@@ -742,16 +763,18 @@ function drawShape(shape, pagePos) {
     var margin = freeLineWidth;
     var mouseX = pageX - editOffsetX;
     var mouseY = pageY - editOffsetY;
-    var drawRectX = Math.min(mouseX, startX) - margin;
-    var drawRectY = Math.min(mouseY, startY) - margin;
-    var drawRectW = Math.abs(mouseX - startX) + 2 * margin;
-    var drawRectH = Math.abs(mouseY - startY) + 2 * margin;
-    $(drawCanvas).attr({width: drawRectW, height: drawRectH})
-                 .css({left: drawRectX+"px", top: drawRectY+"px", cursor: "crosshair"})
-                 .disableSelection();
+    drawRectX = Math.min(mouseX, startX) - margin;
+    drawRectY = Math.min(mouseY, startY) - margin;
+    drawRectW = Math.abs(mouseX - startX) + 2 * margin;
+    drawRectH = Math.abs(mouseY - startY) + 2 * margin;
+    $(drawCanvas)
+      .attr({width: drawRectW, height: drawRectH})
+      .css({left: drawRectX, top: drawRectY})
+      .disableSelection();
     drawCtx.strokeStyle = drawColor;
     drawCtx.fillStyle = drawColor;
     drawCtx.lineWidth = margin;
+    drawCtx.clearRect(0, 0, drawRectW, drawRectH);
     switch (shape) {
       case "rectangle": drawRectangle(); break;
       case "ellipse": drawEllipse(); break;
@@ -759,15 +782,23 @@ function drawShape(shape, pagePos) {
       case "line": drawLine(); break;
     }
   }
-  var startX = pagePos.x - editOffsetX;
-  var startY = pagePos.y - editOffsetY;
-  $(this)
-    .mousemove(function(a){onMouseMove(a.pageX,a.pageY);})
-    .mouseup(function(){
-      $(this).unbind("mousemove mouseup");
-      $(drawCanvas).unbind("mousedown touchstart");
-      if (shape != "line") $.Draggable(drawCanvas);
+
+  function onPointerUp() {
+    o.done();
+    resultCb({
+      a: shape,
+      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
+      x: drawRectX, y: drawRectY,
+      w: drawRectW, h: drawRectH,
     });
+  }
+
+  this.done = function() {
+    $(drawCanvas).remove();
+    $(showCanvas).removeClass("draw");
+    $(showCanvas).unbind();
+  }
+  this.cancel = this.done;
 }
 
 function FreeLineAction(resultCb) {
@@ -840,7 +871,7 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     if (!this.drawing) return;
     this.drawing = false;
     this.paused = false;
-    $(this.canvas).remove();
+    this.done();
     resultCb({
       a: isHighlight ? "highlight" : "free-line",
       data: this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height),
@@ -849,13 +880,8 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     });
   };
 
-  this.done = function() {
-    $(this.canvas).remove();
-  }
-
-  this.cancel = function() {
-    $(this.canvas).remove();
-  }
+  this.done = function() { $(this.canvas).remove(); }
+  this.cancel = this.done;
 
   var a = this;
   $(this.canvas)
@@ -1040,6 +1066,7 @@ $(document).ready(function(){
   showCanvas = document.getElementById("show-canvas");
   showCtx = showCanvas.getContext("2d");
   chrome.extension.onRequest.addListener(handleReq);
+  bindShortcuts();
   $(window).unbind("resize").resize(function(){
     getEditOffset();
     addMargin();
