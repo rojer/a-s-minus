@@ -338,14 +338,6 @@ canvas, #helper, #crop-tip { position:absolute; top:0; left:0; }
 #input-helper { 
     visibility:hidden; font:bold 14px/18px Arial,Helvetica,sans-serif; text-align:left;
 }
-.textinput {
-    position: absolute;
-    border: none;
-    outline: none;
-    background: rgba(255,255,255,0);
-    text-align: left;
-    font: bold 16pt Arial,Helvetica,sans-serif;
-}
 
 /*#helper { position:absolute; width:100%; height:100%; }*/
 #helper>* { position:absolute; }
@@ -455,6 +447,28 @@ input.cd-input{
 ----------------------------------*/
 .draw-text #edit-area div[contenteditable] { display:block; }
 .draw-text #show-canvas { cursor:text; }
+.text-input {
+  position: absolute;
+  border: none; /* solid 1px; */
+  outline: none;
+  background: rgba(255,255,255,0);
+  text-align: left;
+  font: bold 16pt Arial,Helvetica,sans-serif;
+  resize: none;
+
+  /* Text color is set to transparent except the cursor.
+   * Real text is rendered on the canvas.
+   * See http://jsfiddle.net/8k1k0awb/ */
+  /* color: red; - supplied at the time of creation */
+  text-shadow: 0px 0px 0px rgba(255,255,255,0);
+  -webkit-text-fill-color: transparent;
+}
+.text-input::-webkit-input-placeholder {
+  color:
+  text-shadow: none;
+  -webkit-text-fill-color: initial;
+}
+
 
 /* Save
 ----------------------------------*/
