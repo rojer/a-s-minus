@@ -326,6 +326,9 @@ li#diigo_web_highlighter:hover a {
     -webkit-box-shadow: 5px 5px 10px #404040;
     -webkit-user-select:none;
 }
+#edit-area.small {
+  margin-top: 88px;
+}
 #edit-area.add-margin { margin-top:88px; margin-bottom:48px; }
 #save-image, #save-tip, #re-edit, #helper { display:none; }
 canvas, #helper, #crop-tip { position:absolute; top:0; left:0; }
