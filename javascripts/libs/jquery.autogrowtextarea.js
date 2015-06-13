@@ -20,55 +20,55 @@
  */
 
 jQuery.fn.autoGrow = function() {
-	return this.each(function() {
+  return this.each(function() {
 
-		var createMirror = function(textarea) {
-			jQuery(textarea).after('<div class="autogrow-textarea-mirror"></div>');
-			return jQuery(textarea).next('.autogrow-textarea-mirror')[0];
-		}
+    var createMirror = function(textarea) {
+      jQuery(textarea).after('<div class="autogrow-textarea-mirror"></div>');
+      return jQuery(textarea).next('.autogrow-textarea-mirror')[0];
+    }
 
-		var sendContentToMirror = function (textarea) {
-			mirror.innerHTML = String(textarea.value)
-				.replace(/&/g, '&amp;')
-				.replace(/"/g, '&quot;')
-				.replace(/'/g, '&#39;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/ /g, '&nbsp;')
-				.replace(/\n/g, '<br />') +
-				'.<br/>.'
-			;
+    var sendContentToMirror = function (textarea) {
+      mirror.innerHTML = String(textarea.value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/ /g, '&nbsp;')
+        .replace(/\n/g, '<br />') +
+        '.<br/>.'
+      ;
 
-			if (jQuery(textarea).height() != jQuery(mirror).height())
-				jQuery(textarea).height(jQuery(mirror).height());
-		}
+      if (jQuery(textarea).height() != jQuery(mirror).height())
+        jQuery(textarea).height(jQuery(mirror).height());
+    }
 
-		var growTextarea = function () {
-			sendContentToMirror(this);
-		}
+    var growTextarea = function () {
+      sendContentToMirror(this);
+    }
 
-		// Create a mirror
-		var mirror = createMirror(this);
-		
-		// Style the mirror
-		mirror.style.display = 'none';
-		mirror.style.wordWrap = 'break-word';
-		mirror.style.whiteSpace = 'normal';
-		mirror.style.padding = jQuery(this).css('padding');
-		mirror.style.width = jQuery(this).css('width');
-		mirror.style.fontFamily = jQuery(this).css('font-family');
-		mirror.style.fontSize = jQuery(this).css('font-size');
-		mirror.style.lineHeight = jQuery(this).css('line-height');
+    // Create a mirror
+    var mirror = createMirror(this);
 
-		// Style the textarea
-		this.style.overflow = "hidden";
-		this.style.minHeight = this.rows+"em";
+    // Style the mirror
+    mirror.style.display = 'none';
+    mirror.style.wordWrap = 'break-word';
+    mirror.style.whiteSpace = 'normal';
+    mirror.style.padding = jQuery(this).css('padding');
+    mirror.style.width = jQuery(this).css('width');
+    mirror.style.fontFamily = jQuery(this).css('font-family');
+    mirror.style.fontSize = jQuery(this).css('font-size');
+    mirror.style.lineHeight = jQuery(this).css('line-height');
 
-		// Bind the textarea's event
-		this.onkeyup = growTextarea;
+    // Style the textarea
+    this.style.overflow = "hidden";
+    this.style.minHeight = this.rows+"em";
 
-		// Fire the event for text already present
-		sendContentToMirror(this);
+    // Bind the textarea's event
+    this.onkeyup = growTextarea;
 
-	});
+    // Fire the event for text already present
+    sendContentToMirror(this);
+
+  });
 };
