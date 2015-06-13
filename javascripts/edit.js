@@ -1123,7 +1123,7 @@ function TextAction(resultCb) {
       .css({color: drawColor /* this is only the cursor color, see CSS. */,
             left: x+"px", top: y+"px"})
       .insertAfter($(textCanvas))
-      .autoGrow()
+      .autoGrow({maxWidth: editW - x, maxHeight: editH - y})
       .focus()
       .on("input", function(e) {
         var text = $(input).val();
@@ -1197,15 +1197,15 @@ function TextAction(resultCb) {
 
 function updateEditArea(){
   $editArea.css({width:editW+"px",height:editH+"px"});
+  if (editH < $(window).height()) {
+    $editArea.addClass("small");
+  } else {
+    $editArea.removeClass("small");
+  }
 }
 
 function updateShowCanvas(){
   $(showCanvas).attr({width:editW,height:editH})
-}
-
-function getInitDim(){
-  editW = $(window).width();
-  editH = $(window).height();
 }
 
 function getEditOffset(){
@@ -1285,9 +1285,11 @@ $(document).ready(function(){
     getEditOffset();
     addMargin();
   });
-  if (window.location.hash == "#test") {
-    console.log('loading test image');
-    $('<img id="test_image" src="../test/long-wide.png" style="display:none">').appendTo($('body'));
+  if (window.location.hash.substr(0, 6) == "#test-") {
+    var file = window.location.hash.substr(6);
+    console.log('loading test image ' + file);
+    $('<img id="test_image" src="../test/' + file + '" style="display:none">')
+      .appendTo($('body'));
     $("#test_image").on("load", function() {
       var c = document.createElement("canvas");
       c.width = this.width;

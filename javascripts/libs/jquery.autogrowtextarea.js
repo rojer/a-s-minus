@@ -21,7 +21,8 @@
  * NB: Local changes to handle width and preserve font-weight.
  */
 
-jQuery.fn.autoGrow = function() {
+jQuery.fn.autoGrow = function(options) {
+  if (!options) options = {};
   return this.each(function() {
 
     var createMirror = function(textarea) {
@@ -40,13 +41,15 @@ jQuery.fn.autoGrow = function() {
         .replace(/\n/g, '<br />') +
         '.<br/>.'
       ;
-      var h = jQuery(mirror).height();
-      if (jQuery(textarea).height() != h) {
-        jQuery(textarea).height(jQuery(mirror).height());
-      }
       var w = jQuery(mirror).width() + 40;
-      if (jQuery(textarea).width() != w) {
+      if (jQuery(textarea).width() != w &&
+          (!options.maxWidth || h < options.maxWidth)) {
         jQuery(textarea).width(w);
+      }
+      var h = jQuery(mirror).height();
+      if (jQuery(textarea).height() != h &&
+          (!options.maxHeight || h < options.maxHeight)) {
+        jQuery(textarea).height(jQuery(mirror).height());
       }
     }
 
