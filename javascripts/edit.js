@@ -176,54 +176,114 @@ function prepareTools(){
 }
 
 function bindShortcuts(){
-  $("body").keydown(function(b){
+  $("body").keydown(function(e){
     // In text entry mode, the only shortcut enabled is cancel.
     // This is kinda ugly, bleh.
     if (currentAction != null && currentAction.isText) {
-      if (b.which == 27) selectTool("cancel");
+      if (e.which == 27) selectTool("cancel");
+      if (e.which == 13 && e.ctrlKey && !e.altKey) selectTool("done");
       return;
     }
     var tool = "";
-    switch (b.which) {
-      case 83 /* s */: tool = "save"; break;
-      case 67 /* c */: tool = "crop"; break;
-      case 82 /* r */: tool = "rectangle"; break;
-      case 69 /* e */: tool = "ellipse"; break;
-      case 65 /* a */: tool = "arrow"; break;
-      case 76 /* l */: tool = "line"; break;
-      case 70 /* f */: tool = "free-line"; break;
-      case 66 /* b */: tool = "blur"; break;
-      case 84 /* t */: tool = "text"; break;
-      case 90 /* z */: tool = "undo"; break;
-      case 13 /* enter */: tool = "done"; break;
-      case 27 /* esc */: tool = "cancel";
+    if (e.which == 90 && e.ctrlKey && !e.altKey) {  /* Ctrl-Z */
+      tool = "undo";
+    } else if (!e.ctrlKey && !e.altKey) {
+      switch (e.which) {
+        case 83 /* s */: tool = "save"; break;
+        case 67 /* c */: tool = "crop"; break;
+        case 82 /* r */: tool = "rectangle"; break;
+        case 69 /* e */: tool = "ellipse"; break;
+        case 65 /* a */: tool = "arrow"; break;
+        case 76 /* l */: tool = "line"; break;
+        case 70 /* f */: tool = "free-line"; break;
+        case 66 /* b */: tool = "blur"; break;
+        case 84 /* t */: tool = "text"; break;
+        case 13 /* enter */: tool = "done"; break;
+        case 27 /* esc */: tool = "cancel";
+      }
     }
     if (tool) {
       selectTool(tool);
-    }
-  }).keyup(function(a){
-    switch (a.which) {
-      case 16: shift = false;
     }
   });
 }
 
 var Repeated = function(actionConstructor, resultCb) {
   var o = this;
-  this.actionConstructor = actionConstructor;
+
+  var isDone = false;
   this.resultCb = function(result) {
     resultCb(result);
-    o.newAction();
+    if (!isDone) newAction();
   };
  
-  this.newAction = function() {
-    o.action = o.actionConstructor(o.resultCb);
+  function newAction() {
+    o.action = actionConstructor(o.resultCb);
   }
 
-  this.done = function() { o.action.done(); }
+  this.done = function() { isDone = true; o.action.done(); }
   this.cancel = function() { o.action.cancel(); }
+  this.shouldUndo = function() { o.action.shouldUndo(); }
 
-  this.newAction();
+  newAction();
+}
+
+var Draggable = function(actionConstructor, resultCb) {
+  var o = this;
+  var isDone = false;
+  var dragdiv = null;
+  var drag = null;
+  var result = null;
+
+  this.resultCb = function(actionResult) {
+    if (action.shouldUndo()) enableUndo();
+    result = actionResult;
+    var canvas = $('<canvas>').attr({width: result.w, height: result.h})[0];
+    dragdiv = $('<div class="draggable">')
+      .css({left: result.x, top: result.y, width: result.w, height: result.h})
+      .append(canvas)
+      .insertAfter(showCanvas)[0];
+    canvas.getContext("2d").putImageData(result.data, 0, 0);
+    drag = new DragResize("dragresize", {
+      handles: [],
+      maxLeft: editW,
+      maxTop: editH,
+      allowBlur: true,
+    });
+    drag.isElement = function(a) {
+      return a.className && a.className.indexOf("draggable") > -1 ? true : false;
+    };
+    drag.isHandle = drag.isElement;
+    drag.apply(document.getElementById("edit-area"));
+    drag.select(dragdiv);
+    drag.ondragblur = doneMoving;
+  };
+
+  function doneMoving() {
+    if (dragdiv) {
+      if (result) {
+        result.x = $(dragdiv).position().left;
+        result.y = $(dragdiv).position().top;
+      }
+      dragdiv.remove();
+      if (result) resultCb(result);
+      dragdiv = drag = result = null;
+      $editArea.unbind();
+    }
+  }
+
+  var action = actionConstructor(o.resultCb);
+
+  this.done = function() {
+    action.done();
+    doneMoving();
+  }
+  this.cancel = function() {
+    action.cancel();
+    result = null;
+    doneMoving();
+  }
+  this.shouldUndo = function() { action.shouldUndo(); }
 }
 
 function selectToolButton(tool) {
@@ -240,17 +300,24 @@ function newAction(tool) {
     case "crop": return new CropAction(commit);
 
     case "rectangle":
-    case "ellipse":
-    case "arrow": {
+    case "ellipse": {
+      return new Repeated(function(cb) {
+        return new Draggable(function(cb) {
+          return new DrawShapeAction(tool, cb);
+        }, cb);
+      }, commit);
+    }
+    case "arrow":
+    case "line": {
       return new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
     }
-
-    case "line": return new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
     case "free-line": return new Repeated(FreeLineAction, commit);
     case "text-highlighter": return new Repeated(HighLightAction, commit);
     case "blur": return new Repeated(function(cb) { return new BlurAction(cb); }, commit);
     case "text": {
-      var a = new Repeated(function(cb) { return new TextAction(cb); }, commit);
+      var a = new Repeated(function(cb) {
+        return new Draggable(function(cb) { return new TextAction(cb); }, cb);
+      }, commit);
       a.isText = true;  // This is ugly.
       return a;
     }
@@ -325,6 +392,11 @@ function applyAction(a) {
 }
 
 function undo() {
+  if (currentAction != null && currentAction.shouldUndo) {
+    currentAction.cancel();
+    currentAction = null;
+    return;
+  }
   if (actions.length == 0) return;
   var before = actions.pop()[0];
   applyAction(before);
@@ -634,9 +706,8 @@ var CropAction = function(resultCb) {
     resultCb({a: "crop", data: croppedImageData, w: cropWidth, h: cropHeight});
   }
 
-  this.cancel = function() {
-    this.finish();
-  }
+  this.cancel = this.finish;
+  this.shouldUndo = function() { return true; }
 }
 
 function color(){
@@ -812,6 +883,7 @@ function DrawShapeAction(shape, resultCb) {
     $(showCanvas).unbind();
   }
   this.cancel = this.done;
+  this.shouldUndo = function() { return true; }
 }
 
 function FreeLineAction(resultCb) {
@@ -896,6 +968,7 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
 
   this.done = function() { $(drawCanvas).remove(); }
   this.cancel = this.done;
+  this.shouldUndo = function() { return true; }
 
   var a = this;
   $(drawCanvas)
@@ -1024,34 +1097,26 @@ function BlurAction(resultCb) {
 
   this.done = function() { $(showCanvas).unbind(); $(drawCanvas).remove(); }
   this.cancel = this.done;
+  this.shouldUndo = function() { return true; }
 }
   
 function TextAction(resultCb) {
   var o = this;
-  var textCanvas = $('<canvas>')
-    .attr({width: showCanvas.width, height: showCanvas.height})
-    .insertAfter(showCanvas)[0];
   var input, oldText = "";
   var contrastBorderWidth = 1;
-
-  $(textCanvas)
+  var textCanvas = $('<canvas>')
+    .attr({width: showCanvas.width, height: showCanvas.height})
+    .insertAfter(showCanvas)
     .css({cursor: "text"})
     .on("click", function(e) {
       if (!input) {
         addInput(e.pageX - editOffsetX, Math.max(0, e.pageY - editOffsetY - 11));
         $(textCanvas).css({cursor: "auto"});
       } else {
-        var textCtx = textCanvas.getContext("2d");
-        var result = {
-          a: "text",
-          data: textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height),
-          x: $(textCanvas).position().left, y: $(textCanvas).position().top,
-          w: textCanvas.width, h: textCanvas.height,
-        };
         o.done();
-        resultCb(result);
       }
-    });
+    })[0];
+  var testLine = null;
 
   function addInput(x, y) {
     input = $('<textarea class="text-input" spellcheck="false"></textarea>')
@@ -1065,17 +1130,18 @@ function TextAction(resultCb) {
         if (text != oldText) {
           renderText(input);
           oldText = text;
+          if (oldText != "") enableUndo();
         }
       });
-  }
-
-  function renderText(input) {
-    var lines = $(input).val().split("\n");
-    var testLine = $("<span>test</span>")
+    testLine = $("<span>test</span>")
       .css({font: $(input).css("font"), border: "none", padding: 0})
       .css({position: "absolute", left: 0, top: 0, visibility: "hidden"})
       .insertAfter(input);
+  }
+
+  function renderText(input) {
     var lineH = $(testLine).height();
+    var lines = $(input).val().split("\n");
     var textCtx = textCanvas.getContext("2d");
     textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
     textCtx.font = $(input).css("font");
@@ -1095,14 +1161,38 @@ function TextAction(resultCb) {
       textCtx.fillStyle = drawColor;
       textCtx.fillText(line, lineX, lineY);
     }
-    testLine.remove();
+  }
+
+  function cleanUp() {
+    if (input) $(input).remove();
+    if (textCanvas) $(textCanvas).remove();
+    if (testLine) $(testLine).remove();
+    $(".autogrow-textarea-mirror").remove();
   }
 
   this.done = function() {
-    if (input) $(input).remove();
-    if (textCanvas) $(textCanvas).remove();
+    var result = null;
+    if (input && $(input).val() != "") {
+      renderText(input);
+      var lineH = $(testLine).height();
+      var textCtx = textCanvas.getContext("2d");
+      var cutX = Math.max(0, parseInt($(input).css("left")) - contrastBorderWidth);
+      var cutY = parseInt($(input).css("top"));
+      var cutW = Math.min($(".autogrow-textarea-mirror").width(), editW - cutX);
+      var cutH = Math.min($(".autogrow-textarea-mirror").height() - lineH, editH - cutY);
+      result = {
+        a: "text",
+        data: textCtx.getImageData(cutX, cutY, cutW, cutH),
+        x: cutX, y: cutY,
+        w: cutW, h: cutH,
+      };
+    }
+    cleanUp();
+    if (result) resultCb(result);
   }
-  this.cancel = this.done
+
+  this.cancel = cleanUp;
+  this.shouldUndo = function() { return oldText != ""; }
 }
 
 function updateEditArea(){

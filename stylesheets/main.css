@@ -443,6 +443,16 @@ input.cd-input{
 #blur-canvas { 
   cursor: url(../images/cursor-blur.png), default;
 }
+
+.draggable {
+  z-index: 900;
+  background: rgba(0, 0, 0, 0);
+  text-align: center;
+  position: absolute;
+  outline: 1px dashed #777;
+  cursor: move
+  pointerEvents: none;
+}
 /* Draw Text
 ----------------------------------*/
 .draw-text #edit-area div[contenteditable] { display:block; }
