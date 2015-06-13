@@ -176,31 +176,30 @@ function prepareTools(){
 }
 
 function bindShortcuts(){
-  var a = false;
   $("body").keydown(function(b){
+    // In text entry mode, the only shortcut enabled is cancel.
+    // This is kinda ugly, bleh.
+    if (currentAction != null && currentAction.isText) {
+      if (b.which == 27) selectTool("cancel");
+      return;
+    }
     var tool = "";
     switch (b.which) {
-      case 83: tool = "save"; break;
-      case 67: tool = "crop"; break;
-      case 82: tool = "rectangle"; break;
-      case 69: tool = "ellipse"; break;
-      case 65: tool = "arrow"; break;
-      case 76: tool = "line"; break;
-      case 70: tool = "free-line"; break;
-      case 66: tool = "blur"; break;
-      case 84: tool = "text"; break;
-      case 17: a = true; break;
-      case 90: {
-        if (a) tool = "undo";
-        break;
-      }
-      case 16: shift = true; break;
-      case 13: tool = "done"; break;
-      case 27: tool = "cancel";
+      case 83 /* s */: tool = "save"; break;
+      case 67 /* c */: tool = "crop"; break;
+      case 82 /* r */: tool = "rectangle"; break;
+      case 69 /* e */: tool = "ellipse"; break;
+      case 65 /* a */: tool = "arrow"; break;
+      case 76 /* l */: tool = "line"; break;
+      case 70 /* f */: tool = "free-line"; break;
+      case 66 /* b */: tool = "blur"; break;
+      case 84 /* t */: tool = "text"; break;
+      case 90 /* z */: tool = "undo"; break;
+      case 13 /* enter */: tool = "done"; break;
+      case 27 /* esc */: tool = "cancel";
     }
     if (tool) {
-      selectTool($("body").hasClass("selected") ? tool : tool);
-      if (tool != "undo") a = false;
+      selectTool(tool);
     }
   }).keyup(function(a){
     switch (a.which) {
@@ -227,47 +226,44 @@ var Repeated = function(actionConstructor, resultCb) {
   this.newAction();
 }
 
-function selectTool(tool) {
-  console.log("selectTool", tool);
-  if (tool != "undo" && tool != "color" && tool != "cancel" && tool != "done" && tool != "save") {
+function selectToolButton(tool) {
+  if (tool != null) {
     $($("#"+tool)).siblings().removeClass("active").end().addClass("active");
-    if (selectedTool == tool) return;
-    selectedTool = tool;
-    if (currentAction != null) {
-      currentAction.done();
-      currentAction = null;
-    }
-    $(showCanvas).unbind();
+  } else {
+    $($("#"+tool)).siblings().removeClass("active");
   }
+  selectedTool = tool;
+}
 
+function newAction(tool) {
   switch (tool) {
-    case "crop": {
-      currentAction = new CropAction(commit);
-      break;
-    }
+    case "crop": return new CropAction(commit);
+
     case "rectangle":
     case "ellipse":
     case "arrow": {
-      currentAction = new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
-      break;
+      return new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
     }
-    case "line": {
-      currentAction = new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
-      break;
+
+    case "line": return new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
+    case "free-line": return new Repeated(FreeLineAction, commit);
+    case "text-highlighter": return new Repeated(HighLightAction, commit);
+    case "blur": return new Repeated(function(cb) { return new BlurAction(cb); }, commit);
+    case "text": {
+      var a = new Repeated(function(cb) { return new TextAction(cb); }, commit);
+      a.isText = true;  // This is ugly.
+      return a;
     }
-    case "free-line": {
-      currentAction = new Repeated(FreeLineAction, commit);
-      break;
-    }
-    case "text-highlighter": {
-      currentAction = new Repeated(HighLightAction, commit);
-      break;
-    }
+  }
+  console.error("unknown tool:", tool);
+  return null;
+}
+
+function selectTool(tool) {
+  console.log("selectTool", tool);
+
+  switch (tool) {
     case "color": color(); break;
-    case "blur": {
-      currentAction = new Repeated(function(cb) { return new BlurAction(cb); }, commit);
-      break;
-    }
     case "done": {
       if (currentAction != null) currentAction.done();
       currentAction = null;
@@ -281,11 +277,18 @@ function selectTool(tool) {
     }
     case "undo": undo(); break;
     case "save": {
-      if (currentAction != null) currentAction.cancel();
+      if (currentAction != null) currentAction.done();
       currentAction = null;
       selectedTool = null;
       save();
       break;
+    }
+    default: {
+      if (selectedTool == tool && currentAction != null) return;
+      selectToolButton(tool);
+      if (currentAction != null) currentAction.done();
+      $(showCanvas).unbind();
+      currentAction = newAction(tool);
     }
   }
 }
@@ -304,7 +307,7 @@ function commit(a) {
 
 function applyAction(a) {
   var x, y;
-  console.log('applyAction', a.a);
+  console.log('applyAction', a.a, a.x, a.y);
   if (!('x' in a && 'y' in a)) {
     editW = a.w;
     editH = a.h;
@@ -1022,74 +1025,84 @@ function BlurAction(resultCb) {
   this.done = function() { $(showCanvas).unbind(); $(drawCanvas).remove(); }
   this.cancel = this.done;
 }
-
   
-function text(pos){
-  function addInput() {
-    $('<input class="textinput"></input>').appendTo($editArea)
-      .css({top:inputTop+"px", left:inputLeft+"px", width:inputMinW+"px", color:drawColor})
+function TextAction(resultCb) {
+  var o = this;
+  var textCanvas = $('<canvas>')
+    .attr({width: showCanvas.width, height: showCanvas.height})
+    .insertAfter(showCanvas)[0];
+  var input, oldText = "";
+  var contrastBorderWidth = 1;
+
+  $(textCanvas)
+    .css({cursor: "text"})
+    .on("click", function(e) {
+      if (!input) {
+        addInput(e.pageX - editOffsetX, Math.max(0, e.pageY - editOffsetY - 11));
+        $(textCanvas).css({cursor: "auto"});
+      } else {
+        var textCtx = textCanvas.getContext("2d");
+        var result = {
+          a: "text",
+          data: textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height),
+          x: $(textCanvas).position().left, y: $(textCanvas).position().top,
+          w: textCanvas.width, h: textCanvas.height,
+        };
+        o.done();
+        resultCb(result);
+      }
+    });
+
+  function addInput(x, y) {
+    input = $('<textarea class="text-input" spellcheck="false"></textarea>')
+      .css({color: drawColor /* this is only the cursor color, see CSS. */,
+            left: x+"px", top: y+"px"})
+      .insertAfter($(textCanvas))
+      .autoGrow()
       .focus()
-      .autoGrowInput({comfortZone:20, minWidth:20, maxWidth:inputMaxW})
-      .keydown(function(e){
-        var input = e.target;
-        var keyCode = e.keyCode;
-        if (($(this).width() + 10 > inputMaxW && keyCode >= 48) ||
-            parseInt($(this).css("top")) - textTop + 38 > inputMaxH && e.keyCode == 13) {
-          return false;
+      .on("input", function(e) {
+        var text = $(input).val();
+        if (text != oldText) {
+          renderText(input);
+          oldText = text;
         }
-        if (13 == keyCode) { inputTop += 18; addInput(); }  // CR
-        if (8 == keyCode && !input.value) {  // Backspace
-          $(input).prev().prev().focus().end().end().next().remove().end().remove();
-          inputTop -= 18;
-        }
-        if (38 == keyCode) $(input).prev().prev().focus();  // Up
-        if (40 == keyCode) $(input).next().next().focus();  // Down
-        e.stopPropagation();
       });
   }
-  saveText();
-  $("body").addClass("draw-text");
-  var inputTop = pos.y - editOffsetY - 10;
-  var textTop = inputTop;
-  var inputLeft = pos.x - editOffsetX;
-  var inputMinW = 20;
-  var inputMaxW = editW - inputLeft;
-  var inputMaxH = editH - inputTop;
-  if (inputLeft > editW - inputMinW) inputLeft = editW - inputMinW;
-  if (textFlag == 1) addInput();
-  if (textFlag == 2) textFlag = 1;
-}
 
-function saveText() {
-  var inputs = $($editArea).find('input[class="textinput"]');
-  if (inputs.length == 0) return;
-  var b = "";
-  inputs.each(function(){b+=this.value});
-  if (!b) return;
-  saveAction({type:"draw"});
-  textFlag = 2;
-  inputs.each(function(){
-    var input = this;
-    var text = input.value;
-    if (text) {
-      var borderWidth = 1;
-      var fontSize = parseInt($(input).css("font-size"));
-      var textX = parseInt($(input).css("left"));
-      var textY = parseInt($(input).css("top")) + fontSize - 2;
-      showCtx.font = $(input).css("font");
+  function renderText(input) {
+    var lines = $(input).val().split("\n");
+    var testLine = $("<span>test</span>")
+      .css({font: $(input).css("font"), border: "none", padding: 0})
+      .css({position: "absolute", left: 0, top: 0, visibility: "hidden"})
+      .insertAfter(input);
+    var lineH = $(testLine).height();
+    var textCtx = textCanvas.getContext("2d");
+    textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+    textCtx.font = $(input).css("font");
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      if (line == "") continue;
+      var lineX = parseInt($(input).css("left"));
+      var lineY = parseInt($(input).css("top")) + (li + 1) * lineH - 6;
       for (var i = 0; i < 16; i++) {
-        showCtx.save();
-        showCtx.translate(Math.cos(i * Math.PI / 8) * borderWidth,
-                          Math.sin(i * Math.PI / 8) * borderWidth);
-        showCtx.fillStyle = contrastColor;
-        showCtx.fillText(text, textX, textY);
-        showCtx.restore();
+        textCtx.save();
+        textCtx.translate(Math.cos(i * Math.PI / 8) * contrastBorderWidth,
+                          Math.sin(i * Math.PI / 8) * contrastBorderWidth);
+        textCtx.fillStyle = contrastColor;
+        textCtx.fillText(line, lineX, lineY);
+        textCtx.restore();
       }
-      showCtx.fillStyle = $(input).css("color");
-      showCtx.fillText(text, textX, textY);
-    };
-    $(input).next().remove().end().remove();
-  });
+      textCtx.fillStyle = drawColor;
+      textCtx.fillText(line, lineX, lineY);
+    }
+    testLine.remove();
+  }
+
+  this.done = function() {
+    if (input) $(input).remove();
+    if (textCanvas) $(textCanvas).remove();
+  }
+  this.cancel = this.done
 }
 
 function updateEditArea(){
@@ -1151,7 +1164,7 @@ function showInfo(a){
 }
   
 
-var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,textFlag=1,uploadFlag=!1,showCanvas,showCtx;
+var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,uploadFlag=!1,showCanvas,showCtx;
 var highlightWidth = 20, freeLineWidth = 4, blurWidth = 20;
 var taburl,tabtitle,compressRatio=80,resizeFactor=100,shift=!1;
 var lastH, lastW;

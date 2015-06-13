@@ -17,6 +17,8 @@
 
 /*
  * Original: https://github.com/jevin/Autogrow-Textarea
+ *
+ * NB: Local changes to handle width and preserve font-weight.
  */
 
 jQuery.fn.autoGrow = function() {
@@ -38,9 +40,14 @@ jQuery.fn.autoGrow = function() {
         .replace(/\n/g, '<br />') +
         '.<br/>.'
       ;
-
-      if (jQuery(textarea).height() != jQuery(mirror).height())
+      var h = jQuery(mirror).height();
+      if (jQuery(textarea).height() != h) {
         jQuery(textarea).height(jQuery(mirror).height());
+      }
+      var w = jQuery(mirror).width() + 40;
+      if (jQuery(textarea).width() != w) {
+        jQuery(textarea).width(w);
+      }
     }
 
     var growTextarea = function () {
@@ -51,12 +58,17 @@ jQuery.fn.autoGrow = function() {
     var mirror = createMirror(this);
 
     // Style the mirror
+/* For debugging, enable this and set display to != none.
+    mirror.style.position = 'absolute';
+    mirror.style.left = '0';
+    mirror.style.top = '0';
+    mirror.style.border = 'solid 1px'; */
     mirror.style.display = 'none';
     mirror.style.wordWrap = 'break-word';
     mirror.style.whiteSpace = 'normal';
     mirror.style.padding = jQuery(this).css('padding');
-    mirror.style.width = jQuery(this).css('width');
     mirror.style.fontFamily = jQuery(this).css('font-family');
+    mirror.style.fontWeight = jQuery(this).css('font-weight');
     mirror.style.fontSize = jQuery(this).css('font-size');
     mirror.style.lineHeight = jQuery(this).css('line-height');
 
