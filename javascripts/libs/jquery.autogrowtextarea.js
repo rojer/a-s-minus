@@ -23,6 +23,7 @@
 
 jQuery.fn.autoGrow = function(options) {
   if (!options) options = {};
+  console.log(options);
   return this.each(function() {
 
     var createMirror = function(textarea) {
@@ -39,17 +40,17 @@ jQuery.fn.autoGrow = function(options) {
         .replace(/>/g, '&gt;')
         .replace(/ /g, '&nbsp;')
         .replace(/\n/g, '<br />') +
-        '.<br/>.'
+        '.'
       ;
-      var w = jQuery(mirror).width() + 40;
+      var w = jQuery(mirror).width() + 15;
       if (jQuery(textarea).width() != w &&
-          (!options.maxWidth || h < options.maxWidth)) {
+          (!options.maxWidth || w < options.maxWidth)) {
         jQuery(textarea).width(w);
       }
       var h = jQuery(mirror).height();
       if (jQuery(textarea).height() != h &&
           (!options.maxHeight || h < options.maxHeight)) {
-        jQuery(textarea).height(jQuery(mirror).height());
+        jQuery(textarea).height(h);
       }
     }
 
