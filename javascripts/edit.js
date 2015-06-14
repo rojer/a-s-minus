@@ -179,9 +179,12 @@ function bindShortcuts(){
   $("body").keydown(function(e){
     // In text entry mode, the only shortcut enabled is cancel.
     // This is kinda ugly, bleh.
-    if (currentAction != null && currentAction.isText) {
-      if (e.which == 27) selectTool("cancel");
-      if (e.which == 13 && e.ctrlKey && !e.altKey) selectTool("done");
+    if (currentAction != null && currentAction.isText) { // && currentAction.shouldUndo()) {
+      if (e.which == 27) {
+        selectTool("cancel");
+      } else if (!currentAction.shouldUndo() && e.which == 90 && e.ctrlKey && !e.altKey) {
+        selectTool("undo");
+      }
       return;
     }
     var tool = "";
@@ -214,7 +217,7 @@ var Repeated = function(actionConstructor, resultCb) {
   var isDone = false;
   this.resultCb = function(result) {
     resultCb(result);
-    if (!isDone) newAction();
+    if (!isDone) setTimeout(newAction, 100);
   };
  
   function newAction() {
@@ -223,7 +226,7 @@ var Repeated = function(actionConstructor, resultCb) {
 
   this.done = function() { isDone = true; o.action.done(); }
   this.cancel = function() { o.action.cancel(); }
-  this.shouldUndo = function() { o.action.shouldUndo(); }
+  this.shouldUndo = function() { return o.action.shouldUndo(); }
 
   newAction();
 }
@@ -236,7 +239,7 @@ var Draggable = function(actionConstructor, resultCb) {
   var result = null;
 
   this.resultCb = function(actionResult) {
-    if (action.shouldUndo()) enableUndo();
+    updateUndoButton();
     result = actionResult;
     var canvas = $('<canvas>').attr({width: result.w, height: result.h})[0];
     dragdiv = $('<div class="draggable">')
@@ -283,47 +286,66 @@ var Draggable = function(actionConstructor, resultCb) {
     result = null;
     doneMoving();
   }
-  this.shouldUndo = function() { action.shouldUndo(); }
+  this.shouldUndo = function() { return action.shouldUndo(); }
 }
 
-function selectToolButton(tool) {
-  if (tool != null) {
-    $($("#"+tool)).siblings().removeClass("active").end().addClass("active");
+function updateSelectedToolButton() {
+  if (selectedTool != null) {
+    $($("#"+selectedTool)).siblings().removeClass("active").end().addClass("active");
   } else {
-    $($("#"+tool)).siblings().removeClass("active");
+    $("#annotation_bar .title").removeClass("active");
   }
-  selectedTool = tool;
 }
 
 function newAction(tool) {
+  var a = null;
   switch (tool) {
-    case "crop": return new CropAction(commit);
+    case "crop": {
+      a = new CropAction(commit);
+      break;
+    }
 
     case "rectangle":
     case "ellipse": {
-      return new Repeated(function(cb) {
+      a = new Repeated(function(cb) {
         return new Draggable(function(cb) {
           return new DrawShapeAction(tool, cb);
         }, cb);
       }, commit);
+      break;
     }
     case "arrow":
     case "line": {
-      return new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
+      a = new Repeated(function(cb) { return new DrawShapeAction(tool, cb); }, commit);
+      break;
     }
-    case "free-line": return new Repeated(FreeLineAction, commit);
-    case "text-highlighter": return new Repeated(HighLightAction, commit);
-    case "blur": return new Repeated(function(cb) { return new BlurAction(cb); }, commit);
+    case "free-line": {
+      a = new Repeated(FreeLineAction, commit);
+      break;
+    }
+    case "text-highlighter": {
+      a = new Repeated(HighLightAction, commit);
+      break;
+    }
+    case "blur": {
+      a = new Repeated(function(cb) { return new BlurAction(cb); }, commit);
+      break;
+    }
     case "text": {
-      var a = new Repeated(function(cb) {
+      a = new Repeated(function(cb) {
         return new Draggable(function(cb) { return new TextAction(cb); }, cb);
       }, commit);
       a.isText = true;  // This is ugly.
-      return a;
+      break;
     }
   }
-  console.error("unknown tool:", tool);
-  return null;
+  if (a != null) {
+    selectedTool = tool;
+    updateSelectedToolButton();
+  } else {
+    console.error("unknown tool:", tool);
+  }
+  return a;
 }
 
 function selectTool(tool) {
@@ -333,16 +355,29 @@ function selectTool(tool) {
     case "color": color(); break;
     case "done": {
       if (currentAction != null) currentAction.done();
-      currentAction = null;
+      currentAction = newAction(selectedTool);
       break;
     }
     case "cancel": {
-      if (currentAction != null) currentAction.cancel();
-      currentAction = null;
-      selectedTool = null;
+      if (currentAction != null) {
+        if (currentAction.shouldUndo()) {
+          currentAction.cancel();
+          currentAction = newAction(selectedTool);
+        } else {
+          currentAction.cancel();
+          currentAction = null;
+        }
+      }
+      if (currentAction == null) {
+        selectedTool = null;
+        updateSelectedToolButton();
+      }
       break;
     }
-    case "undo": undo(); break;
+    case "undo": {
+      undo();
+      break;
+    }
     case "save": {
       if (currentAction != null) currentAction.done();
       currentAction = null;
@@ -352,10 +387,11 @@ function selectTool(tool) {
     }
     default: {
       if (selectedTool == tool && currentAction != null) return;
-      selectToolButton(tool);
+      updateSelectedToolButton(tool);
       if (currentAction != null) currentAction.done();
       $(showCanvas).unbind();
       currentAction = newAction(tool);
+      updateUndoButton();
     }
   }
 }
@@ -369,7 +405,7 @@ function commit(a) {
   };
   actions.push([before, a]);
   applyAction(a);
-  enableUndo();
+  updateUndoButton();
 }
 
 function applyAction(a) {
@@ -392,15 +428,16 @@ function applyAction(a) {
 }
 
 function undo() {
-  if (currentAction != null && currentAction.shouldUndo) {
+  if (currentAction != null && currentAction.shouldUndo()) {
     currentAction.cancel();
-    currentAction = null;
+    currentAction = (selectedTool != null ? newAction(selectedTool) : null);
+    updateUndoButton();
     return;
   }
   if (actions.length == 0) return;
   var before = actions.pop()[0];
   applyAction(before);
-  if (actions.length == 0) disableUndo();
+  updateUndoButton();
 }
 
 function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
@@ -707,7 +744,7 @@ var CropAction = function(resultCb) {
   }
 
   this.cancel = this.finish;
-  this.shouldUndo = function() { return true; }
+  this.shouldUndo = function() { return false; }
 }
 
 function color(){
@@ -727,138 +764,142 @@ function color(){
     });
 }
 
-function enableUndo(){
-  $("#undo").addClass("enabled");
+function updateUndoButton() {
+  var enabled = actions.length > 0 || (currentAction && currentAction.shouldUndo());
+  if (enabled) {
+    $("#undo").addClass("enabled");
+  } else {
+    $("#undo").removeClass("enabled");
+  }
 }
 
-function disableUndo(){
-  $("#undo").removeClass("enabled");
+function cut(canvas, action, x, y, w, h, margin) {
+  var ctx = canvas.getContext("2d");
+  var cutX = Math.max(0, x - margin);
+  var cutY = Math.max(0, y - margin);
+  var cutW = Math.min(w + 2 * margin, canvas.width - cutX);
+  var cutH = Math.min(h + 2 * margin, canvas.height - cutY);
+  return {
+    a: action,
+    data: ctx.getImageData(cutX, cutY, cutW, cutH),
+    x: cutX, y: cutY,
+    w: cutW, h: cutH,
+  };
 }
 
 function DrawShapeAction(shape, resultCb) {
   var o = this;
   $(showCanvas).addClass("draw");
 
-  var startX, startY, drawCanvas, drawCtx;
-  var drawRectX, drawRectY, drawRectW, drawRectH;
-  $(showCanvas)
+  var drawCanvas = $('<canvas>')
+    .attr({id: "draw-canvas", width: showCanvas.width, height: showCanvas.height})
+    .css({cursor: "crosshair"})
+    .insertAfter(showCanvas)[0];
+  var drawCtx = drawCanvas.getContext("2d");
+  var startX, startY, pointerX, pointerY, drawRectX, drawRectY, drawRectW, drawRectH;
+  var drawing = false;
+  $(drawCanvas)
     .on("mousedown", function(e) { onPointerDown(e.pageX, e.pageY); })
     .on("touchstart", function(e) {
       var t = e.originalEvent.changedTouches[0];
       onPointerDown(t.pageX, t.pageY);
       e.originalEvent.preventDefault();
     });
+  var margin = freeLineWidth;
 
   function onPointerDown(pageX, pageY) {
     startX = pageX - editOffsetX;
     startY = pageY - editOffsetY;
-    drawCanvas = $('<canvas>')
-      .attr({id: "draw-canvas", width: 0, height: 0})
-      .css({left: startX, top: startY, pointerEvents: "none"})
-      .insertAfter(showCanvas)[0];
-    drawCtx = drawCanvas.getContext("2d");
 
-    $(showCanvas)
-      .unbind("mousedown touchstart")
+    $(drawCanvas)
       .on("mousemove", function(e) { onPointerMove(e.pageX, e.pageY); })
       .on("touchmove", function(e) {
         var t = e.originalEvent.changedTouches[0];
         onPointerMove(t.pageX, t.pageY);
         e.originalEvent.preventDefault();
       })
-      .on("mouseup touchend", function() { onPointerUp(); });
+  }
+
+  function drawRectangle() {
+    drawCtx.strokeRect(drawRectX, drawRectY, drawRectW, drawRectH);
+  }
+
+  function drawEllipse() {
+    function _drawEllipse(a,b,c,d) {
+      var e = c / 2 * 0.5522848;
+      var f = d / 2 * 0.5522848;
+      var g = a + c;
+      var h = b + d;
+      var i = a + c / 2;
+      var j = b + d / 2;
+      drawCtx.moveTo(a,j);
+      drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b);
+      drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j);
+      drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h);
+      drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j);
+      drawCtx.closePath();
+    }
+    drawCtx.beginPath();
+    _drawEllipse(drawRectX, drawRectY, drawRectW, drawRectH);
+    drawCtx.stroke();
+  }
+
+  function drawArrow() {
+    function drawPoly(points) {
+      drawCtx.beginPath();
+      drawCtx.moveTo(points[0][0], points[0][1]);
+      for (var i = 1; i < points.length; i++) {
+        drawCtx.lineTo(points[i][0], points[i][1]);
+      }
+      drawCtx.lineTo(points[0][0], points[0][1]);
+      drawCtx.fill();
+    }
+    function shift(points, dx, dy) {
+      var d = [];
+      for (var p in points) d.push([points[p][0] + dx, points[p][1] + dy]);
+      return d;
+    }
+    function rotate(points, angle) {
+      var c = [];
+      for (var i in points) c.push(rotatePoint(angle, points[i][0], points[i][1]));
+      return c;
+    }
+    function rotatePoint(angle, x, y) {
+      return [x*Math.cos(angle) - y*Math.sin(angle),
+              x*Math.sin(angle) + y*Math.cos(angle)];
+    }
+
+    drawLine();
+    var arrowPoints = [[4, 0], [-10, -5.5], [-10, 5.5]];
+    var angle = Math.atan2(startY - pointerY, startX - pointerX);
+    drawPoly(shift(rotate(arrowPoints, angle), startX, startY));
+  }
+
+  function drawLine() {
+    drawCtx.beginPath();
+    drawCtx.moveTo(startX, startY);
+    drawCtx.lineTo(pointerX, pointerY);
+    drawCtx.stroke();
   }
 
   function onPointerMove(pageX, pageY) {
-    function drawRectangle() {
-      drawCtx.strokeRect(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
+    if (!drawing) {
+      $(drawCanvas).on("mouseup touchend", function() { onPointerUp(); });
+      drawing = true;
     }
 
-    function drawEllipse() {
-      function _drawEllipse(a,b,c,d) {
-        var e = c / 2 * 0.5522848;
-        var f = d / 2 * 0.5522848;
-        var g = a + c;
-        var h = b + d;
-        var i = a + c / 2;
-        var j = b + d / 2;
-        drawCtx.moveTo(a,j);
-        drawCtx.bezierCurveTo(a,j-f,i-e,b,i,b);
-        drawCtx.bezierCurveTo(i+e,b,g,j-f,g,j);
-        drawCtx.bezierCurveTo(g,j+f,i+e,h,i,h);
-        drawCtx.bezierCurveTo(i-e,h,a,j+f,a,j);
-        drawCtx.closePath();
-      }
-      drawCtx.beginPath();
-      _drawEllipse(margin, margin, drawRectW - 2 * margin, drawRectH - 2 * margin);
-      drawCtx.stroke();
-    }
-
-    function drawArrow() {
-      function drawPoly(points) {
-        drawCtx.beginPath();
-        drawCtx.moveTo(points[0][0], points[0][1]);
-        for (var i = 1; i < points.length; i++) {
-          drawCtx.lineTo(points[i][0], points[i][1]);
-        }
-        drawCtx.lineTo(points[0][0], points[0][1]);
-        drawCtx.fill();
-      }
-      function shift(points, dx, dy) {
-        var d = [];
-        for (var p in points) d.push([points[p][0] + dx, points[p][1] + dy]);
-        return d;
-      }
-      function rotate(points, angle) {
-        var c = [];
-        for (var i in points) c.push(rotatePoint(angle, points[i][0], points[i][1]));
-        return c;
-      }
-      function rotatePoint(angle, x, y) {
-        return [x*Math.cos(angle) - y*Math.sin(angle),
-                x*Math.sin(angle) + y*Math.cos(angle)];
-      }
-
-      drawCtx.beginPath();
-      var lineStartX = mouseX > startX ? margin : drawRectW - margin;
-      var lineStartY = mouseY > startY ? margin : drawRectH - margin;
-      var lineEndX = drawRectW - lineStartX;
-      var lineEndY = drawRectH - lineStartY;
-      drawCtx.moveTo(lineStartX, lineStartY);
-      drawCtx.lineTo(lineEndX, lineEndY);
-      drawCtx.stroke();
-      var arrowPoints = [[4, 0], [-10, -5.5], [-10, 5.5]];
-      var angle = Math.atan2(lineStartY - lineEndY, lineStartX - lineEndX);
-      drawPoly(shift(rotate(arrowPoints, angle), lineStartX, lineStartY));
-    }
-
-    function drawLine() {
-      drawCtx.beginPath();
-      var lineStartX = mouseX > startX ? margin : drawRectW - margin;
-      var lineStartY = mouseY > startY ? margin : drawRectH - margin;
-      var lineEndX = drawRectW - lineStartX;
-      var lineEndY = drawRectH - lineStartY;
-      drawCtx.moveTo(lineStartX, lineStartY);
-      drawCtx.lineTo(lineEndX, lineEndY);
-      drawCtx.stroke();
-      drawCtx.closePath();
-    }
-
-    var margin = freeLineWidth;
-    var mouseX = pageX - editOffsetX;
-    var mouseY = pageY - editOffsetY;
-    drawRectX = Math.min(mouseX, startX) - margin;
-    drawRectY = Math.min(mouseY, startY) - margin;
-    drawRectW = Math.abs(mouseX - startX) + 2 * margin;
-    drawRectH = Math.abs(mouseY - startY) + 2 * margin;
-    $(drawCanvas)
-      .attr({width: drawRectW, height: drawRectH})
-      .css({left: drawRectX, top: drawRectY})
-      .disableSelection();
+    drawCtx.clearRect(Math.max(0, drawRectX - 20), Math.max(0, drawRectY - 20),
+                      drawRectW + 40, drawRectH + 40);
+    pointerX = pageX - editOffsetX;
+    pointerY = pageY - editOffsetY;
+    drawRectX = Math.min(pointerX, startX);
+    drawRectY = Math.min(pointerY, startY);
+    drawRectW = Math.abs(pointerX - startX);
+    drawRectH = Math.abs(pointerY - startY);
     drawCtx.strokeStyle = drawColor;
     drawCtx.fillStyle = drawColor;
     drawCtx.lineWidth = margin;
-    drawCtx.clearRect(0, 0, drawRectW, drawRectH);
+
     switch (shape) {
       case "rectangle": drawRectangle(); break;
       case "ellipse": drawEllipse(); break;
@@ -869,21 +910,15 @@ function DrawShapeAction(shape, resultCb) {
 
   function onPointerUp() {
     o.done();
-    resultCb({
-      a: shape,
-      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
-      x: drawRectX, y: drawRectY,
-      w: drawRectW, h: drawRectH,
-    });
+    resultCb(cut(drawCanvas, shape, drawRectX, drawRectY, drawRectW, drawRectH, margin));
   }
 
   this.done = function() {
     $(drawCanvas).remove();
     $(showCanvas).removeClass("draw");
-    $(showCanvas).unbind();
   }
   this.cancel = this.done;
-  this.shouldUndo = function() { return true; }
+  this.shouldUndo = function() { return drawing; }
 }
 
 function FreeLineAction(resultCb) {
@@ -968,7 +1003,7 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
 
   this.done = function() { $(drawCanvas).remove(); }
   this.cancel = this.done;
-  this.shouldUndo = function() { return true; }
+  this.shouldUndo = function() { return drawing; }
 
   var a = this;
   $(drawCanvas)
@@ -999,10 +1034,11 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
 
 function BlurAction(resultCb) {
   var o = this;
-  var drawCanvas = $('<canvas>')
+  var drawing = false;
+  var blurCanvas = $('<canvas>')
     .attr({id: "blur-canvas", width: showCanvas.width, height: showCanvas.height})
     .insertAfter(showCanvas)[0];
-  var drawCtx = drawCanvas.getContext("2d");
+  var drawCtx = blurCanvas.getContext("2d");
   var imageData = showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height);
   drawCtx.putImageData(imageData, 0, 0);
 
@@ -1066,15 +1102,9 @@ function BlurAction(resultCb) {
 
   function onPointerUp() {
     o.done();
-    resultCb({
-      a: "blur",
-      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
-      x: 0, y: 0,
-      w: drawCanvas.width, h: drawCanvas.height,
-    });
   }
 
-  $(drawCanvas)
+  $(blurCanvas)
     .on("mousedown", function(e) { onPointerDown(e.pageX, e.pageY); })
     .on("touchstart", function(e) {
       var t = e.originalEvent.changedTouches[0];
@@ -1083,8 +1113,9 @@ function BlurAction(resultCb) {
     });
 
   function onPointerDown(pageX, pageY) {
+    drawing = true;
     onPointerMove(pageX, pageY);
-    $(drawCanvas)
+    $(blurCanvas)
       .on("mousemove", function(e) { onPointerMove(e.pageX, e.pageY); })
       .on("touchmove", function(e) {
         var t = e.originalEvent.changedTouches[0];
@@ -1094,10 +1125,23 @@ function BlurAction(resultCb) {
       .on("mouseup touchend", function() { onPointerUp(); });
   }
 
+  function cleanUp() {
+    $(blurCanvas).remove();
+  }
 
-  this.done = function() { $(showCanvas).unbind(); $(drawCanvas).remove(); }
-  this.cancel = this.done;
-  this.shouldUndo = function() { return true; }
+  this.done = function() {
+    cleanUp();
+    if (drawing) {
+      resultCb({
+        a: "blur",
+        data: drawCtx.getImageData(0, 0, blurCanvas.width, blurCanvas.height),
+        x: 0, y: 0,
+        w: blurCanvas.width, h: blurCanvas.height,
+      });
+    }
+  }
+  this.cancel = cleanUp;
+  this.shouldUndo = function() { return drawing; }
 }
   
 function TextAction(resultCb) {
@@ -1120,8 +1164,9 @@ function TextAction(resultCb) {
 
   function addInput(x, y) {
     input = $('<textarea class="text-input" spellcheck="false"></textarea>')
+      .attr({rows: 1})
       .css({color: drawColor /* this is only the cursor color, see CSS. */,
-            left: x+"px", top: y+"px"})
+            width: "20px", height: "25px", left: x+"px", top: y+"px"})
       .insertAfter($(textCanvas))
       .autoGrow({maxWidth: editW - x, maxHeight: editH - y})
       .focus()
@@ -1130,7 +1175,13 @@ function TextAction(resultCb) {
         if (text != oldText) {
           renderText(input);
           oldText = text;
-          if (oldText != "") enableUndo();
+          updateUndoButton();
+        }
+      })
+      .on("keypress", function(e) {
+        if (e.which == 10 && e.ctrlKey && !e.altKey) { /* Ctrl-Enter */
+          o.done();
+          return false;
         }
       });
     testLine = $("<span>test</span>")
@@ -1175,17 +1226,11 @@ function TextAction(resultCb) {
     if (input && $(input).val() != "") {
       renderText(input);
       var lineH = $(testLine).height();
-      var textCtx = textCanvas.getContext("2d");
-      var cutX = Math.max(0, parseInt($(input).css("left")) - contrastBorderWidth);
-      var cutY = parseInt($(input).css("top"));
-      var cutW = Math.min($(".autogrow-textarea-mirror").width(), editW - cutX);
-      var cutH = Math.min($(".autogrow-textarea-mirror").height() - lineH, editH - cutY);
-      result = {
-        a: "text",
-        data: textCtx.getImageData(cutX, cutY, cutW, cutH),
-        x: cutX, y: cutY,
-        w: cutW, h: cutH,
-      };
+      result = cut(
+          textCanvas, "text",
+          parseInt($(input).css("left")), parseInt($(input).css("top")),
+          $(".autogrow-textarea-mirror").width(), $(".autogrow-textarea-mirror").height(),
+          contrastBorderWidth);
     }
     cleanUp();
     if (result) resultCb(result);
