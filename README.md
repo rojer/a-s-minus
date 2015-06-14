@@ -15,8 +15,7 @@ Here are the things I added, in addition to removing all the crap:
 
 Get it in store: [here](https://chrome.google.com/webstore/detail/awesome-screenshot-minus/bnophbnknjcjnbadhhkciahanapffepm)
 
-## PSA: Beta testers needed
-Version 4.0 with touch screen support is coming, lots of changes made, no doubt something got broken. If you use this extension a lot (I don't) and would be willing to test please contact me at rojer@rojer.me.
+Beta version (more frequent updates, but less stable): [here](https://chrome.google.com/webstore/detail/awesome-screenshot-minus/nlpijfidodaooggfpobkofgcedonamgd)
 
 Note on permissions:
   * all_urls: Required for shortcut-initiated captures to work, otherwise could be replaced with activeTab.
