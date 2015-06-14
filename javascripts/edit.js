@@ -355,7 +355,13 @@ function selectTool(tool) {
     case "color": color(); break;
     case "done": {
       if (currentAction != null) currentAction.done();
-      currentAction = newAction(selectedTool);
+      // Crop should not be automatically repeated. Another ugly hack, sorry.
+      if (selectedTool != "crop") {
+        currentAction = newAction(selectedTool);
+      } else {
+        currentAction = selectedTool = null;
+        updateSelectedToolButton();
+      }
       break;
     }
     case "cancel": {
