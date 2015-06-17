@@ -12,22 +12,25 @@ function keydownHandler(e) {
   switch (String.fromCharCode(e.which)) {
     case shortcutsConfig.visible.key: {
       if (shortcutsConfig.visible.enable) {
-        chrome.extension.sendRequest({action:"visible"});
+        e.preventDefault();
         e.stopPropagation();
+        chrome.extension.sendRequest({action:"visible"});
         return;
       }
     }
     case shortcutsConfig.selected.key: {
       if (shortcutsConfig.selected.enable) {
-        chrome.extension.sendRequest({action:"selected"});
+        e.preventDefault();
         e.stopPropagation();
+        chrome.extension.sendRequest({action:"selected"});
         return;
       }
     }
     case shortcutsConfig.entire.key: {
       if (shortcutsConfig.entire.enable) {
-        chrome.extension.sendRequest({action:"entire"});
+        e.preventDefault();
         e.stopPropagation();
+        chrome.extension.sendRequest({action:"entire"});
         return;
       }
     }
