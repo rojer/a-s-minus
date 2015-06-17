@@ -1,12 +1,14 @@
 function buildSelect() {
   var select = $('<select disabled="yes"></select>');
-  for(var c = 48; c < 91; c++) {
-    if(!(c > 57 && c < 65)){
+  for (var c = 48; c < 91; c++) {
+    if (!(c > 57 && c < 65)){
       var d = String.fromCharCode(c);
       $("<option></option>").attr({value:d}).text(d).appendTo(select);
     }
   }
-  select.appendTo($(".select")).each(function(i){this.value=["V","S","E"][i]});
+  select.appendTo($(".select")).each(function(i){
+    this.value = ["V", "S", "E"][i];
+  });
 }
 
 function bindSelect() {
@@ -67,13 +69,12 @@ function saveOptions() {
   localStorage.autoSave=$("#autosave").is(":checked");
   var a={};
   $("input:checkbox", $("#menu_shortcuts")).each(function(){
-    var b=this.id,c=this.checked,d=$("select",$(this).parent().siblings("td.select")).attr("value");
+    var b = this.id;
+    var c = this.checked;
+    var d = $("select", $(this).parent().siblings("td.select")).prop("value");
     a[""+b] = {enable:c, key:d};
   });
-  $("input:checkbox", $("#menu_features")).each(function(){
-    var b=this.id,c=this.checked,d=$("select",$(this).parent().siblings("td.select")).attr("value");
-    a[""+b] = {enable:c, key:d};
-  });
+  console.log(a.visible.key);
   localStorage.msObj = JSON.stringify(a);
   chrome.extension.sendRequest({action:"update_shortcuts"});
 }
@@ -94,8 +95,11 @@ function restoreOptions(){
     var b = msObj[a];
     var c = $("#"+a);
     var d = $("select",c.parent().siblings("td.select"));
-    b.enable&&(c.attr({checked:"checked"}),d.removeAttr("disabled"));
-    d.attr({value:b.key});
+    if (b.enable) {
+      c.attr({checked:"checked"});
+      d.removeAttr("disabled");
+    }
+    d.prop({value:b.key});
   }
 }
   
