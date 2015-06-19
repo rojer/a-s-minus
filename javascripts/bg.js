@@ -223,8 +223,8 @@ function handleRequest(ctx, req, sender) {
     };
     chrome.tabs.sendRequest(ctx.editTabId, req);
     ctx.imageData = [];
+    this.onload = null;
     testImage.src = "";
-    this.removeEventListener("onload", onTestImageReady, false);
     setContextForTab([ctx.windowId, ctx.tabId], null);  // Disconnect from original tab.
   };
   

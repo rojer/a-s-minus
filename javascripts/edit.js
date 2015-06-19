@@ -1,5 +1,4 @@
 function prepareEditArea(req) {
-  console.log('prepare', req);
   function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
     dy = counterY * imageHeight;
     if (counterY == numTilesY - 1) {
@@ -240,6 +239,10 @@ var Draggable = function(actionConstructor, resultCb) {
 
   this.resultCb = function(actionResult) {
     updateUndoButton();
+    if (isDone) {
+      resultCb(actionResult);
+      return;
+    }
     result = actionResult;
     var canvas = $('<canvas>').attr({width: result.w, height: result.h})[0];
     dragdiv = $('<div class="draggable">')
@@ -278,8 +281,12 @@ var Draggable = function(actionConstructor, resultCb) {
   var action = actionConstructor(o.resultCb);
 
   this.done = function() {
-    action.done();
-    doneMoving();
+    isDone = true;
+    if (drag) {
+      drag.deselect(true);
+    } else {
+      action.done();
+    }
   }
   this.cancel = function() {
     action.cancel();
@@ -1039,8 +1046,7 @@ function BlurAction(resultCb) {
     .attr({id: "blur-canvas", width: showCanvas.width, height: showCanvas.height})
     .insertAfter(showCanvas)[0];
   var drawCtx = blurCanvas.getContext("2d");
-  var imageData = showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height);
-  drawCtx.putImageData(imageData, 0, 0);
+  drawCtx.drawImage(showCanvas, 0, 0);
 
   // rojer: I do not claim to understand what's going on here. Is this reversible?
   function mix(imgData) {
@@ -1242,7 +1248,8 @@ function TextAction(resultCb) {
 
 function updateEditArea(){
   $editArea.css({width:editW+"px",height:editH+"px"});
-  if (editH < $(window).height()) {
+  var wh = $(window).height();
+  if (editH < wh - 88) {
     $editArea.addClass("small");
   } else {
     $editArea.removeClass("small");
@@ -1359,6 +1366,7 @@ $(document).ready(function(){
         centerOffX: 0,
         centerOffY: 0
       };
+      $(this).off("load");
       handleReq(req);
     });
   } else {
