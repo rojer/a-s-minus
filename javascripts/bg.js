@@ -193,13 +193,13 @@ function sendContentScriptRequest(ctx, request){
 localStorage.msObj || (localStorage.msObj = '{"visible":{"enable":true,"key":"V"},"selected":{"enable":true,"key":"S"},"entire":{"enable":true,"key":"E"}}');
 localStorage.format || (localStorage.format = "png");
 localStorage.delay_sec || (localStorage.delay_sec = 3);
+localStorage.tip_touch_shown || (localStorage.tip_touch_shown = 0);
 
 // Clean up old junk from localStorage.
 localStorage.removeItem("data-tracking");
+localStorage.removeItem("autoSave");
 
 $(document).ready(function(){});
-
-localStorage.autoSave="false";
 
 function handleRequest(ctx, req, sender) {
 
@@ -223,8 +223,8 @@ function handleRequest(ctx, req, sender) {
     };
     chrome.tabs.sendRequest(ctx.editTabId, req);
     ctx.imageData = [];
+    this.onload = null;
     testImage.src = "";
-    this.removeEventListener("onload", onTestImageReady, false);
     setContextForTab([ctx.windowId, ctx.tabId], null);  // Disconnect from original tab.
   };
   

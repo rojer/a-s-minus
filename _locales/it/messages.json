@@ -97,10 +97,6 @@
       "description": "Line title",
       "message": "Line"
    },
-   "logo": {
-      "description": "Awesome Screenshot logo title",
-      "message": "Awesome Screenshot"
-   },
    "rating": {
       "message": "Give it a nice 5-star rating to show your support!"
    },
