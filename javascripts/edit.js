@@ -245,9 +245,10 @@ var Draggable = function(actionConstructor, resultCb) {
       return;
     }
     result = actionResult;
-    var canvas = $('<canvas>').attr({width: result.w, height: result.h})[0];
+    var w = result.data.width, h = result.data.height;
+    var canvas = $('<canvas>').attr({width: w, height: h})[0];
     dragdiv = $('<div class="draggable">')
-      .css({left: result.x, top: result.y, width: result.w, height: result.h})
+      .css({left: result.x, top: result.y, width: w, height: h})
       .append(canvas)
       .insertAfter(showCanvas)[0];
     canvas.getContext("2d").putImageData(result.data, 0, 0);
@@ -411,12 +412,19 @@ function selectTool(tool) {
 }
 
 function commit(a) {
-  var before = {
-    a: "undo " + a.a,
-    data: showCtx.getImageData(a.x || 0, a.y || 0, a.w, a.h),
-    x: a.x, y: a.y,
-    w: a.w, h: a.h,
-  };
+  var before;
+  if (!('x' in a && 'y' in a)) {
+    before = {
+      a: "undo " + a.a,
+      data: showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height),
+    };
+  } else {
+    before = {
+      a: "undo " + a.a,
+      data: showCtx.getImageData(a.x, a.y, a.data.width, a.data.height),
+      x: a.x, y: a.y,
+    };
+  }
   actions.push([before, a]);
   applyAction(a);
   updateUndoButton();
@@ -424,18 +432,18 @@ function commit(a) {
 
 function applyAction(a) {
   var x, y;
-  console.log('applyAction', a.a, a.x, a.y);
+  console.log('applyAction', a.a, a.x, a.y, a.data.width, a.data.height);
   if (!('x' in a && 'y' in a)) {
-    editW = a.w;
-    editH = a.h;
+    editW = a.data.width;
+    editH = a.data.height;
     updateShowCanvas();
     updateEditArea();
     getEditOffset();
     showCtx.putImageData(a.data, 0, 0);
   } else {
     var c = document.createElement("canvas");
-    c.width = a.w;
-    c.height = a.h;
+    c.width = a.data.width;
+    c.height = a.data.height;
     c.getContext("2d").putImageData(a.data, 0, 0);
     showCtx.drawImage(c, a.x, a.y);
   }
@@ -752,7 +760,7 @@ var CropAction = function(resultCb) {
     var cropWidth = parseInt($("#cropdiv").css("width"));
     var cropHeight = parseInt($("#cropdiv").css("height"));
     var croppedImageData = showCtx.getImageData(cropLeft, cropTop, cropWidth, cropHeight);
-    resultCb({a: "crop", data: croppedImageData, w: cropWidth, h: cropHeight});
+    resultCb({a: "crop", data: croppedImageData});
   }
 
   this.cancel = this.finish;
@@ -795,7 +803,6 @@ function cut(canvas, action, x, y, w, h, margin) {
     a: action,
     data: ctx.getImageData(cutX, cutY, cutW, cutH),
     x: cutX, y: cutY,
-    w: cutW, h: cutH,
   };
 }
 
