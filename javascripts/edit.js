@@ -1340,7 +1340,7 @@ $(document).ready(function(){
   if (window.location.hash.substr(0, 6) == "#test-") {
     var file = window.location.hash.substr(6);
     console.log('loading test image ' + file);
-    $('<img id="test_image" src="../test/' + file + '" style="display:none">')
+    $('<img id="test_image" src="http://localhost:8080/' + file + '" style="display:none">')
       .appendTo($('body'));
     $("#test_image").on("load", function() {
       var c = document.createElement("canvas");
