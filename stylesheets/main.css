@@ -43,7 +43,7 @@ input[type=password] {
     color:#fff;
 }
 
-#tool-panel>div {
+#annotation_bar {
     margin:0 auto; padding:12px 240px;
     min-width:500px; height:24px; 
     text-align:center;
@@ -251,21 +251,28 @@ li#diigo_web_highlighter:hover a {
     position:absolute; 
     top:12px; left: 0;
     z-index:1000;
-    margin:0 40% !important;
-    padding: 0 !important;
+    margin-left: 50px;
+    padding: 5px 8px 5px 5px;
     border: 1px solid #E5B800;
-    border-radius:5px !important;
-    min-width:200px !important;
-    height:22px !important;
+    border-radius:5px;
     background-color: #FFF2BF;
-    color: #000 !important;
+    color: black;
     font-size: 12px; font-weight: bold;
-    text-align:center;
     -webkit-box-shadow: 0px 1px 1px rgba(0, 0, 0, .5);
+    white-space: nowrap;
 }
-#tip span {
-    margin-top:5px !important;
-    display:inline-block !important;
+#tip-text {
+  vertical-align: middle;
+}
+#tip-close {
+  background-image:url(../images/clear2.png);
+  padding-left: 12px;
+  vertical-align: middle;
+  margin-left: 2px;
+  font-size: 11px;
+}
+#tip-close:hover {
+  background-position: 0 12px;
 }
 
 /* exit button */	

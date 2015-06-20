@@ -1344,12 +1344,31 @@ var selectedTool = null;
 
 window.addEventListener("resize",function(){getEditOffset()});
 
+function showTip(text, onClose) {
+  $("#tip-text").text(text);
+  $("#tip")
+    .on("click", function() {
+      $("#tip").off("click");
+      $("#tip").fadeOut("slow", onClose);
+    })
+    .show();
+}
+
+function maybeShowTouchTip() {
+  if (navigator.maxTouchPoints > 0 && localStorage.tip_touch_shown != 1) {
+    showTip("You can use touch to draw", function() {
+      localStorage.tip_touch_shown = 1;
+    });
+  }
+}
+
 function handleReq(req) {
   if (requestFlag && req.userAction) {
     i18n();
     prepareEditArea(req);
     prepareTools();
     requestFlag = 0;
+    maybeShowTouchTip();
   }
 }
 
