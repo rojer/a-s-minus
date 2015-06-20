@@ -98,10 +98,6 @@
       "description": "Line title",
       "message": "Ligne"
    },
-   "logo": {
-      "description": "Awesome Screenshot logo title",
-      "message": "Superbe capture d'écran"
-   },
    "rating": {
       "message": "Pour démontrer votre soutien accorder une évaluation 5 étoiles."
    },
