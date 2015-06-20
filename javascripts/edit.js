@@ -1062,6 +1062,16 @@ function BlurAction(resultCb) {
   var drawCtx = blurCanvas.getContext("2d");
   drawCtx.drawImage(showCanvas, 0, 0);
 
+  var drawRectMinX = showCanvas.width, drawRectMinY = showCanvas.height;
+  var drawRectMaxX = 0, drawRectMaxY = 0;
+
+  function updateRect(x, y) {
+    if (x < drawRectMinX) drawRectMinX = x;
+    if (x > drawRectMaxX) drawRectMaxX = x;
+    if (y < drawRectMinY) drawRectMinY = y;
+    if (y > drawRectMaxY) drawRectMaxY = y;
+  }
+
   // rojer: I do not claim to understand what's going on here. Is this reversible?
   function mix(imgData) {
     var w = imgData.width;
@@ -1106,6 +1116,7 @@ function BlurAction(resultCb) {
   function onPointerMove(pageX, pageY) {
     var c = pageX - editOffsetX;
     var d = pageY - editOffsetY;
+    updateRect(c, d);
     imageData = drawCtx.getImageData(c, d, blurWidth, blurWidth);
     imageData = mix(imageData);
     var tc1 = document.createElement('canvas').getContext('2d');
@@ -1153,12 +1164,12 @@ function BlurAction(resultCb) {
     cleanUp();
     if (drawing) {
       drawing = false;
-      resultCb({
-        a: "blur",
-        data: drawCtx.getImageData(0, 0, blurCanvas.width, blurCanvas.height),
-        x: 0, y: 0,
-        w: blurCanvas.width, h: blurCanvas.height,
-      });
+      var result = cut(blurCanvas, "blur",
+                       drawRectMinX, drawRectMinY,
+                       drawRectMaxX - drawRectMinX,
+                       drawRectMaxY - drawRectMinY,
+                       blurWidth);
+      resultCb(result);
     }
   }
   this.cancel = cleanUp;
