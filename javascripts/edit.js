@@ -452,7 +452,7 @@ function undo() {
   updateUndoButton();
 }
 
-function i18n(){$("#logo").text(chrome.i18n.getMessage("logo")),$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
+function i18n(){$("title").text(chrome.i18n.getMessage("editTitle")),document.getElementById("save").lastChild.data=chrome.i18n.getMessage("saveBtn"),document.getElementById("done").lastChild.data=chrome.i18n.getMessage("doneBtn"),document.getElementById("cancel").lastChild.data=chrome.i18n.getMessage("cancelBtn"),document.getElementById("save_button").lastChild.data=chrome.i18n.getMessage("save_button"),$(".title").each(function(){$(this).attr({title:chrome.i18n.getMessage(this.id.replace(/-/,""))})}),$(".i18n").each(function(){$(this).html(chrome.i18n.getMessage(this.id.replace(/-/,"")))}),$("#share")[0].innerHTML+='<div class="tip">[?]<div>Images hosted on <a href="http://awesomescreenshot.com" target="_blank">awesomescreenshot.com</a></div></div>'}
 
 function save() {
   function embedLocalSave() {

@@ -97,10 +97,6 @@
       "description": "Line title",
       "message": "直线"
    },
-   "logo": {
-      "description": "Awesome Screenshot logo title",
-      "message": "网页截图"
-   },
    "rating": {
       "message": "Give it a nice 5-star rating to show your support!"
    },

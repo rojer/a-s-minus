@@ -98,10 +98,6 @@
       "description": "Line title",
       "message": "線"
    },
-   "logo": {
-      "description": "Awesome Screenshot logo title",
-      "message": "Awesome Screenshot"
-   },
    "rating": {
       "message": "どうか良い５つ星評価で、我々をサポートしてください。"
    },
