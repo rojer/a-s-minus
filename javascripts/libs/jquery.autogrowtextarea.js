@@ -23,7 +23,6 @@
 
 jQuery.fn.autoGrow = function(options) {
   if (!options) options = {};
-  console.log(options);
   return this.each(function() {
 
     var createMirror = function(textarea) {
