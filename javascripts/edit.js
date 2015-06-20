@@ -178,10 +178,10 @@ function bindShortcuts(){
   $("body").keydown(function(e){
     // In text entry mode, the only shortcut enabled is cancel.
     // This is kinda ugly, bleh.
-    if (currentAction != null && currentAction.isText) { // && currentAction.shouldUndo()) {
+    if (currentAction != null && currentAction.isText) {
       if (e.which == 27) {
         selectTool("cancel");
-      } else if (!currentAction.shouldUndo() && e.which == 90 && e.ctrlKey && !e.altKey) {
+      } else if (!currentAction.isUndoable() && e.which == 90 && e.ctrlKey && !e.altKey) {
         selectTool("undo");
       }
       return;
@@ -226,7 +226,7 @@ var Repeated = function(actionConstructor, resultCb) {
 
   this.done = function() { isDone = true; o.action.done(); }
   this.cancel = function() { o.action.cancel(); }
-  this.shouldUndo = function() { return o.action.shouldUndo(); }
+  this.isUndoable = function() { return o.action.isUndoable(); }
 
   newAction();
 }
@@ -294,7 +294,7 @@ var Draggable = function(actionConstructor, resultCb) {
     result = null;
     doneMoving();
   }
-  this.shouldUndo = function() { return action.shouldUndo(); }
+  this.isUndoable = function() { return action.isUndoable(); }
 }
 
 function updateSelectedToolButton() {
@@ -374,7 +374,7 @@ function selectTool(tool) {
     }
     case "cancel": {
       if (currentAction != null) {
-        if (currentAction.shouldUndo()) {
+        if (currentAction.isUndoable()) {
           currentAction.cancel();
           currentAction = newAction(selectedTool);
         } else {
@@ -442,15 +442,13 @@ function applyAction(a) {
 }
 
 function undo() {
-  if (currentAction != null && currentAction.shouldUndo()) {
-    currentAction.cancel();
-    currentAction = (selectedTool != null ? newAction(selectedTool) : null);
-    updateUndoButton();
-    return;
+  var currentActionIsUndoable = (currentAction != null && currentAction.isUndoable());
+  if (currentAction != null) currentAction.cancel();
+  if (!currentActionIsUndoable && actions.length != 0) {
+    var before = actions.pop()[0];
+    applyAction(before);
   }
-  if (actions.length == 0) return;
-  var before = actions.pop()[0];
-  applyAction(before);
+  currentAction = (selectedTool != null ? newAction(selectedTool) : null);
   updateUndoButton();
 }
 
@@ -758,7 +756,7 @@ var CropAction = function(resultCb) {
   }
 
   this.cancel = this.finish;
-  this.shouldUndo = function() { return false; }
+  this.isUndoable = function() { return false; }
 }
 
 function color(){
@@ -779,7 +777,7 @@ function color(){
 }
 
 function updateUndoButton() {
-  var enabled = actions.length > 0 || (currentAction && currentAction.shouldUndo());
+  var enabled = actions.length > 0 || (currentAction && currentAction.isUndoable());
   if (enabled) {
     $("#undo").addClass("enabled");
   } else {
@@ -932,7 +930,7 @@ function DrawShapeAction(shape, resultCb) {
     $(showCanvas).removeClass("draw");
   }
   this.cancel = this.done;
-  this.shouldUndo = function() { return drawing; }
+  this.isUndoable = function() { return drawing; }
 }
 
 function FreeLineAction(resultCb) {
@@ -1025,7 +1023,7 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
 
   this.done = function() { $(drawCanvas).remove(); }
   this.cancel = this.done;
-  this.shouldUndo = function() { return drawing; }
+  this.isUndoable = function() { return drawing; }
 
   var a = this;
   $(drawCanvas)
@@ -1154,6 +1152,7 @@ function BlurAction(resultCb) {
   this.done = function() {
     cleanUp();
     if (drawing) {
+      drawing = false;
       resultCb({
         a: "blur",
         data: drawCtx.getImageData(0, 0, blurCanvas.width, blurCanvas.height),
@@ -1163,7 +1162,7 @@ function BlurAction(resultCb) {
     }
   }
   this.cancel = cleanUp;
-  this.shouldUndo = function() { return drawing; }
+  this.isUndoable = function() { return drawing; }
 }
   
 function TextAction(resultCb) {
@@ -1259,7 +1258,7 @@ function TextAction(resultCb) {
   }
 
   this.cancel = cleanUp;
-  this.shouldUndo = function() { return oldText != ""; }
+  this.isUndoable = function() { return oldText != ""; }
 }
 
 function updateEditArea(){
