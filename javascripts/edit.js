@@ -191,17 +191,18 @@ function bindShortcuts(){
       tool = "undo";
     } else if (!e.ctrlKey && !e.altKey) {
       switch (e.which) {
-        case 83 /* s */: tool = "save"; break;
         case 67 /* c */: tool = "crop"; break;
         case 82 /* r */: tool = "rectangle"; break;
         case 69 /* e */: tool = "ellipse"; break;
         case 65 /* a */: tool = "arrow"; break;
         case 76 /* l */: tool = "line"; break;
         case 70 /* f */: tool = "free-line"; break;
+        case 72 /* h */: tool = "text-highlighter"; break;
         case 66 /* b */: tool = "blur"; break;
         case 84 /* t */: tool = "text"; break;
         case 13 /* enter */: tool = "done"; break;
-        case 27 /* esc */: tool = "cancel";
+        case 27 /* esc */: tool = "cancel"; break;
+        case 83 /* s */: tool = "save"; break;
       }
     }
     if (tool) {
@@ -406,9 +407,9 @@ function selectTool(tool) {
 function commit(a) {
   var before = {
     a: "undo " + a.a,
-    data: showCtx.getImageData(0, 0, showCanvas.width, showCanvas.height),
-    w: showCanvas.width,
-    h: showCanvas.height,
+    data: showCtx.getImageData(a.x || 0, a.y || 0, a.w, a.h),
+    x: a.x, y: a.y,
+    w: a.w, h: a.h,
   };
   actions.push([before, a]);
   applyAction(a);
@@ -947,28 +948,35 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
   var drawing = false;
   var paused = false;
   var isTouch = false;
+  var drawRectMinX = showCanvas.width, drawRectMinY = showCanvas.height;
+  var drawRectMaxX = 0, drawRectMaxY = 0;
 
-  this.begin = function(startX, startY) {
-    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    drawCtx.beginPath();
-    drawCtx.moveTo(startX, startY);
-    this.lastX = startX;
-    this.lastY = startY;
+  function updateRect(x, y) {
+    if (x < drawRectMinX) drawRectMinX = x;
+    if (x > drawRectMaxX) drawRectMaxX = x;
+    if (y < drawRectMinY) drawRectMinY = y;
+    if (y > drawRectMaxY) drawRectMaxY = y;
+  }
+
+  this.begin = function(pageX, pageY) {
+    var startX = pageX - editOffsetX, startY = pageY - editOffsetY;
+    doDraw(startX, startY);
+    doDraw(startX + 1, startY + 1);
     drawing = true;
   }
 
-  this.draw = function(toX, toY) {
+  this.draw = function(pageX, pageY) {
     if (!drawing || paused) return;
-    if (this.lastX !== null) {
-      drawCtx.lineTo(toX, toY);
-      this.lastX = toX;
-      this.lastY = toY;
-    } else {
-      drawCtx.moveTo(toX, toY);
-      this.lastX = toX;
-      this.lastY = toY;
-      return;
-    }
+    var toX = pageX - editOffsetX, toY = pageY - editOffsetY;
+    doDraw(toX, toY);
+  }
+
+  function doDraw(toX, toY) {
+    updateRect(toX, toY);
+    if (this.lastX == null) drawCtx.moveTo(toX, toY);
+    drawCtx.lineTo(toX, toY);
+    this.lastX = toX;
+    this.lastY = toY;
     drawCtx.lineJoin = "round";
     drawCtx.lineCap = "round";
     if (isHighlight) {
@@ -995,17 +1003,18 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     paused = false;
   };
 
-  this.end = function() {
+  this.end = function(pageX, pageY) {
     if (!drawing) return;
+    doDraw(pageX - editOffsetX, pageY - editOffsetY);
     drawing = false;
     paused = false;
+    var result = cut(drawCanvas, isHighlight ? "text-highlight" : "free-line",
+                 drawRectMinX, drawRectMinY,
+                 drawRectMaxX - drawRectMinX,
+                 drawRectMaxY - drawRectMinY,
+                 isHighlight ? highlightWidth : freeLineWidth);
     this.done();
-    resultCb({
-      a: isHighlight ? "highlight" : "free-line",
-      data: drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height),
-      x: 0, y: 0,
-      w: drawCanvas.width, h: drawCanvas.height,
-    });
+    resultCb(result);
   };
 
   this.done = function() { $(drawCanvas).remove(); }
@@ -1017,24 +1026,25 @@ function freeLineOrHighlightAction(isHighlight, resultCb) {
     .attr({width:editW, height:editH})
     .css({left:0, top:0, cursor:"url(../images/pen.png),auto !important"})
     .disableSelection().off("mousedown mouseup")
-    .on("mousedown", function(e) { a.begin(e.pageX - editOffsetX, e.pageY - editOffsetY); })
-    .on("mousemove", function(e) { a.draw(e.pageX - editOffsetX, e.pageY - editOffsetY); })
+    .on("mousedown", function(e) { a.begin(e.pageX, e.pageY); })
+    .on("mousemove", function(e) { a.draw(e.pageX, e.pageY); })
     .on("mouseout", function() { a.pause(); })
     .on("mouseenter", function(e) { if (e.buttons & 1) a.resume(); else a.end(); })
-    .on("mouseup", function() { a.end(); })
+    .on("mouseup", function(e) { a.end(e.pageX, e.pageY); })
     .on("touchstart", function(e) {
       isTouch = true;
       var t = e.originalEvent.changedTouches[0];
-      a.begin(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      a.begin(t.pageX, t.pageY);
       e.originalEvent.preventDefault();
     })
     .on("touchmove", function(e) {
       var t = e.originalEvent.changedTouches[0];
-      a.draw(t.pageX - editOffsetX, t.pageY - editOffsetY);
+      a.draw(t.pageX, t.pageY);
       e.originalEvent.preventDefault();
     })
     .on("touchend", function(e) {
-      a.end();
+      var t = e.originalEvent.changedTouches[0];
+      a.end(t.pageX, t.pageY);
       e.originalEvent.preventDefault();
     });
 };
