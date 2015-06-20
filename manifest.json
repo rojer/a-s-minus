@@ -35,7 +35,7 @@
      "notifications"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "4.0.0.3",
+   "version": "4.0.0.4",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://nlpijfidodaooggfpobkofgcedonamgd/#" ],
    "oauth2": {
      "client_id": "681609840281-98ot9gn10qpakv9m2p3b02envjru1qpb.apps.googleusercontent.com",
