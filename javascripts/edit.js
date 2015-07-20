@@ -1484,6 +1484,83 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
   setPermissionsRequest.send(JSON.stringify({ role: "reader", type: "anyone" }));
 };
 
+/**
+Request to view users Google Drive folders 
+Sorry if sloppy (I'm noob to Chrome Extension Dev)
+joshkayani@gmail.com
+*/
+SavePage.getGDriveFolders = function(folderID, folderName){
+	
+	// Get read-only OAuth permissions to view the users GDrive folders
+	var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
+	chrome.identity.getAuthToken(authDetails, function(authToken){
+		$.ajax({
+			url: "https://www.googleapis.com/drive/v2/files",
+			
+			type: "get",
+			
+			data: {
+				corpus: "DEFAULT",
+				q: "('" + folderID + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
+				spaces: "drive",
+				fields: "items",
+				maxResults: 1000
+			},
+			
+			headers: {
+				"Authorization": "OAuth " + authToken,
+			},
+			
+			// Once we're given permission, populate the folder select dropdown
+			success: function(response){
+				var title, id;
+				var hasParent;
+				console.log(response);	
+				
+				// Add each folder to the dropdown
+				if (response["items"].length === 0){
+					alert("Could not find any folders");
+				}
+				else {
+					
+					// For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
+					// not to be confused with folderID and folderTitle (these are for the parent folders)
+					for (var listing in response["items"]){
+							title = response["items"][listing]["title"];
+							id = response["items"][listing]["id"];
+							$(".gdrive-folder-select").append("<option value='" + id + "'>" + title + " (" + folderName + ")" + "</option>");
+					}
+				}
+				
+				// Add the root folder as an option
+				$(".gdrive-folder-select").append("<option value='" + folderID + "'>" + folderName + " (root) </option>");
+				
+				
+				// Remove the current "change" event to prevent running the callback in a loop
+				$(".gdrive-folder-select").unbind();
+				
+				// Append a fresh "change" event to generate a list of subfolders as needed
+				$(".gdrive-folder-select").change(function(){
+					alert("Selected folder changed!");
+					var folID = $(".gdrive-folder-select").val();
+					var name =  $(".gdrive-folder-select option:selected").text();
+					
+					// Retrieve subfolders as long as the "root" folder isn't selected
+					if(name.indexOf("root") === -1)
+						SavePage.getGDriveFolders(folID, name);
+				});
+			},
+			
+			error: function(error){
+				alert("We failed :(");
+				console.log("Could not list folders\n" + error);
+			}
+		});
+	});
+};
+	
+SavePage.getGDriveFolders("root", "My Drive");
+
 SavePage.saveToGdrive = function() {
   var imageName = $("#gdrive-image-name").val();
   var isPublic = (0 == $("#gdrive-private").prop("checked"));
@@ -1568,9 +1645,14 @@ SavePage.saveToGdrive = function() {
       }
     };
     var imageInfo = SavePage.getImageSrcAndType();
+	
     var fileMetadata = {
       title: imageName + "." + imageInfo.fileExt,
       mimeType: imageInfo.mimeType,
+	  parents: [{
+		  kind: "drive#fileLink",
+		  id: $(".gdrive-folder-select").val()
+	  }]
     };
     var partBoundary = "--" + multipartBoundaryString;
     var lastBoundary = "--" + multipartBoundaryString + "--";
