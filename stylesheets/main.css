@@ -1488,7 +1488,6 @@ body.save #edit-area {
 #gdrive-user{
     display: none;
     margin-top: 10px;
-	padding-top: 10px;
 }
 #gdrive-user p span{
     color: #888;
