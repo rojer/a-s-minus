@@ -1485,14 +1485,19 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
 };
 
 /**
-Request to view users Google Drive folders 
-Sorry if sloppy (I'm noob to Chrome Extension Dev)
-joshkayani@gmail.com
+* Takes the users Google Drive folders, and lists them in an
+* HTML <select> tag so the user can choose which folder to save the screenshot
+* @author 	joshkayani@gmail.com
+* @param	currentFolder	An object in the form {name: Folder-Name, id: Folder-ID}. Used to represent the folder currently being browsed
+* @param	parentChain		An array of objects in the same format as currentFolder, used to keep track of the "chain" of ancestor folders
+* @param	up 				A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
 */
-SavePage.getGDriveFolders = function(folderID, folderName){
+SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 	
 	// Get read-only OAuth permissions to view the users GDrive folders
 	var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
+	var recentParent = parentChain[parentChain.length - 1];
+	
 	chrome.identity.getAuthToken(authDetails, function(authToken){
 		$.ajax({
 			url: "https://www.googleapis.com/drive/v2/files",
@@ -1501,7 +1506,7 @@ SavePage.getGDriveFolders = function(folderID, folderName){
 			
 			data: {
 				corpus: "DEFAULT",
-				q: "('" + folderID + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
+				q: "('" + currentFolder["id"] + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
 				spaces: "drive",
 				fields: "items",
 				maxResults: 1000
@@ -1514,52 +1519,77 @@ SavePage.getGDriveFolders = function(folderID, folderName){
 			// Once we're given permission, populate the folder select dropdown
 			success: function(response){
 				var title, id;
-				var hasParent;
-				console.log(response);	
+				var options = $(".gdrive-folder-select");
+								
+				// Add an option to go up a level in the folder tree,
+				// as long we're currently not in the absolute root
+				if(currentFolder["id"] != "root")
+					options.append("<option class='up' value='" + recentParent["id"] + "'>" + recentParent["name"] + "</option>");
 				
-				// Add each folder to the dropdown
-				if (response["items"].length === 0){
-					alert("Could not find any folders");
-				}
-				else {
-					
-					// For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
-					// not to be confused with folderID and folderTitle (these are for the parent folders)
-					for (var listing in response["items"]){
-							title = response["items"][listing]["title"];
-							id = response["items"][listing]["id"];
-							$(".gdrive-folder-select").append("<option value='" + id + "'>" + title + " (" + folderName + ")" + "</option>");
+				// Sort the folders into alphabetical order
+				response["items"] = response["items"].sort(function (a, b){
+					if(a["title"] > b["title"]){
+						return 1;
 					}
+					else{
+						return -1;
+					}
+				});
+				
+				// For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
+				for (var i = 0; i < response["items"].length; i++){
+					title = response["items"][i]["title"];
+					id = response["items"][i]["id"];
+					options.append("<option value='" + id + "'>" + title + "</option>");					
 				}
 				
-				// Add the root folder as an option
-				$(".gdrive-folder-select").append("<option value='" + folderID + "'>" + folderName + " (root) </option>");
+				// Add an option to use the root of the current folder
+				options.append("<option selected class='no-recursion' value='" + currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");				
 				
+				// Remove previous change() events 
+				options.unbind();
 				
-				// Remove the current "change" event to prevent running the callback in a loop
-				$(".gdrive-folder-select").unbind();
-				
-				// Append a fresh "change" event to generate a list of subfolders as needed
-				$(".gdrive-folder-select").change(function(){
-					alert("Selected folder changed!");
-					var folID = $(".gdrive-folder-select").val();
-					var name =  $(".gdrive-folder-select option:selected").text();
+				options.change(function(){
+					var selectedFolderName = options.children("option:selected").text();
+					var selectedFolderID   = options.val();
+					var up				   = options.children("option:selected").hasClass("up");
 					
-					// Retrieve subfolders as long as the "root" folder isn't selected
-					if(name.indexOf("root") === -1)
-						SavePage.getGDriveFolders(folID, name);
+					// Folder traversing is only done if the selected folder isn't a "root"
+					if (!options.children("option:selected").hasClass("no-recursion")){
+						
+						// Clear the list of folders
+						options.empty();
+						
+						// If we're going up a folder, we should remove latestParent from the parentChain
+						if (up){
+							parentChain.pop();
+							SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, true);
+						}
+						
+						// If we're going down a folder, we should add the current folder to the parentChain
+						// before descending a level in the tree
+						else{
+							parentChain.push(currentFolder);
+							SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, false);
+						}
+					}
 				});
+
 			},
 			
-			error: function(error){
-				alert("We failed :(");
-				console.log("Could not list folders\n" + error);
+			// For error handling
+			statusCode: {
+				401: function(){
+					$("#GauthError").jqm().jqmShow();
+					$("#gdrive-save-form").show();
+				}
 			}
 		});
 	});
 };
-	
-SavePage.getGDriveFolders("root", "My Drive");
+
+// Make the initial call
+SavePage.getGDriveFolders({name: "My Drive", id: "root"}, [{name: "My Drive", id: "root"}], false);
 
 SavePage.saveToGdrive = function() {
   var imageName = $("#gdrive-image-name").val();
