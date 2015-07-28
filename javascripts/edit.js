@@ -1489,8 +1489,8 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
 * HTML <select> tag so the user can choose which folder to save the screenshot
 * @author 	joshkayani@gmail.com
 * @param	currentFolder	An object in the form {name: Folder-Name, id: Folder-ID}. Used to represent the folder currently being browsed
-* @param	parentChain		An array of objects in the same format as currentFolder, used to keep track of the "chain" of ancestor folders
-* @param	up 				A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
+* @param	parentChain	An array of objects in the same format as currentFolder, used to keep track of the "chain" of ancestor folders
+* @param	up 		A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
 */
 SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 	
@@ -1552,7 +1552,7 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 				options.change(function(){
 					var selectedFolderName = options.children("option:selected").text();
 					var selectedFolderID   = options.val();
-					var up				   = options.children("option:selected").hasClass("up");
+					var up		       = options.children("option:selected").hasClass("up");
 					
 					// Folder traversing is only done if the selected folder isn't a "root"
 					if (!options.children("option:selected").hasClass("no-recursion")){
@@ -1563,15 +1563,15 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 						// If we're going up a folder, we should remove latestParent from the parentChain
 						if (up){
 							parentChain.pop();
-							SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, true);
 						}
 						
 						// If we're going down a folder, we should add the current folder to the parentChain
 						// before descending a level in the tree
 						else{
 							parentChain.push(currentFolder);
-							SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, false);
 						}
+
+						SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
 					}
 				});
 
