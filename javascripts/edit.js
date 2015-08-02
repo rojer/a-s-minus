@@ -219,7 +219,7 @@ var Repeated = function(actionConstructor, resultCb) {
     resultCb(result);
     if (!isDone) setTimeout(newAction, 100);
   };
- 
+
   function newAction() {
     o.action = actionConstructor(o.resultCb);
   }
@@ -1182,7 +1182,7 @@ function BlurAction(resultCb) {
   this.cancel = cleanUp;
   this.isUndoable = function() { return drawing; }
 }
-  
+
 function TextAction(resultCb) {
   var o = this;
   var input, oldText = "";
@@ -1333,11 +1333,11 @@ function addMargin(){
 function isCrOS(){
   return-1!=navigator.appVersion.indexOf("CrOS")
 }
-  
+
 function showInfo(a){
   if(a)var b='<div class="w-info" id="w-cpy-info"><div class="w-info-topBar"><div class="w-info-logo"></div><div>Awesome Screenshot</div></div><p>It has been announced that Chrome will no longer allow extensions to make use of NPAPI, and therefore extensions will no longer be able to provide "copy image to clipboard" feature.   The current "Copy" feature is a workaround. If It doesn\'t work for you, please follow the instruction below:</p><p>Right-click the image in the left pane, and then select "<b>Copy Image</b>". </p><div class="w-close-btn"></div></div>';else var b='<div class="w-info" id="w-cpy-info"><div class="w-info-topBar"><div class="w-info-logo"></div><div>Awesome Screenshot</div></div><p>Previously, Awesome screenshot  was able to make use of plugins through a standard plugin system called NPAPI. It has been <a href="http://blog.chromium.org/2013/09/saying-goodbye-to-our-old-friend-npapi.html" target="_blank">announced</a> that Chrome will no longer allow extensions to make use of NPAPI, and therefore extensions will no longer be able to provide "copy image to clipboard" feature. </p><p>After some hard work, we finally worked around this issue and enable the copy feature for you again. </p><p>We are sorry for this change.  If you like awesome screenshot, please <a href="https://chrome.google.com/webstore/detail/awesome-screenshot-captur/alelhddbbhepgpmgidjdcjakblofbmce/reviews">give it a nice 5-star rating</a>. Thanks for the support!</p><div class="w-close-btn"></div></div>';var c='<div class="w-wrapper"></div>',d=$(c).appendTo(document.body).css({visibility:"visible",opacity:1}),e=$(b).appendTo(document.body);e.find(".w-close-btn").on("click",function(){d.remove(),e.remove()})
 }
-  
+
 
 var showCanvas,isPngCompressed=!1,isSavePageInit=!1,editOffsetX,editOffsetY,editW,editH,$editArea,actions=[],initFlag=1,requestFlag=1,uploadFlag=!1,showCanvas,showCtx;
 var highlightWidth = 20, freeLineWidth = 4, blurWidth = 20;
@@ -1487,105 +1487,105 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
 /**
 * Takes the users Google Drive folders, and lists them in an
 * HTML <select> tag so the user can choose which folder to save the screenshot
-* @author 	joshkayani@gmail.com
-* @param	currentFolder	An object in the form {name: Folder-Name, id: Folder-ID}. Used to represent the folder currently being browsed
-* @param	parentChain	An array of objects in the same format as currentFolder, used to keep track of the "chain" of ancestor folders
-* @param	up 		A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
+* @author   joshkayani@gmail.com
+* @param  currentFolder  An object in the form {name: Folder-Name, id: Folder-ID}. Used to represent the folder currently being browsed
+* @param  parentChain  An array of objects in the same format as currentFolder, used to keep track of the "chain" of ancestor folders
+* @param  up     A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
 */
 SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
-	
-	// Get read-only OAuth permissions to view the users GDrive folders
-	var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
-	var recentParent = parentChain[parentChain.length - 1];
-	
-	chrome.identity.getAuthToken(authDetails, function(authToken){
-		$.ajax({
-			url: "https://www.googleapis.com/drive/v2/files",
-			
-			type: "get",
-			
-			data: {
-				corpus: "DEFAULT",
-				q: "('" + currentFolder["id"] + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
-				spaces: "drive",
-				fields: "items",
-				maxResults: 1000
-			},
-			
-			headers: {
-				"Authorization": "OAuth " + authToken,
-			},
-			
-			// Once we're given permission, populate the folder select dropdown
-			success: function(response){
-				var title, id;
-				var options = $(".gdrive-folder-select");
-								
-				// Add an option to go up a level in the folder tree,
-				// as long we're currently not in the absolute root
-				if(currentFolder["id"] != "root")
-					options.append("<option class='up' value='" + recentParent["id"] + "'>" + recentParent["name"] + "</option>");
-				
-				// Sort the folders into alphabetical order
-				response["items"] = response["items"].sort(function (a, b){
-					if(a["title"] > b["title"]){
-						return 1;
-					}
-					else{
-						return -1;
-					}
-				});
-				
-				// For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
-				for (var i = 0; i < response["items"].length; i++){
-					title = response["items"][i]["title"];
-					id = response["items"][i]["id"];
-					options.append("<option value='" + id + "'>" + title + "</option>");					
-				}
-				
-				// Add an option to use the root of the current folder
-				options.append("<option selected class='no-recursion' value='" + currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");				
-				
-				// Remove previous change() events 
-				options.unbind();
-				
-				options.change(function(){
-					var selectedFolderName = options.children("option:selected").text();
-					var selectedFolderID   = options.val();
-					var up		       = options.children("option:selected").hasClass("up");
-					
-					// Folder traversing is only done if the selected folder isn't a "root"
-					if (!options.children("option:selected").hasClass("no-recursion")){
-						
-						// Clear the list of folders
-						options.empty();
-						
-						// If we're going up a folder, we should remove latestParent from the parentChain
-						if (up){
-							parentChain.pop();
-						}
-						
-						// If we're going down a folder, we should add the current folder to the parentChain
-						// before descending a level in the tree
-						else{
-							parentChain.push(currentFolder);
-						}
 
-						SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
-					}
-				});
+  // Get read-only OAuth permissions to view the users GDrive folders
+  var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
+  var recentParent = parentChain[parentChain.length - 1];
 
-			},
-			
-			// For error handling
-			statusCode: {
-				401: function(){
-					$("#GauthError").jqm().jqmShow();
-					$("#gdrive-save-form").show();
-				}
-			}
-		});
-	});
+  chrome.identity.getAuthToken(authDetails, function(authToken){
+    $.ajax({
+      url: "https://www.googleapis.com/drive/v2/files",
+
+      type: "get",
+
+      data: {
+        corpus: "DEFAULT",
+        q: "('" + currentFolder["id"] + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
+        spaces: "drive",
+        fields: "items",
+        maxResults: 1000
+      },
+
+      headers: {
+        "Authorization": "OAuth " + authToken,
+      },
+
+      // Once we're given permission, populate the folder select dropdown
+      success: function(response){
+        var title, id;
+        var options = $(".gdrive-folder-select");
+
+        // Add an option to go up a level in the folder tree,
+        // as long we're currently not in the absolute root
+        if (currentFolder["id"] != "root")
+          options.append("<option class='up' value='" + recentParent["id"] + "'>" + recentParent["name"] + "</option>");
+
+        // Sort the folders into alphabetical order
+        response["items"] = response["items"].sort(function (a, b){
+          if (a["title"] > b["title"]){
+            return 1;
+          }
+          else{
+            return -1;
+          }
+        });
+
+        // For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
+        for (var i = 0; i < response["items"].length; i++){
+          title = response["items"][i]["title"];
+          id = response["items"][i]["id"];
+          options.append("<option value='" + id + "'>" + title + "</option>");
+        }
+
+        // Add an option to use the root of the current folder
+        options.append("<option selected class='no-recursion' value='" + currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");
+
+        // Remove previous change() events
+        options.unbind();
+
+        options.change(function(){
+          var selectedFolderName = options.children("option:selected").text();
+          var selectedFolderID   = options.val();
+          var up                 = options.children("option:selected").hasClass("up");
+
+          // Folder traversing is only done if the selected folder isn't a "root"
+          if (!options.children("option:selected").hasClass("no-recursion")){
+
+            // Clear the list of folders
+            options.empty();
+
+            // If we're going up a folder, we should remove latestParent from the parentChain
+            if (up){
+              parentChain.pop();
+            }
+
+            // If we're going down a folder, we should add the current folder to the parentChain
+            // before descending a level in the tree
+            else{
+              parentChain.push(currentFolder);
+            }
+
+            SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
+          }
+        });
+
+      },
+
+      // For error handling
+      statusCode: {
+        401: function(){
+          $("#GauthError").jqm().jqmShow();
+          $("#gdrive-save-form").show();
+        }
+      }
+    });
+  });
 };
 
 // Make the initial call
@@ -1675,14 +1675,14 @@ SavePage.saveToGdrive = function() {
       }
     };
     var imageInfo = SavePage.getImageSrcAndType();
-	
+
     var fileMetadata = {
       title: imageName + "." + imageInfo.fileExt,
       mimeType: imageInfo.mimeType,
-	  parents: [{
-		  kind: "drive#fileLink",
-		  id: $(".gdrive-folder-select").val()
-	  }]
+    parents: [{
+      kind: "drive#fileLink",
+      id: $(".gdrive-folder-select").val()
+    }]
     };
     var partBoundary = "--" + multipartBoundaryString;
     var lastBoundary = "--" + multipartBoundaryString + "--";
@@ -1766,7 +1766,7 @@ SavePage.initSaveOption = function(){
   var c='<div class="emailButton"><a class="gmail" href="https://mail.google.com/mail/?view=cm&amp;tf=0&amp;fs=1&amp;body=" target="_blank"><span></span>Gmail</a><a class="yahoo" href="http://compose.mail.yahoo.com/" target="_blank"><span></span>Yahoo mail</a><a class="hotmail" href="http://www.hotmail.msn.com/secure/start?action=compose&amp;body=" target="_blank"><span></span>Hotmail</a></div>';
   var d='<div class="shareLink"><p>Image Link (share via MSN, GTalk, etc.)</p><input type="text" /></div>';
   var e='<a href="" class="privateLink" target="_blank">See screenshot on diigo.com</a>';
-  
+
   $(a).html(b+c+d+e).prependTo($("#saveOptionContent .diigo")).hide();
   $(a).html(b+c+d).prependTo($("#saveOptionContent .as")).hide();
   $(".diigo .saveForm input[name=title]").val(tabtitle);
