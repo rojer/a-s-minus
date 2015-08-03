@@ -1493,7 +1493,6 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
 * @param  up     A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
 */
 SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
-
   // Get read-only OAuth permissions to view the users GDrive folders
   var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
   var recentParent = parentChain[parentChain.length - 1];
@@ -1501,9 +1500,7 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
   chrome.identity.getAuthToken(authDetails, function(authToken){
     $.ajax({
       url: "https://www.googleapis.com/drive/v2/files",
-
-      type: "get",
-
+      type: "GET",
       data: {
         corpus: "DEFAULT",
         q: "('" + currentFolder["id"] + "'" + " in parents) and (mimeType='application/vnd.google-apps.folder') and (trashed=false)",
@@ -1518,28 +1515,23 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 
       // Once we're given permission, populate the folder select dropdown
       success: function(response){
-        var title, id;
-        var options = $(".gdrive-folder-select");
+        var options = $("#gdrive-folder-select");
 
         // Add an option to go up a level in the folder tree,
         // as long we're currently not in the absolute root
-        if (currentFolder["id"] != "root")
+        if (currentFolder["id"] != "root") {
           options.append("<option class='up' value='" + recentParent["id"] + "'>" + recentParent["name"] + "</option>");
+        }
 
-        // Sort the folders into alphabetical order
+        // Sort the folders alphabetically.
         response["items"] = response["items"].sort(function (a, b){
-          if (a["title"] > b["title"]){
-            return 1;
-          }
-          else{
-            return -1;
-          }
+          return (a["title"] > b["title"] ? 1 : -1);  // There can be no "equals".
         });
 
         // For each folder, add an <option id=FOLDERID>FOLDERTITLE</option>
         for (var i = 0; i < response["items"].length; i++){
-          title = response["items"][i]["title"];
-          id = response["items"][i]["id"];
+          var title = response["items"][i]["title"];
+          var id = response["items"][i]["id"];
           options.append("<option value='" + id + "'>" + title + "</option>");
         }
 
@@ -1549,7 +1541,7 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
         // Remove previous change() events
         options.unbind();
 
-        options.change(function(){
+        options.change(function() {
           var selectedFolderName = options.children("option:selected").text();
           var selectedFolderID   = options.val();
           var up                 = options.children("option:selected").hasClass("up");
@@ -1563,11 +1555,9 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
             // If we're going up a folder, we should remove latestParent from the parentChain
             if (up){
               parentChain.pop();
-            }
-
-            // If we're going down a folder, we should add the current folder to the parentChain
-            // before descending a level in the tree
-            else{
+            } else {
+              // If we're going down a folder, we should add the current folder to the parentChain
+              // before descending a level in the tree
               parentChain.push(currentFolder);
             }
 
@@ -1579,7 +1569,7 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 
       // For error handling
       statusCode: {
-        401: function(){
+        401: function() {
           $("#GauthError").jqm().jqmShow();
           $("#gdrive-save-form").show();
         }
@@ -1587,9 +1577,6 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
     });
   });
 };
-
-// Make the initial call
-SavePage.getGDriveFolders({name: "My Drive", id: "root"}, [{name: "My Drive", id: "root"}], false);
 
 SavePage.saveToGdrive = function() {
   var imageName = $("#gdrive-image-name").val();
@@ -1826,10 +1813,16 @@ SavePage.initSaveOption = function(){
     }
   });
 
-  $(".sgdrive span").click(function(){
+  $("#sgdriveOption").click(function(){
     $("#saveOptionContent").find(".sgdrive").addClass("selected");
     $("#saveOptionHead, #saveOptionBody").addClass("showContent");
     $("#saveLocal").hide();
+    // Populate the list of folders.
+    $("#gdrive-folder-select").empty();
+    SavePage.getGDriveFolders(
+        {name: "My Drive", id: "root"},
+        [{name: "My Drive", id: "root"}],
+        false);
   });
 
   $("#gdrive-signout").click(function(a){
