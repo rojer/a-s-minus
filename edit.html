@@ -77,7 +77,7 @@
               <ul id="saveOptionList">
                 <li class="as">Temporarily</li>
                 <li class="diigo">Permanently, on Diigo.com</li>
-                <li class="sgdrive">On Google Drive <span id="gdrive-username"></span></li>
+                <li class="sgdrive" id="sgdriveOption">On Google Drive <span id="gdrive-username"></span></li>
                 <li class="local">Local</li>
               </ul>
               <ul id="saveOptionContent">
@@ -118,6 +118,10 @@
                   <div id="gdrive-save-form" class="saveForm">
                     <div><input id="gdrive-image-name" type="text" placeholder="image name"></div>
                     <input type="checkbox" id="gdrive-private"><label for="gdrive-private">Private</label>
+                    <br />
+                    <!-- Folder select -->
+                    <select id="gdrive-folder-select"></select>
+                    <br />
                     <span id="gdrive-save-button" class="button save">Save</span>
                   </div>
                   <div id="gdrive-share-link" class="shareLink">

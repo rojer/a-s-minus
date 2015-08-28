@@ -8,7 +8,9 @@ function bindShortcuts(req){
 }
 
 function keydownHandler(e) {
-  if (!e.shiftKey || !e.ctrlKey) return;
+  // Remember the Polish S, check the altKey too when checking for Ctrl.
+  // https://medium.com/medium-eng/the-curious-case-of-disappearing-polish-s-fa398313d4df
+  if (!e.shiftKey || !e.ctrlKey || e.altKey) return;
   switch (String.fromCharCode(e.which)) {
     case shortcutsConfig.visible.key: {
       if (shortcutsConfig.visible.enable) {
