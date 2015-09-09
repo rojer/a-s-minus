@@ -1,9 +1,13 @@
+function getDevicePixelRatio() {
+    return window.devicePixelRatio || 1;
+}
 function prepareEditArea(req) {
   function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
-    dy = counterY * imageHeight;
+    dy = counterY * (imageHeight / getDevicePixelRatio());
     if (counterY == numTilesY - 1) {
       sy = imageHeight - lastH;
-      sh = dh = lastH;
+      dh = (lastH / getDevicePixelRatio());
+      sh = lastH;
     }
     $("#save-image").attr({src: imgSrc}).load(function(){
       $(this).unbind("load");
@@ -47,7 +51,7 @@ function prepareEditArea(req) {
       counterY = 0;
       n = counterY + counterX * numTilesY;
       addTileY(images[n],
-               centerOffX, centerOffY, columnWidth, imageHeight,
+               centerOffX, centerOffY, columnWidth * getDevicePixelRatio(), imageHeight * getDevicePixelRatio(),
                columnOffsetX, 0, columnWidth, imageHeight);
     }
   }
@@ -65,24 +69,24 @@ function prepareEditArea(req) {
     case "visible": {
       $("#save-image").attr({src:images[0]}).load(function(){
         if ("selected" == req.userAction) {
-          editW = req.centerW * window.devicePixelRatio;
-          editH = req.centerH * window.devicePixelRatio;
+          editW = req.centerW;
+          editH = req.centerH;
           updateEditArea();
           updateShowCanvas();
           getEditOffset();
           addMargin();
           getEditOffset();
         } else if ("upload" == req.userAction) {
-          editW = imageWidth;
-          editH = imageHeight;
+          editW = imageWidth / getDevicePixelRatio();
+          editH = imageHeight / getDevicePixelRatio();
           centerOffX = 0;
           centerOffY = 0;
           updateEditArea();
           updateShowCanvas();
           getEditOffset();
         } else {
-          editW = imageWidth - scrollbarWidth;
-          editH = imageHeight - scrollbarWidth;
+          editW = (imageWidth / getDevicePixelRatio()) - scrollbarWidth;
+          editH = (imageHeight / getDevicePixelRatio()) - scrollbarWidth;
           centerOffX = 0;
           centerOffY = 0;
           updateEditArea();
@@ -91,7 +95,15 @@ function prepareEditArea(req) {
         }
         imageWidth = editW;
         imageHeight = editH;
-        showCtx.drawImage(this, centerOffX * window.devicePixelRatio, centerOffY * window.devicePixelRatio, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+        showCtx.drawImage(
+            this,
+            centerOffX * getDevicePixelRatio(), 
+            centerOffY * getDevicePixelRatio(), 
+            imageWidth * getDevicePixelRatio(), 
+            imageHeight * getDevicePixelRatio(),
+            0, 0,
+            imageWidth, imageHeight
+        );
         $(this).unbind("load");
       });
       break;
@@ -111,24 +123,28 @@ function prepareEditArea(req) {
         lastH = imageHeight * lastRatio.y;
         if ("selected" == req.userAction) {
           if (scrollBar.realX) imageHeight -= scrollbarWidth;
-          editW = req.centerW * window.devicePixelRatio;
+          editW = req.centerW * getDevicePixelRatio();
         } else {
-          editW = imageWidth;
+          editW = imageWidth / getDevicePixelRatio();
         }
-        editH = lastH ? imageHeight * (numTilesY-1) + lastH : imageHeight * numTilesY;
+        editH = lastH ? 
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) : 
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1);
         updateEditArea();
         updateShowCanvas();
         getEditOffset();
         addMargin();
         getEditOffset();
-        addTileY(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+        var sourceWidth = imageWidth * getDevicePixelRatio();
+		var sourceHeight = imageHeight * getDevicePixelRatio();
+        addTileY(images[0], centerOffX, centerOffY, sourceWidth, sourceHeight, 0, 0, imageWidth, imageHeight);
       } else if (scrollBar.x && !scrollBar.y) {
         imageHeight -= scrollbarWidth;
         numTilesX = numImages;
         lastW = imageWidth * lastRatio.x;
         if ("selected" == req.userAction) {
           if (scrollBar.realY) imageWidth -= scrollbarWidth;
-          editH = req.centerH * window.devicePixelRatio;
+          editH = req.centerH * getDevicePixelRatio();
         } else {
           editH = imageHeight;
         }
@@ -137,22 +153,22 @@ function prepareEditArea(req) {
         updateShowCanvas();
         $editArea.addClass("add-margin");
         getEditOffset();
-        addTileX(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+        addTileX(images[0], centerOffX, centerOffY, imageWidth * getDevicePixelRatio(), imageHeight * getDevicePixelRatio(), 0, 0, imageWidth, imageHeight);
       } else if (scrollBar.x && scrollBar.y) {
         imageWidth -= scrollbarWidth;
         imageHeight -= scrollbarWidth;
         lastW = imageWidth * lastRatio.x;
         lastH = imageHeight * lastRatio.y;
         if ("selected" == req.userAction) {
-          editW = req.centerW * window.devicePixelRatio;
-          editH = req.centerH * window.devicePixelRatio;
+          editW = req.centerW * getDevicePixelRatio();
+          editH = req.centerH * getDevicePixelRatio();
         } else {
           editW = lastW ? imageWidth * (numTilesX - 1) + lastW : imageWidth * numTilesX;
           editH = lastH ? imageHeight * (numTilesY - 1) + lastH : imageHeight * numTilesY;
         }
         updateEditArea();
         updateShowCanvas();
-        addTileY(images[0], centerOffX, centerOffY, imageWidth, imageHeight, 0, 0, imageWidth, imageHeight);
+        addTileY(images[0], centerOffX, centerOffY, imageWidth * getDevicePixelRatio(), imageHeight * getDevicePixelRatio(), 0, 0, imageWidth, imageHeight);
       }
     }
   }
