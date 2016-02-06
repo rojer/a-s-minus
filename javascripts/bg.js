@@ -41,7 +41,7 @@ function grabFrame(ctx, video, stream) {
   var url = canvas.toDataURL("png", null);
   console.log('captured', url.length, 'bytes,', canvas.width+'x'+canvas.height);
   ctx.imageData = [url];
-  stream.stop();
+  stream.getTracks()[0].stop();
   video.src = "";
   newTab(ctx);
 }
