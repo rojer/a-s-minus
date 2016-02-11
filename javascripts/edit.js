@@ -1684,7 +1684,7 @@ SavePage.saveToGdrive = function() {
       mimeType: imageInfo.mimeType,
     parents: [{
       kind: "drive#fileLink",
-      id: $(".gdrive-folder-select").val()
+      id: $("#gdrive-folder-select").val()
     }]
     };
     var partBoundary = "--" + multipartBoundaryString;

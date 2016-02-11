@@ -41,7 +41,7 @@ function grabFrame(ctx, video, stream) {
   var url = canvas.toDataURL("png", null);
   console.log('captured', url.length, 'bytes,', canvas.width+'x'+canvas.height);
   ctx.imageData = [url];
-  stream.getVideoTracks()[0].stop();
+  stream.getTracks()[0].stop();
   video.src = "";
   newTab(ctx);
 }
@@ -81,7 +81,7 @@ function showNotification(ctx, stream) {
       if (doCapture) {
         attachToVideo(ctx, stream);
       } else {
-        stream.getVideoTracks()[0].stop();
+        stream.getTracks()[0].stop();
       }
     }
   };
