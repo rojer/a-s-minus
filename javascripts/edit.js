@@ -1497,7 +1497,7 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
   setPermissionsRequest.open("POST", "https://www.googleapis.com/drive/v2/files/" + fileId + "/permissions");
   setPermissionsRequest.setRequestHeader("Authorization", "OAuth " + authToken);
   setPermissionsRequest.setRequestHeader("Content-Type", "application/json");
-  setPermissionsRequest.send(JSON.stringify({ role: "reader", type: "anyone" }));
+  setPermissionsRequest.send(JSON.stringify({ role: "reader", type: "anyone", withLink: true }));
 };
 
 /**
