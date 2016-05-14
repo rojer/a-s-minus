@@ -498,7 +498,7 @@ function save() {
 
     // Uses HTML5 Download attribute so we can stop using Flash
     $("a#save-html5-btn").attr("href", $("img#save-image").attr("src"));
-    $("a#save-html5-btn").attr("download", "screenshot");
+    $("a#save-html5-btn").attr("download", tabtitle);
   }
 
   function onUploadClicked() {
