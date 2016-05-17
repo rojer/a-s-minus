@@ -495,10 +495,20 @@ function save() {
     var d = $("#save-image").attr("src").split(",")[1].replace(/\+/g,"%2b");
     e = tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g, " ");
     f = $("#save-image").attr("src").split(",")[0].split("/")[1].split(";")[0];
-
-    // Uses HTML5 Download attribute so we can stop using Flash
-    $("a#save-html5-btn").attr("href", $("img#save-image").attr("src"));
-    $("a#save-html5-btn").attr("download", "screenshot");
+    $("#save-flash-btn").empty().append('<div id="flash-save"></div>');
+    var g = "10", h = null;
+    var i = {data:d,dataType:"base64",filename:e+"."+f,width:100,height:30};
+    var j = {allowScriptAccess:"always"};
+    var k = {};
+    k.id = "CreateSaveWindow";
+    k.name = "CreateSaveWindow";
+    k.align = "middle";
+    swfobject.embedSWF("media/CreateSaveWindow.swf","flash-save","100","30",g,h,i,j,k);
+    chrome.extension.sendRequest({
+      action: "return_image_data",
+      data: c.replace(/^data:image\/(png|jpeg);base64,/,""),
+      title: tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")
+    });
   }
 
   function onUploadClicked() {
