@@ -97,9 +97,9 @@ function prepareEditArea(req) {
         imageHeight = editH;
         showCtx.drawImage(
             this,
-            centerOffX * getDevicePixelRatio(), 
-            centerOffY * getDevicePixelRatio(), 
-            imageWidth * getDevicePixelRatio(), 
+            centerOffX * getDevicePixelRatio(),
+            centerOffY * getDevicePixelRatio(),
+            imageWidth * getDevicePixelRatio(),
             imageHeight * getDevicePixelRatio(),
             0, 0,
             imageWidth, imageHeight
@@ -127,8 +127,8 @@ function prepareEditArea(req) {
         } else {
           editW = imageWidth / getDevicePixelRatio();
         }
-        editH = lastH ? 
-                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) : 
+        editH = lastH ?
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) :
                     (imageHeight / getDevicePixelRatio()) * (numTilesY - 1);
         updateEditArea();
         updateShowCanvas();
@@ -495,6 +495,13 @@ function save() {
     var d = $("#save-image").attr("src").split(",")[1].replace(/\+/g,"%2b");
     e = tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g, " ");
     f = $("#save-image").attr("src").split(",")[0].split("/")[1].split(";")[0];
+
+    // Uses HTML5 Download attribute so we can stop using Flash
+    $("a#save-html5-btn").attr("href", $("img#save-image").attr("src"));
+    $("a#save-html5-btn").attr("download", tabtitle);
+
+    /*
+    // Old Flash Code
     $("#save-flash-btn").empty().append('<div id="flash-save"></div>');
     var g = "10", h = null;
     var i = {data:d,dataType:"base64",filename:e+"."+f,width:100,height:30};
@@ -509,6 +516,7 @@ function save() {
       data: c.replace(/^data:image\/(png|jpeg);base64,/,""),
       title: tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")
     });
+    */
   }
 
   function onUploadClicked() {
