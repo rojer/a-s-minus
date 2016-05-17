@@ -97,9 +97,9 @@ function prepareEditArea(req) {
         imageHeight = editH;
         showCtx.drawImage(
             this,
-            centerOffX * getDevicePixelRatio(), 
-            centerOffY * getDevicePixelRatio(), 
-            imageWidth * getDevicePixelRatio(), 
+            centerOffX * getDevicePixelRatio(),
+            centerOffY * getDevicePixelRatio(),
+            imageWidth * getDevicePixelRatio(),
             imageHeight * getDevicePixelRatio(),
             0, 0,
             imageWidth, imageHeight
@@ -127,8 +127,8 @@ function prepareEditArea(req) {
         } else {
           editW = imageWidth / getDevicePixelRatio();
         }
-        editH = lastH ? 
-                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) : 
+        editH = lastH ?
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) :
                     (imageHeight / getDevicePixelRatio()) * (numTilesY - 1);
         updateEditArea();
         updateShowCanvas();
@@ -413,6 +413,10 @@ function selectTool(tool) {
       if (currentAction != null) currentAction.done();
       currentAction = null;
       selectedTool = null;
+
+      // Binds shortcuts, but then unbinds them when the "Done" button
+      // is clicked, so that it shorcuts don't interfere later on
+      $("body").unbind("keydown");
       save();
       break;
     }
@@ -482,6 +486,12 @@ function save() {
   function embedLocalSave() {
     function a() {
       $("#image_loader").hide(),$("#save-image, #re-edit").css({visibility:"visible"});
+
+      // When the "re-edit" button is clicked, the shorcuts are rebinded
+      $("a#re-edit").click(function() {
+        bindShortcuts();
+      });
+
       if ($("#save-image").outerWidth() > parseInt($("#save_image_wrapper").css("width"))) {
         $("#save-image").css({width:"100%"});
       }
@@ -1401,6 +1411,7 @@ $(document).ready(function(){
   showCtx = showCanvas.getContext("2d");
   chrome.extension.onRequest.addListener(handleReq);
   bindShortcuts();
+
   $(window).unbind("resize").resize(function(){
     getEditOffset();
     addMargin();
