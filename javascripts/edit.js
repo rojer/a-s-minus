@@ -1612,7 +1612,7 @@ SavePage.saveGDriveFolderPref = function(shouldRemember) {
   localStorage.setItem("folderPref",
     JSON.stringify({remember: shouldRemember, data: {name: folName, id: folID}})
   );
-  $("input#save-gdrive-folder-pref").prop("checked", shouldRemember);
+  $("input#gdrive-save-folder-pref").prop("checked", shouldRemember);
 }
 
 SavePage.saveToGdrive = function() {
@@ -1875,7 +1875,7 @@ SavePage.initSaveOption = function(){
 
   // Change the user's preference to save the folder when the
   // checkbox is checked/unchecked
-  $("input#save-gdrive-folder-pref").change(function() {
+  $("input#gdrive-save-folder-pref").change(function() {
     SavePage.saveGDriveFolderPref($(this).is(":checked"));
   });
 
