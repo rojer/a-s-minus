@@ -97,9 +97,9 @@ function prepareEditArea(req) {
         imageHeight = editH;
         showCtx.drawImage(
             this,
-            centerOffX * getDevicePixelRatio(), 
-            centerOffY * getDevicePixelRatio(), 
-            imageWidth * getDevicePixelRatio(), 
+            centerOffX * getDevicePixelRatio(),
+            centerOffY * getDevicePixelRatio(),
+            imageWidth * getDevicePixelRatio(),
             imageHeight * getDevicePixelRatio(),
             0, 0,
             imageWidth, imageHeight
@@ -127,8 +127,8 @@ function prepareEditArea(req) {
         } else {
           editW = imageWidth / getDevicePixelRatio();
         }
-        editH = lastH ? 
-                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) : 
+        editH = lastH ?
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) :
                     (imageHeight / getDevicePixelRatio()) * (numTilesY - 1);
         updateEditArea();
         updateShowCanvas();
@@ -607,6 +607,11 @@ function save() {
 
       $("#gdrive-share-link").hide();
       $("#gdrive-save-form").show();
+
+      $("#imgur-share-link").hide();
+      $("#imgur-error").hide();
+      $("#imgur-error").clear();
+      $("#imgur-upload-form").show();
     }
   });
   var c = "";
@@ -1709,6 +1714,44 @@ SavePage.saveToGdrive = function() {
   });
 };
 
+SavePage.uploadToImgurAnon = function() {
+  var baseURL = "https://api.imgur.com/3/";
+  var imageData = $("img#save-image").attr("src");
+  var clientID = "63eca6c00cd1ff0";
+  $.ajax({
+    url: baseURL + "image",
+    type: "POST",
+    headers: {
+      "Authorization": "Client-ID " + clientID
+    },
+    data: {
+      type: "base64",
+      title: $("#imgur-image-name").val(),
+      image: SavePage.getImageSrc()
+    },
+    success: function(response) {
+      console.log("Status of imgur upload: " + response ["status"]);
+      var link = response ["data"] ["link"];
+      console.log(link);
+      $("#imgur-image-link").val(link);
+      $("#imgur-share-link").show();
+    },
+    error: function(response) {
+      var errorCode = response ["status"];
+      console.log("Status of imgur upload: " + errorCode);
+      $("#imgur-error").append("<p>Sorry, but a " + errorCode +
+                              " error was encountered.</p>").show();
+
+      // Imgur rate limit was hit
+      if (errorCode === 429) {
+        $("#imgur-error").append("<br /><p>It appears you've hit the rate " +
+                                  " limit for uploading to Imgur. Please " +
+                                  " wait before trying to upload again.</p>");
+      }
+    }
+  });
+}
+
 SavePage.saveLocal=function(){
   function a(a,b,c){
     function d(a){return a.charCodeAt(0)};
@@ -1775,6 +1818,7 @@ SavePage.initSaveOption = function(){
   $(".diigo .saveForm input[name=title]").val(tabtitle);
   $("#gdrive-image-name").val(tabtitle);
   $("#gdrive-user p span").bind("click",function(){$("#notice").show()});
+  $("#imgur-image-name").val(tabtitle);
 
   chrome.identity.getProfileUserInfo(function(userInfo) {
     $("#gdrive-user").show();
@@ -1851,6 +1895,11 @@ SavePage.initSaveOption = function(){
     $("#notice").hide();
     $("#gdrive-user").hide();
     $("#saveOptionList li.sgdrive span").text("");
+  });
+
+  $("#imgur-save-button").click(function() {
+    SavePage.uploadToImgurAnon();
+    $("#imgur-upload-form").hide();
   });
 
   $("#saveOptionContent").click(function(a){
