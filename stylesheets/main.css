@@ -1544,6 +1544,16 @@ body.save #edit-area {
   display: none;
 }
 
+div#imgur-upload-form table {
+	width:100%;
+}
+div#imgur-upload-form table td {
+	width:50%;
+}
+div#imgur-upload-form strong {
+	line-height:16px;
+}
+
 /************adQuire**************/
 #adQuire{
     height: 200px;
