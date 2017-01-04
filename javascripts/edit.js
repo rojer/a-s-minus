@@ -1789,6 +1789,12 @@ SavePage.authorizeImgur = function() {
 SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
   var baseURL = "https://api.imgur.com/3/";
   var clientID = "63eca6c00cd1ff0";
+
+  /* Sends the upload request to Imgur
+  ** 401 error: Asks for a new accessToken and tries again
+  ** 403 error: Attempts to reauthenticate user (SavePage.authorizeImgur())
+  ** Anything else, gives up.
+  */
   var uploadRequest = function(token, haveRefreshedToken) {
     $.ajax({
       url: baseURL + "image",
@@ -1814,6 +1820,12 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
         if (!haveRefreshedToken && reqObject.status === 401) {
           refreshAccessToken();
         }
+
+        // 403 error means that the user withdrew our access; needs to be
+        // reauthenticated
+        else if (reqObject.status === 403) {
+          SavePage.authorizeImgur();
+        }
         else {
           $(".loader").remove();
           $("div#imgur-error").empty().append(
@@ -1825,6 +1837,8 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
       }
     });
   };
+
+  // Used to obtain a new accessToken
   var refreshAccessToken = function() {
     console.log("Refreshing token...");
     $.ajax({
