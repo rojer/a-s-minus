@@ -1717,6 +1717,7 @@ SavePage.saveToGdrive = function() {
 SavePage.uploadToImgurAnon = function() {
   var baseURL = "https://api.imgur.com/3/";
   var clientID = "63eca6c00cd1ff0";
+  $("#imgur-upload-form").hide("fast").after($('<div class="loader">Uploading</div>'));
   $.ajax({
     url: baseURL + "image",
     type: "POST",
@@ -1727,17 +1728,18 @@ SavePage.uploadToImgurAnon = function() {
       type: "base64",
       title: $("#imgur-image-name").val(),
       image: SavePage.getImageSrc(),
-      _fake_status: "200"
     },
     success: function(response) {
       console.log(response);
       var link = response ["data"] ["link"];
       $("#imgur-image-link").val(link);
       $("#imgur-share-link").show();
+      $(".loader").remove();
     },
     error: function(response) {
       var errorCode = response ["status"];
       console.log("Status of imgur upload: " + errorCode);
+      $(".loader").remove();
       $("#imgur-error").append("<p>Sorry, but a " + errorCode +
                               " error was encountered.</p>").show();
 
@@ -1804,6 +1806,7 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
         var link = response ["data"] ["link"];
         $("#imgur-image-link").val(link);
         $("#imgur-share-link").show();
+        $(".loader").remove();
       },
       error: function(reqObject, textStatus, errorThrown) {
 
@@ -1812,6 +1815,7 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
           refreshAccessToken();
         }
         else {
+          $(".loader").remove();
           $("div#imgur-error").empty().append(
             "<p>Sorry, but a " + reqObject.status + " error occurred, " +
             "which means " + errorThrown + "</p>"
@@ -1842,6 +1846,7 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
         uploadRequest(response ["access_token"], true);
       },
       error: function(reqObject, textStatus, errorThrown) {
+        $(".loader").remove();
         $("div#imgur-error").empty().append(
           "<p>Could not refresh access token</p>"
         ).show();
@@ -1849,6 +1854,7 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
     });
   };
   uploadRequest(accessToken, false);
+  $("#imgur-upload-form").hide("fast").after($('<div class="loader">Uploading</div>'));
 }
 
 SavePage.saveLocal=function(){
