@@ -97,9 +97,9 @@ function prepareEditArea(req) {
         imageHeight = editH;
         showCtx.drawImage(
             this,
-            centerOffX * getDevicePixelRatio(), 
-            centerOffY * getDevicePixelRatio(), 
-            imageWidth * getDevicePixelRatio(), 
+            centerOffX * getDevicePixelRatio(),
+            centerOffY * getDevicePixelRatio(),
+            imageWidth * getDevicePixelRatio(),
             imageHeight * getDevicePixelRatio(),
             0, 0,
             imageWidth, imageHeight
@@ -127,8 +127,8 @@ function prepareEditArea(req) {
         } else {
           editW = imageWidth / getDevicePixelRatio();
         }
-        editH = lastH ? 
-                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) : 
+        editH = lastH ?
+                    (imageHeight / getDevicePixelRatio()) * (numTilesY - 1) + (lastH / getDevicePixelRatio()) :
                     (imageHeight / getDevicePixelRatio()) * (numTilesY - 1);
         updateEditArea();
         updateShowCanvas();
@@ -607,6 +607,11 @@ function save() {
 
       $("#gdrive-share-link").hide();
       $("#gdrive-save-form").show();
+
+      $("#imgur-share-link").hide();
+      $("#imgur-error").hide();
+      $("#imgur-error").clear();
+      $("#imgur-upload-form").show();
     }
   });
   var c = "";
@@ -1709,6 +1714,163 @@ SavePage.saveToGdrive = function() {
   });
 };
 
+SavePage.uploadToImgurAnon = function() {
+  var baseURL = "https://api.imgur.com/3/";
+  var clientID = "63eca6c00cd1ff0";
+  $("#imgur-upload-form").hide("fast").after($('<div class="loader">Uploading</div>'));
+  $.ajax({
+    url: baseURL + "image",
+    type: "POST",
+    headers: {
+      "Authorization": "Client-ID " + clientID
+    },
+    data: {
+      type: "base64",
+      title: $("#imgur-image-name").val(),
+      image: SavePage.getImageSrc(),
+    },
+    success: function(response) {
+      console.log(response);
+      var link = response ["data"] ["link"];
+      $("#imgur-image-link").val(link);
+      $("#imgur-share-link").show();
+      $(".loader").remove();
+    },
+    error: function(response) {
+      var errorCode = response ["status"];
+      console.log("Status of imgur upload: " + errorCode);
+      $(".loader").remove();
+      $("#imgur-error").append("<p>Sorry, but a " + errorCode +
+                              " error was encountered.</p>").show();
+
+      // Imgur rate limit was hit
+      if (errorCode === 429) {
+        $("#imgur-error").append("<br /><p>It appears you've hit the rate " +
+                                  " limit for uploading to Imgur. Please " +
+                                  " wait before trying to upload again.</p>");
+      }
+    }
+  });
+}
+
+SavePage.authorizeImgur = function() {
+  var clientID = "63eca6c00cd1ff0";
+  var authParams = {
+    client_id: clientID,
+    response_type: "token",
+    state: "imgur-auth"
+  };
+  chrome.identity.launchWebAuthFlow({
+    url: "https://api.imgur.com/oauth2/authorize?" + $.param(authParams),
+    interactive: true
+  }, function(redirect_url) {
+    redirect_url = redirect_url.replace(/https:\/\/.*#/,"");
+
+    // Taken from https://api.imgur.com/oauth2
+    var params = {};
+    var regex = /([^&=]+)=([^&]*)/g, m;
+    while (m = regex.exec(redirect_url)) {
+      params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+    }
+    console.log(params);
+
+    // Proceed with uploading screenshots
+    SavePage.uploadToImgurAuthorized(params ["access_token"], params ["refresh_token"]);
+
+    // Store the user name, access and refresh tokens in localStorage
+    chrome.storage.local.set({
+      imgur_user: params ["account_username"],
+      imgur_access_token: params ["access_token"],
+      imgur_refresh_token: params ["refresh_token"]
+    });
+  });
+}
+
+SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
+  var baseURL = "https://api.imgur.com/3/";
+  var clientID = "63eca6c00cd1ff0";
+
+  /* Sends the upload request to Imgur
+  ** 401 error: Asks for a new accessToken and tries again
+  ** 403 error: Attempts to reauthenticate user (SavePage.authorizeImgur())
+  ** Anything else, gives up.
+  */
+  var uploadRequest = function(token, haveRefreshedToken) {
+    $.ajax({
+      url: baseURL + "image",
+      type: "POST",
+      headers: {
+        "Authorization": "Bearer " + token
+      },
+      data: {
+        type: "base64",
+        title: $("#imgur-image-name").val(),
+        image: SavePage.getImageSrc(),
+      },
+      success: function(response) {
+        console.log(response);
+        var link = response ["data"] ["link"];
+        $("#imgur-image-link").val(link);
+        $("#imgur-share-link").show();
+        $(".loader").remove();
+      },
+      error: function(reqObject, textStatus, errorThrown) {
+
+        // 401 error suggests that the accessToken may need to be refreshed
+        if (!haveRefreshedToken && reqObject.status === 401) {
+          refreshAccessToken();
+        }
+
+        // 403 error means that the user withdrew our access; needs to be
+        // reauthenticated
+        else if (reqObject.status === 403) {
+          SavePage.authorizeImgur();
+        }
+        else {
+          $(".loader").remove();
+          $("div#imgur-error").empty().append(
+            "<p>Sorry, but a " + reqObject.status + " error occurred, " +
+            "which means " + errorThrown + "</p>"
+          ).show();
+          console.log("Status of imgur upload: " + textStatus + " | " + errorThrown);
+        }
+      }
+    });
+  };
+
+  // Used to obtain a new accessToken
+  var refreshAccessToken = function() {
+    console.log("Refreshing token...");
+    $.ajax({
+      url: "https://api.imgur.com/oauth2/token",
+      type: "POST",
+      data: {
+        refresh_token: refreshToken,
+        client_id: clientID,
+        grant_type: "refresh_token",
+
+        // Bad idea, but I'm not aware of any way to solve this problem
+        client_secret: "a9651f5d33fce621510a5f83ef7e7e00e1f02641",
+      },
+      success: function(response) {
+        chrome.storage.local.set({
+          "imgur_access_token": response ["access_token"],
+          "imgur_refresh_token" : response ["refresh_token"]
+        });
+        uploadRequest(response ["access_token"], true);
+      },
+      error: function(reqObject, textStatus, errorThrown) {
+        $(".loader").remove();
+        $("div#imgur-error").empty().append(
+          "<p>Could not refresh access token</p>"
+        ).show();
+      }
+    });
+  };
+  uploadRequest(accessToken, false);
+  $("#imgur-upload-form").hide("fast").after($('<div class="loader">Uploading</div>'));
+}
+
 SavePage.saveLocal=function(){
   function a(a,b,c){
     function d(a){return a.charCodeAt(0)};
@@ -1775,6 +1937,7 @@ SavePage.initSaveOption = function(){
   $(".diigo .saveForm input[name=title]").val(tabtitle);
   $("#gdrive-image-name").val(tabtitle);
   $("#gdrive-user p span").bind("click",function(){$("#notice").show()});
+  $("#imgur-image-name").val(tabtitle);
 
   chrome.identity.getProfileUserInfo(function(userInfo) {
     $("#gdrive-user").show();
@@ -1851,6 +2014,39 @@ SavePage.initSaveOption = function(){
     $("#notice").hide();
     $("#gdrive-user").hide();
     $("#saveOptionList li.sgdrive span").text("");
+  });
+
+  $("#imgurOption").click(function() {
+    chrome.storage.local.get("imgur_user", function(r) {
+      var user = r ["imgur_user"];
+      if (user === undefined) {
+        $("span#imgur-user").text("Not signed in");
+        $("span#imgur-auth-save-button").text("Connect and Save");
+      }
+      else {
+        $("span#imgur-user").text(r ["imgur_user"]);
+      }
+    });
+  });
+
+  $("#imgur-anon-save-button").click(function() {
+    SavePage.uploadToImgurAnon();
+    $("#imgur-upload-form").hide();
+  });
+
+  $("#imgur-auth-save-button").click(function() {
+    var tokens = ["imgur_access_token", "imgur_refresh_token"];
+    chrome.storage.local.get(tokens, function(r) {
+
+      // User needs to sign in with Imgur first
+      if (r [tokens [0]] === undefined) {
+        SavePage.authorizeImgur();
+      }
+      else {
+        SavePage.uploadToImgurAuthorized(r [tokens [0]], r [tokens [1]]);
+      }
+      $("#imgur-upload-form").hide();
+    });
   });
 
   $("#saveOptionContent").click(function(a){

@@ -78,6 +78,7 @@
                 <li class="as">Temporarily</li>
                 <li class="diigo">Permanently, on Diigo.com</li>
                 <li class="sgdrive" id="sgdriveOption">On Google Drive <span id="gdrive-username"></span></li>
+                <li class="imgur" id="imgurOption">Upload to Imgur</li>
                 <li class="local">Local</li>
               </ul>
               <ul id="saveOptionContent">
@@ -135,6 +136,37 @@
                   <div id="notice">
                     <h3>Notice:</h3>
                     <p>If you want to save image to another google account, please clear the authentication in awesome screenshot and sign out your google account in google.com. <a id="gdrive-signout">clear Authentication</a>.</p>
+                  </div>
+                </li>
+                <li class="imgur clear">
+                  <div id="imgur-upload-form">
+                    <div><input id="imgur-image-name" type="text" placeholder="image name"></div>
+                    <br />
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div class="authImgur">Upload as: <span id="imgur-user"></span>
+                              <span id="imgur-auth-save-button" class="button save">Save</span>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <div class="anonImgur">
+                              Upload anonymously
+                              <span id="imgur-anon-save-button" class="button save">Save</span>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div id="imgur-share-link" class="sharelink">
+                    <p>Image Link (share via MSN, GTalk, etc.)</p>
+                    <input type="text" id="imgur-image-link">
+                  </div>
+                  <div id="imgur-error">
                   </div>
                 </li>
                 <li class="local clear">
