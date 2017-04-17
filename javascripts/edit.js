@@ -1872,36 +1872,19 @@ SavePage.uploadToImgurAuthorized = function(accessToken, refreshToken) {
 }
 
 SavePage.saveLocal=function(){
-  function a(a,b,c){
-    function d(a){return a.charCodeAt(0)};
-    b=b||"";
-    c=c||1024;
-    for(var e=atob(a),f=[],g=0;g<e.length;g+=c){
-      var h=e.slice(g,g+c);
-      var i=Array.prototype.map.call(h,d);
-      var j=new Uint8Array(i);
-      f.push(j);
-    }
-    var k=new Blob(f,{type:b});
-    return k;
-  }
-  try{}catch(b){  // ???
-    console.log(b);
-    var c=document.getElementById("save-image").src;
-    var d=c.split(",")[1];
-    var e=c.split(",")[0].split(":")[1].split(";")[0];
-    var f=a(d,e);
-    var g=(window.webkitURL||window.URL).createObjectURL(f);
-    var h=document.createElement("a");
-    var i=document.createEvent("MouseEvents");
-    i.initMouseEvent("click",!0,!0,window,1,0,0,0,0,!1,!1,!1,!1,0,null);
-    h.setAttribute("href",g);
-    h.setAttribute("download",tabtitle.replace(/[#$~!@%^&*();'"?><\[\]{}\|,:\/=+-]/g," ")+"."+e.split("/")[1]);
-    h.dispatchEvent(i);
-  }
+  var blob = showCanvas.toBlob(function(blob) {
+    var saveLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+    var objURL = URL.createObjectURL(blob);
+    saveLink.href = objURL;
+    saveLink.download = tabtitle + ".png";
+    setTimeout(function() {
+      saveLink.dispatchEvent(new MouseEvent("click"));
+      URL.revokeObjectURL(objURL);
+    });
+  });
 };
 
-SavePage.copy = function(){
+SavePage.copy = function() {
   try {
     var a=$('<div contenteditable="true"></div>')
       .css({height:"500px",width:"500px",position:"absolute"})
