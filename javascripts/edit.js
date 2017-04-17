@@ -1553,11 +1553,21 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
         for (var i = 0; i < response["items"].length; i++){
           var title = response["items"][i]["title"];
           var id = response["items"][i]["id"];
-          options.append("<option value='" + id + "'>" + title + "</option>");
+          if (id == localStorage.lastGDriveFolderID) {
+            options.append("<option value='" + id + "' selected>" + title + "</option>");
+          } else {
+            options.append("<option value='" + id + "'>" + title + "</option>");
+          }
         }
 
         // Add an option to use the root of the current folder
-        options.append("<option selected class='no-recursion' value='" + currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");
+        if (localStorage.lastGDriveFolderID == "") {
+          options.append("<option class='no-recursion' value='" +
+              currentFolder["id"] + "' selected>" + currentFolder["name"] + "</option>");
+        } else {
+          options.append("<option class='no-recursion' value='" +
+              currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");
+        }
 
         // Remove previous change() events
         options.unbind();
@@ -1584,6 +1594,8 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 
             SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
           }
+
+          localStorage.lastGDriveFolderID = selectedFolderID;
         });
 
       },
