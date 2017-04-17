@@ -81,7 +81,7 @@ function showNotification(ctx, stream) {
       if (doCapture) {
         attachToVideo(ctx, stream);
       } else {
-        stream.stop();
+        stream.getTracks()[0].stop();
       }
     }
   };

@@ -32,7 +32,8 @@
      "identity.email",
      "storage",
      "desktopCapture",
-     "notifications"
+     "notifications",
+     "https://api.imgur.com/*"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx",
    "version": "4.0.0.8",
