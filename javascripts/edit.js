@@ -1514,6 +1514,7 @@ SavePage.setPublicGdrive = function(fileId, authToken) {
 * @param  up     A boolean describing whether we're recursively ascending or descending the file tree (true for ascending)
 */
 SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
+
   // Get read-only OAuth permissions to view the users GDrive folders
   var authDetails = {'interactive': true, 'scopes': ['https://www.googleapis.com/auth/drive.readonly']};
   var recentParent = parentChain[parentChain.length - 1];
@@ -1537,6 +1538,9 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
       // Once we're given permission, populate the folder select dropdown
       success: function(response){
         var options = $("#gdrive-folder-select");
+
+        // Clear the list of folders
+        options.empty();
 
         // Add an option to go up a level in the folder tree,
         // as long we're currently not in the absolute root
@@ -1580,9 +1584,6 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
           // Folder traversing is only done if the selected folder isn't a "root"
           if (!options.children("option:selected").hasClass("no-recursion")){
 
-            // Clear the list of folders
-            options.empty();
-
             // If we're going up a folder, we should remove latestParent from the parentChain
             if (up){
               parentChain.pop();
@@ -1592,12 +1593,16 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
               parentChain.push(currentFolder);
             }
 
+            // Reset the save folder preference, since active folder is changing
+            SavePage.saveGDriveFolderPref(false);
             SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
           }
 
           localStorage.lastGDriveFolderID = selectedFolderID;
         });
 
+        // Preserve the save folder preference
+        SavePage.saveGDriveFolderPref(JSON.parse(localStorage.getItem("folderPref")).remember);
       },
 
       // For error handling
@@ -1610,6 +1615,22 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
     });
   });
 };
+
+/**
+* Saves the currently selected GDrive folder so that it is loaded
+* automatically the next time the users takes a screenshot. The folder is saved in
+* a key value pair {title: Folder-Name, id: Folder-ID}.
+* @author joshkayani@gmail.com
+*/
+SavePage.saveGDriveFolderPref = function(shouldRemember) {
+	var folName = $("#gdrive-folder-select").find(":selected").text();
+	var folID = $("#gdrive-folder-select").val();
+  console.log("Storing " + folName + " | " + folID);
+  localStorage.setItem("folderPref",
+    JSON.stringify({remember: shouldRemember, data: {name: folName, id: folID}})
+  );
+  $("input#gdrive-save-folder-pref").prop("checked", shouldRemember);
+}
 
 SavePage.saveToGdrive = function() {
   var imageName = $("#gdrive-image-name").val();
@@ -1991,12 +2012,29 @@ SavePage.initSaveOption = function(){
     $("#saveOptionContent").find(".sgdrive").addClass("selected");
     $("#saveOptionHead, #saveOptionBody").addClass("showContent");
     $("#saveLocal").hide();
-    // Populate the list of folders.
+
     $("#gdrive-folder-select").empty();
-    SavePage.getGDriveFolders(
-        {name: "My Drive", id: "root"},
-        [{name: "My Drive", id: "root"}],
-        false);
+
+  	// If the user opted to remember the last folder used,
+  	// load that instead of the root (My Drive).
+  	if (JSON.parse(localStorage.getItem("folderPref")).remember) {
+      var data = JSON.parse(localStorage.getItem("folderPref")).data;
+  		SavePage.getGDriveFolders(
+  			data,
+  			[{name: "My Drive", id: "root"}],
+  			false);
+  	}	else {
+  		SavePage.getGDriveFolders(
+  			{name: "My Drive", id: "root"},
+  			[{name: "My Drive", id: "root"}],
+  			false);
+	  }
+  });
+
+  // Change the user's preference to save the folder when the
+  // checkbox is checked/unchecked
+  $("input#gdrive-save-folder-pref").change(function() {
+    SavePage.saveGDriveFolderPref($(this).is(":checked"));
   });
 
   $("#gdrive-signout").click(function(a){

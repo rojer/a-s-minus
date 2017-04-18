@@ -1509,7 +1509,7 @@ body.save #edit-area {
     margin-bottom: 4px;
 }
 
-#gdrive-private, #gdrive-short-link, #gdrive-short-link-loader {
+#gdrive-private, #gdrive-short-link, #gdrive-short-link-loader, #gdrive-save-folder-pref {
     vertical-align: middle;
     margin-top: 2px;
 }
