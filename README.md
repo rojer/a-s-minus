@@ -5,9 +5,9 @@ It has now been removed from the webstore, reportedly for user privacy violation
 
 If you are familiar with the original Awesome Screenshot, you'll feel right at home.
 
-Here are the things I added, in addition to removing all the crap:
+Here are the things I added, in addition to removing all the junk:
 
- ++ Desktop capture - used to be a "premium feature", i re-implemented it myself.
+ ++ Desktop capture - used to be a "premium feature", I re-implemented it myself.
  ++ GDrive URL shortening - short "goo.gl/foo" urls for screenshots uploaded to GDrive.
  ++ (coming soon) Touch screen support.
 
@@ -42,4 +42,4 @@ Note on permissions:
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-```
+``
