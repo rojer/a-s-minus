@@ -105,7 +105,7 @@ function captureDesktop(ctx) {
       function(streamId) {
         if (!streamId) return;  // User canceled.
         navigator.webkitGetUserMedia(
-            { audio: false, 
+            { audio: false,
               video: {
                 mandatory: {
                   chromeMediaSource: 'desktop',
@@ -196,6 +196,11 @@ localStorage.delay_sec || (localStorage.delay_sec = 3);
 localStorage.tip_touch_shown || (localStorage.tip_touch_shown = 0);
 localStorage.lastGDriveFolderID || (localStorage.lastGDriveFolderID = "");
 
+// Set the default value for GDrive folder remembering
+localStorage.folderPref ||
+localStorage.setItem("folderPref",
+  JSON.stringify({remember: false, data: {}}));
+
 // Clean up old junk from localStorage.
 localStorage.removeItem("data-tracking");
 localStorage.removeItem("autoSave");
@@ -228,7 +233,7 @@ function handleRequest(ctx, req, sender) {
     testImage.src = "";
     setContextForTab([ctx.windowId, ctx.tabId], null);  // Disconnect from original tab.
   };
-  
+
   switch (req.action){
     case "visible": {
       if ("selected" == ctx.userAction) {
