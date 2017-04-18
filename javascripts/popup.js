@@ -15,7 +15,7 @@ $(document).ready(function(){
       var tabURL = a.url;
       // Can't inject scripts into chrome extension gallery or non-html pages.
       if (tabURL.match(/https:\/\/chrome.google.com\/webstore\/category\/extensions/) ||
-          !tabURL.match(/https?:\/\/*\/*/gi)) {
+          !tabURL.match(/(https?|file):\/\/*\/*/gi)) {
         canInject = false;
         $("#entire, #selected, #delayed")
           .attr({title:chrome.i18n.getMessage("disableEntireTitle")})
