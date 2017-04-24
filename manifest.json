@@ -36,7 +36,7 @@
      "https://api.imgur.com/*"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "4.0.0.8",
+   "version": "4.0.1.0",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://bnophbnknjcjnbadhhkciahanapffepm/#" ],
    "oauth2": {
      "client_id": "681609840281-r5gak4k2lbk69pcvgf59v0btkp1kp476.apps.googleusercontent.com",
