@@ -43,11 +43,11 @@ function prepareEditArea(req) {
       var columnOffsetX, columnWidth;
       if (counterX == numTilesX - 1) {
         centerOffX = imageWidth - lastW;
-        columnWidth = editW - counterX * imageWidth;
+        columnWidth = (editW - counterX * imageWidth) / getDevicePixelRatio();
         columnOffsetX = counterX * imageWidth;
       } else {
         centerOffX = 0;
-        columnWidth = imageWidth;
+        columnWidth = imageWidth / getDevicePixelRatio();
         columnOffsetX = counterX * imageWidth;
       }
       centerOffY = 0;
@@ -149,7 +149,7 @@ function prepareEditArea(req) {
           if (scrollBar.realY) imageWidth -= scrollbarWidth;
           editH = req.centerH * getDevicePixelRatio();
         } else {
-          editH = imageHeight;
+          editH = imageHeight / getDevicePixelRatio();
         }
         editW = lastW ? imageWidth * (numTilesX - 1) + lastW : imageWidth * numTilesX;
         updateEditArea();
