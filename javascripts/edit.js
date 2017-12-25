@@ -2,8 +2,11 @@ function getDevicePixelRatio() {
     return window.devicePixelRatio || 1;
 }
 function prepareEditArea(req) {
+
+  /* https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage */
   function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
     dy = counterY * (imageHeight / getDevicePixelRatio());
+    dx = counterX * (imageWidth / getDevicePixelRatio());
     if (counterY == numTilesY - 1) {
       sy = imageHeight - lastH;
       dh = (lastH / getDevicePixelRatio());
@@ -21,7 +24,7 @@ function prepareEditArea(req) {
     });
   }
   function addTileX(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
-    dx = counterX * imageWidth;
+    dx = counterX * (imageWidth / getDevicePixelRatio());
     if (counterX == numTilesX - 1) {
       sx = imageWidth - lastW;
       sw = dw = lastW;
@@ -136,7 +139,7 @@ function prepareEditArea(req) {
         addMargin();
         getEditOffset();
         var sourceWidth = imageWidth * getDevicePixelRatio();
-		var sourceHeight = imageHeight * getDevicePixelRatio();
+		    var sourceHeight = imageHeight * getDevicePixelRatio();
         addTileY(images[0], centerOffX, centerOffY, sourceWidth, sourceHeight, 0, 0, imageWidth, imageHeight);
       } else if (scrollBar.x && !scrollBar.y) {
         imageHeight -= scrollbarWidth;
