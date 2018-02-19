@@ -5,14 +5,13 @@
    "browser_action": {
       "default_icon": "images/icon19.png",
       "default_popup": "popup.html",
-      "default_title": "Awesome Screenshot Minus"
+      "default_title": "Awesome Screenshot Minus (Beta)"
    },
    "content_scripts": [ {
       "js": [ "javascripts/shortcuts.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_end"
    } ],
-   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiT0O9fnWAlXj2J4LWtNrV/l3pR3F8v34NZe5J3WkViRqbeYT48VWvC9/w0l5ORd5XgmV1vtVmT8JviyrN+5LBSvEePj86lwe7KJVI++09NgVCHZBOE50BA+M3WFl2VJ5OTYX8cLGsc9Q0Xwz0SAIdR0B4LN4PymXNJTQU/ljf0q5sVj7bD4yoYTyF+AA4nWOaypmXVrWZfsDqjgaw73wG2ZArzshiDL5nEoVeTPln7KYBhR+BMcrmeQazBu81ohEqOvXFYaaspMhiWqnMVn0DRCkeLmtlW8M9Sh6jQWfvhr5wmw+J+390NDWtI+S+EUdG+J+CrK+OlTYeKDy8qXuzwIDAQAB",
    "default_locale": "en",
    "description": "Awesome Screenshot Minus all the junk",
    "icons": {
@@ -21,9 +20,10 @@
       "32": "images/icon32.png",
       "48": "images/icon48.png"
    },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjEWSb8wg8/Vnb0izCNjarloprZTfDiIEX8hSFV3nwg/e/Or8gGn/YIBJWVXZ5OWurCsb4eSDPdvi2XoH93ChMBfx8s19Euw7ZQgcI5olhZIgxqK+/s8sZ7v9ukI10DqDJlX7BzUA2bCo40Jjq1eNh7/DCf20u4Ovh5eutsXObZKYGqqZEg1ChDzmNLJcqpfjZcVtYGySdsvTOsj2Z9xNkAAehsm72EzdEfJ5IJmlHVlRYItKcS0TlHxf25qnQEUzBBVqKlKhxNxMn9w6jZP+9xSlp+2LUUYwJ7sNhR0649VSjtlVZ+wRPPlTX5KmhYeT/q+CNMnfOZ0kFah+FsM1KwIDAQAB",
    "manifest_version": 2,
    "minimum_chrome_version": "37.0",
-   "name": "Awesome Screenshot Minus",
+   "name": "Awesome Screenshot Minus (Beta)",
    "options_page": "options.html",
    "permissions": [
      "<all_urls>",
@@ -39,7 +39,7 @@
    "version": "4.0.1.0",
    "web_accessible_resources": [ "images/success.gif", "images/clear.png", "images/icon19.png", "chrome-extension://bnophbnknjcjnbadhhkciahanapffepm/#" ],
    "oauth2": {
-     "client_id": "681609840281-r5gak4k2lbk69pcvgf59v0btkp1kp476.apps.googleusercontent.com",
+     "client_id": "681609840281-98ot9gn10qpakv9m2p3b02envjru1qpb.apps.googleusercontent.com",
      "scopes": []
    }
 }
