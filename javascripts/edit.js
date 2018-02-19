@@ -2,8 +2,11 @@ function getDevicePixelRatio() {
     return window.devicePixelRatio || 1;
 }
 function prepareEditArea(req) {
+
+  /* https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage */
   function addTileY(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
     dy = counterY * (imageHeight / getDevicePixelRatio());
+    dx = counterX * (imageWidth / getDevicePixelRatio());
     if (counterY == numTilesY - 1) {
       sy = imageHeight - lastH;
       dh = (lastH / getDevicePixelRatio());
@@ -21,7 +24,7 @@ function prepareEditArea(req) {
     });
   }
   function addTileX(imgSrc, sx, sy, sw, sh, dx, dy, dw, dh){
-    dx = counterX * imageWidth;
+    dx = counterX * (imageWidth / getDevicePixelRatio());
     if (counterX == numTilesX - 1) {
       sx = imageWidth - lastW;
       sw = dw = lastW;
@@ -40,11 +43,11 @@ function prepareEditArea(req) {
       var columnOffsetX, columnWidth;
       if (counterX == numTilesX - 1) {
         centerOffX = imageWidth - lastW;
-        columnWidth = editW - counterX * imageWidth;
+        columnWidth = (editW - counterX * imageWidth) / getDevicePixelRatio();
         columnOffsetX = counterX * imageWidth;
       } else {
         centerOffX = 0;
-        columnWidth = imageWidth;
+        columnWidth = imageWidth / getDevicePixelRatio();
         columnOffsetX = counterX * imageWidth;
       }
       centerOffY = 0;
@@ -136,7 +139,7 @@ function prepareEditArea(req) {
         addMargin();
         getEditOffset();
         var sourceWidth = imageWidth * getDevicePixelRatio();
-		var sourceHeight = imageHeight * getDevicePixelRatio();
+		    var sourceHeight = imageHeight * getDevicePixelRatio();
         addTileY(images[0], centerOffX, centerOffY, sourceWidth, sourceHeight, 0, 0, imageWidth, imageHeight);
       } else if (scrollBar.x && !scrollBar.y) {
         imageHeight -= scrollbarWidth;
@@ -146,7 +149,7 @@ function prepareEditArea(req) {
           if (scrollBar.realY) imageWidth -= scrollbarWidth;
           editH = req.centerH * getDevicePixelRatio();
         } else {
-          editH = imageHeight;
+          editH = imageHeight / getDevicePixelRatio();
         }
         editW = lastW ? imageWidth * (numTilesX - 1) + lastW : imageWidth * numTilesX;
         updateEditArea();
@@ -1553,11 +1556,21 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
         for (var i = 0; i < response["items"].length; i++){
           var title = response["items"][i]["title"];
           var id = response["items"][i]["id"];
-          options.append("<option value='" + id + "'>" + title + "</option>");
+          if (id == localStorage.lastGDriveFolderID) {
+            options.append("<option value='" + id + "' selected>" + title + "</option>");
+          } else {
+            options.append("<option value='" + id + "'>" + title + "</option>");
+          }
         }
 
         // Add an option to use the root of the current folder
-        options.append("<option selected class='no-recursion' value='" + currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");
+        if (localStorage.lastGDriveFolderID == "") {
+          options.append("<option class='no-recursion' value='" +
+              currentFolder["id"] + "' selected>" + currentFolder["name"] + "</option>");
+        } else {
+          options.append("<option class='no-recursion' value='" +
+              currentFolder["id"] + "'>" + currentFolder["name"] + "</option>");
+        }
 
         // Remove previous change() events
         options.unbind();
@@ -1584,6 +1597,8 @@ SavePage.getGDriveFolders = function(currentFolder, parentChain, up){
 
             SavePage.getGDriveFolders({name: selectedFolderName, id: selectedFolderID}, parentChain, up);
           }
+
+          localStorage.lastGDriveFolderID = selectedFolderID;
         });
 
       },

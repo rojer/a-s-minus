@@ -19,12 +19,12 @@ function initEntireCapture(){
   vLast = hLast = false;
   getDocumentNode();
   html = doc.documentElement;
-  initScrollTop = document.body.scrollTop;
-  initScrollLeft = document.body.scrollLeft;
+  initScrollTop = html.scrollTop;
+  initScrollLeft = html.scrollLeft;
   clientH = getClientH();
   clientW = html.clientWidth;
-  document.body.scrollTop = 0;
-  document.body.scrollLeft = 0;
+  html.scrollTop = 0;
+  html.scrollLeft = 0;
   var scrollBar = getScrollBar();
   if (scrollBar.x || scrollBar.y) {
     setTimeout(sendRequest,150,{action:"scroll_next_done"});
@@ -33,10 +33,16 @@ function initEntireCapture(){
   }
 }
 
+/* 
+* Determines if there's a horiztonal or vertical scrollbar.
+* @return An object o where: 
+*   o['x'] === true if there's a horizontal scrollbar
+*   o['y'] === true if there's a vertical scrollbar
+*/
 function getScrollBar() {
   return {
     x: (window.innerHeight > getClientH()),
-    y: (document.body.scrollHeight > window.innerHeight)
+    y: (document.documentElement.scrollHeight > getClientH())
   };
 }
 
@@ -296,9 +302,15 @@ function getStyle(a,b){
   return parseInt(a.style.getPropertyValue(b));
 }
 
+/*
+* The general algorithm is to work in columns: start at column 0, take screenshots all 
+* the way down, then scroll over to column 1 and repeat until the whole doc is covered.
+*/
 function scrollNext() {
-  var scrollTop = document.body.scrollTop;
-  var scrollLeft = document.body.scrollLeft;
+
+  // All references to `html` are to `document.documentElement`
+  var scrollTop = html.scrollTop;
+  var scrollLeft = html.scrollLeft;
   console.log('scrollNext', scrollLeft, scrollTop);
   enableFixedPosition(false);
   var scrollBar = getScrollBar();
@@ -370,18 +382,31 @@ function scrollNext() {
       }
     }
   } else {
-    document.body.scrollTop = scrollTop + clientH;
-    if (document.body.scrollTop == scrollTop || vLast) {
-      var scrollLeft = document.body.scrollLeft;
-      document.body.scrollLeft = scrollLeft + clientW;
-      if (!scrollBar.x || document.body.scrollLeft == scrollLeft || hLast) {
+
+    // Scroll down by 1 clientH 
+    html.scrollTop = scrollTop + clientH;
+
+    // Can't scroll vertically any further.
+    if (!scrollBar.y || html.scrollTop == scrollTop) {
+
+      // Scroll right by 1 clientW
+      var scrollLeft = html.scrollLeft;
+      html.scrollLeft = scrollLeft + clientW;
+
+      // Can't scroll horizontally any further
+      if (!scrollBar.x || html.scrollLeft == scrollLeft) {
         var remainderRatio = {
           y: (scrollTop % clientH / clientH),
           x: (scrollLeft % clientW / clientW)
         };
-        document.body.scrollTop = initScrollTop;
-        document.body.scrollLeft = initScrollLeft;
+
+        // Reset the scroll bars back to their positions at time of capture
+        html.scrollTop = initScrollTop;
+        html.scrollLeft = initScrollLeft;
+
         enableFixedPosition(true);
+
+        // No more columns to make, so capture is done.
         sendRequest({
           action: "entire_capture_done",
           numColumns: numColumns,
@@ -389,17 +414,15 @@ function scrollNext() {
           scrollBar: scrollBar
         });
         return;
-      } else {
-        hLast = (document.body.scrollLeft - scrollLeft < clientW);
-      }
+      } 
+
+      // Starting next column
       numColumns++;
-      document.body.scrollTop = 0;
+      html.scrollTop = 0;
       vLast = false;
       fixAndCapture();
       return;
-    } else {
-      vLast = (document.body.scrollTop - scrollTop) < clientH;
-    }
+    } 
   }
   fixAndCapture();
 }

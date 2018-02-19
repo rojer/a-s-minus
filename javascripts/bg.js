@@ -194,6 +194,7 @@ localStorage.msObj || (localStorage.msObj = '{"visible":{"enable":true,"key":"V"
 localStorage.format || (localStorage.format = "png");
 localStorage.delay_sec || (localStorage.delay_sec = 3);
 localStorage.tip_touch_shown || (localStorage.tip_touch_shown = 0);
+localStorage.lastGDriveFolderID || (localStorage.lastGDriveFolderID = "");
 
 // Clean up old junk from localStorage.
 localStorage.removeItem("data-tracking");
